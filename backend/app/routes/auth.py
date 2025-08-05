@@ -6,7 +6,6 @@ from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -22,8 +21,14 @@ from app.auth.jwt_handler import (
 )
 from app.utils.validation import validate_email, validate_password_strength, validate_required_fields
 
+# Import templates from main.py setup
+from pathlib import Path
+from fastapi.templating import Jinja2Templates
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+templates = Jinja2Templates(directory=str(PROJECT_ROOT / "frontend" / "templates"))
+
 router = APIRouter()
-templates = Jinja2Templates(directory="frontend/templates")
 
 # Pydantic models for request validation
 class UserLogin(BaseModel):

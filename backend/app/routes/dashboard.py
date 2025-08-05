@@ -4,14 +4,19 @@ Dashboard routes
 
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.auth.jwt_handler import get_optional_user
 
+# Import templates from main.py setup
+from pathlib import Path
+from fastapi.templating import Jinja2Templates
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+templates = Jinja2Templates(directory=str(PROJECT_ROOT / "frontend" / "templates"))
+
 router = APIRouter()
-templates = Jinja2Templates(directory="frontend/templates")
 
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(
