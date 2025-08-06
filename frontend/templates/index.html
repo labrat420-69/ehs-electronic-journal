@@ -42,7 +42,7 @@
                     <div class="stat-icon">
                         <i class="fas fa-flask"></i>
                     </div>
-                    <h3 class="stat-number">247</h3>
+                    <h3 class="stat-number">{{ stats.total_chemicals }}</h3>
                     <p class="stat-label">Active Chemicals</p>
                 </div>
             </div>
@@ -54,7 +54,7 @@
                     <div class="stat-icon warning">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                    <h3 class="stat-number">12</h3>
+                    <h3 class="stat-number">{{ stats.expiring_soon }}</h3>
                     <p class="stat-label">Expiring Soon</p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     <div class="stat-icon success">
                         <i class="fas fa-vial"></i>
                     </div>
-                    <h3 class="stat-number">89</h3>
+                    <h3 class="stat-number">{{ stats.total_reagents }}</h3>
                     <p class="stat-label">Reagents Available</p>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                     <div class="stat-icon error">
                         <i class="fas fa-tools"></i>
                     </div>
-                    <h3 class="stat-number">3</h3>
+                    <h3 class="stat-number">{{ stats.maintenance_due }}</h3>
                     <p class="stat-label">Maintenance Due</p>
                 </div>
             </div>
