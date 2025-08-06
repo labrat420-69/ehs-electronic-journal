@@ -1,0 +1,38 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ehs_postgres
+    environment:
+      POSTGRES_DB: ehs_electronic_journal
+      POSTGRES_USER: ehs_user
+      POSTGRES_PASSWORD: ehs_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgresql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ehs_backend
+    environment:
+      - DATABASE_URL=postgresql://ehs_user:ehs_password@postgres:5432/ehs_electronic_journal
+      - SECRET_KEY=your-production-secret-key-change-this
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./frontend:/app/frontend
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local

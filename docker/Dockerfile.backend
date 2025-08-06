@@ -49,7 +49,7 @@ FROM base as production
 
 # Install production dependencies only
 COPY requirements.txt .
-RUN pip install --no-dev -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY backend/ ./backend/
