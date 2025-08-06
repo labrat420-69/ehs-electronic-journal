@@ -33,13 +33,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(dashboard.router)
-app.include_router(chemical_inventory.router)
-app.include_router(reagents.router)
-app.include_router(standards.router)
-app.include_router(equipment.router)
-app.include_router(maintenance.router)
+app.include_router(chemical_inventory.router, prefix="/chemical-inventory", tags=["Chemical Inventory"])
+app.include_router(reagents.router, prefix="/reagents", tags=["Reagents"])
+app.include_router(standards.router, prefix="/standards", tags=["Standards"])
+app.include_router(equipment.router, prefix="/equipment", tags=["Equipment"])
+app.include_router(maintenance.router, prefix="/maintenance", tags=["Maintenance"])
 
 @app.get("/health")
 def health():

@@ -1,8 +1,6 @@
 # EHS Electronic Journal - Docker Compose Configuration
 # Complete laboratory management system deployment
 
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
