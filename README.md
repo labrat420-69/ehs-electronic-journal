@@ -1,7 +1,37 @@
-# EHS Electronic Journal - Development Setup Guide
+# EHS Electronic Journal - Modern Desktop Laboratory Management System
 
 ## Overview
-The EHS Electronic Journal is a comprehensive laboratory management system designed for EHS Labs Environmental Hazards Services. This system provides electronic tracking of chemical inventory, reagents, standards, equipment, and maintenance operations.
+The EHS Electronic Journal is a comprehensive, modern laboratory management system designed for EHS Labs Environmental Hazards Services. This system provides electronic tracking of chemical inventory, reagents, standards, equipment, and maintenance operations with a sleek, desktop-focused interface and advanced data visualization capabilities.
+
+![Enhanced Dashboard](https://github.com/user-attachments/assets/ca0aeffb-681a-434a-9d8e-23a2002661b3)
+
+## 🚀 New Features & Modern Interface
+
+### ✨ Sleek Desktop-Focused Theme
+- **Modern Design Language**: Professional interface with enhanced typography, improved color schemes, and smooth animations
+- **Responsive Sidebar**: Dark theme with glass morphism effects, collapsible navigation, and shimmer animations
+- **Desktop Optimization**: Better horizontal space utilization, reduced vertical scrolling, and grid-based layouts
+- **Enhanced Visual Hierarchy**: Improved cards, buttons, and form styling with consistent spacing and shadows
+
+### 📊 Advanced Analytics Dashboard
+- **Interactive Charts**: Integrated Plotly.js for dynamic data visualization
+- **Chart Builder**: Intuitive interface for creating custom charts with multiple data sources
+- **Smart Data Handling**: Automatic 'no data' state detection with helpful guidance
+- **Multiple Chart Types**: Line charts, pie charts, bar charts, scatter plots, and histograms
+
+![Analytics Dashboard](https://github.com/user-attachments/assets/cc78c35b-aa71-4ccf-9cc3-af810cc2ac9e)
+
+### 👤 Profile Picture System
+- **User Profiles**: Complete profile management with picture upload functionality
+- **Drag & Drop Upload**: Modern file upload interface with preview and validation
+- **Smart Avatars**: Automatic avatar generation with user initials as fallback
+- **File Management**: PNG/JPG support with 2MB size limit and automatic file handling
+
+### 🎨 Enhanced User Experience
+- **Smooth Animations**: CSS transitions and hover effects throughout the interface
+- **Visual Feedback**: Loading states, success messages, and interactive elements
+- **Consistent Theming**: CSS variables for maintainable and consistent styling
+- **Accessibility**: Improved color contrast and keyboard navigation
 
 ## Quick Start
 
@@ -23,6 +53,9 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
+   
+   # Additional packages for enhanced features
+   pip install plotly pandas openpyxl  # For analytics and data export
    ```
 
 3. **Configure environment variables:**
@@ -67,14 +100,25 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ### Backend (FastAPI)
 - **Framework**: FastAPI with SQLAlchemy ORM
 - **Authentication**: JWT tokens with role-based access
-- **Database**: PostgreSQL with history tracking
+- **Database**: PostgreSQL with history tracking (SQLite for development)
+- **File Handling**: Profile picture upload with validation and storage management
+- **API Design**: RESTful endpoints with OpenAPI documentation
 - **Timezone**: EST (UTC-5) with automatic conversion
 
-### Frontend (HTML/CSS/JS)
-- **Templates**: Jinja2 with responsive design
-- **Styling**: Professional blue theme (#1a73e8)
-- **JavaScript**: Vanilla JS with utility libraries
-- **Real-time**: EST clock and live updates
+### Frontend (Modern HTML/CSS/JS)
+- **Templates**: Jinja2 with responsive design and modern aesthetics
+- **Styling**: Enhanced CSS with CSS variables, animations, and glass morphism effects
+- **Typography**: Inter font family with improved readability
+- **JavaScript**: Vanilla JS with Plotly.js for data visualization
+- **Real-time**: EST clock, live updates, and interactive charts
+- **Theme**: Sleek desktop-focused design with professional blue color scheme
+
+### Enhanced Features
+- **Data Visualization**: Plotly.js integration for interactive charts and analytics
+- **Profile Management**: Complete user profile system with picture upload
+- **Modern UI Components**: Enhanced cards, buttons, forms, and navigation
+- **Performance**: Optimized asset loading and efficient CSS architecture
+- **Accessibility**: Improved color contrast and user experience
 
 ### Database Models
 - **Users & Departments**: Role-based authentication
@@ -93,6 +137,19 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - **Read Only**: View-only access to records
 
 ## Key Features
+
+### 📊 Analytics & Data Visualization
+- **Interactive Charts**: Create custom charts from laboratory data using Plotly.js
+- **Chart Builder**: Intuitive interface for selecting data sources and configuring visualizations
+- **Multiple Chart Types**: Line, pie, bar, scatter, area, and histogram charts
+- **Data Analysis**: Activity timelines and inventory distribution analytics
+- **Smart Data Handling**: Automatic detection of insufficient data with user guidance
+
+### 👤 User Profile Management
+- **Profile Pictures**: Upload and manage user profile pictures with drag & drop interface
+- **File Validation**: PNG/JPG support with 2MB size limit and automatic validation
+- **Smart Avatars**: Automatic generation of avatar initials as fallback
+- **Profile Information**: Complete user profile management with account details
 
 ### Chemical Inventory Management
 - Real-time quantity tracking
@@ -127,6 +184,19 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 When running the development server, API documentation is available at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+
+### New API Endpoints
+
+#### Analytics API
+- `GET /api/analytics/data-availability` - Check if sufficient data exists for charts
+- `GET /api/analytics/activity-timeline` - Get activity timeline data for line charts
+- `GET /api/analytics/inventory-distribution` - Get inventory distribution for pie charts
+
+#### Profile Management API
+- `POST /auth/profile-picture` - Upload user profile picture
+- `DELETE /auth/profile-picture` - Delete user profile picture
+- `GET /api/profile-picture/{filename}` - Serve profile picture files
+- `GET /auth/profile` - User profile management page
 
 ## Database Migration
 
@@ -174,6 +244,15 @@ For technical support or questions:
 This project is proprietary software for EHS Labs Environmental Hazards Services.
 
 ## Version History
+
+- **v2.0.0** - Major UI/UX Enhancement & Feature Expansion
+  - 🎨 Complete theme refactoring with sleek, desktop-focused design
+  - 📊 Advanced analytics dashboard with Plotly.js integration
+  - 👤 Profile picture system with drag & drop upload
+  - ✨ Enhanced sidebar with glass morphism and smooth animations
+  - 🚀 Modern CSS architecture with variables and improved performance
+  - 📱 Better responsive design and desktop optimization
+  - 🎯 Improved user experience with visual feedback and transitions
 
 - **v1.0.0** - Initial release with core functionality
   - User authentication and role management
