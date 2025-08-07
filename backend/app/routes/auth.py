@@ -4,10 +4,13 @@ Authentication routes for login, logout, and user management
 
 from datetime import timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import os
+import shutil
+from PIL import Image
 
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -198,6 +201,89 @@ async def update_profile(
     
     # Redirect back to profile with success message
     return RedirectResponse(url="/auth/profile?updated=true", status_code=302)
+
+@router.post("/profile/upload-picture")
+async def upload_profile_picture(
+    picture: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload and update user profile picture"""
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if picture.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Please upload JPEG, PNG, GIF, or WebP images only."
+        )
+    
+    # Validate file size (max 5MB)
+    max_size = 5 * 1024 * 1024  # 5MB
+    file_size = 0
+    content = await picture.read()
+    file_size = len(content)
+    
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File too large. Maximum size is 5MB."
+        )
+    
+    # Create upload directory if it doesn't exist
+    upload_dir = Path(PROJECT_ROOT / "frontend" / "static" / "images" / "profiles")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = picture.filename.split('.')[-1] if '.' in picture.filename else 'jpg'
+    filename = f"user_{current_user.id}.{file_extension}"
+    file_path = upload_dir / filename
+    
+    try:
+        # Save and resize image
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+        
+        # Resize image to standard profile picture size (200x200)
+        with Image.open(file_path) as img:
+            # Convert to RGB if necessary (for GIF/PNG with transparency)
+            if img.mode in ("RGBA", "LA", "P"):
+                img = img.convert("RGB")
+            
+            # Resize to 200x200 maintaining aspect ratio
+            img.thumbnail((200, 200), Image.Resampling.LANCZOS)
+            
+            # Create a square image with white background
+            square_img = Image.new('RGB', (200, 200), (255, 255, 255))
+            
+            # Paste the resized image in the center
+            x = (200 - img.width) // 2
+            y = (200 - img.height) // 2
+            square_img.paste(img, (x, y))
+            
+            # Save as JPEG for consistency
+            final_filename = f"user_{current_user.id}.jpg"
+            final_path = upload_dir / final_filename
+            square_img.save(final_path, "JPEG", quality=90)
+            
+            # Remove original if different format
+            if file_path != final_path and file_path.exists():
+                file_path.unlink()
+        
+        # Update user profile picture path in database
+        current_user.profile_picture = f"/static/images/profiles/{final_filename}"
+        db.commit()
+        
+        return RedirectResponse(url="/auth/profile?picture_uploaded=true", status_code=302)
+        
+    except Exception as e:
+        # Clean up file if there was an error
+        if file_path.exists():
+            file_path.unlink()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing image: {str(e)}"
+        )
 
 @router.post("/change-password")
 async def change_password(

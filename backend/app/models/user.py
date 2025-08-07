@@ -50,6 +50,9 @@ class User(Base):
     phone = Column(String(20), nullable=True)
     extension = Column(String(10), nullable=True)
     
+    # Profile picture
+    profile_picture = Column(String(255), nullable=True)  # File path or URL
+    
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}')>"
     
@@ -78,6 +81,7 @@ class User(Base):
             "department": self.department,
             "phone": self.phone,
             "extension": self.extension,
+            "profile_picture": self.profile_picture,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "last_login": self.last_login.isoformat() if self.last_login else None
         }

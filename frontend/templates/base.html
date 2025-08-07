@@ -142,7 +142,11 @@
             {% if current_user %}
             <div class="user-info">
                 <div class="user-avatar">
-                    <i class="fas fa-user"></i>
+                    {% if current_user.profile_picture %}
+                        <img src="{{ current_user.profile_picture }}" alt="{{ current_user.full_name }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
                 </div>
                 <div class="user-details">
                     <div class="user-name">{{ current_user.full_name }}</div>
