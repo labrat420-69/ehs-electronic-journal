@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}Chemical Inventory History{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <!-- Navigation -->
+    <div class="mb-3">
+        <a href="/chemical-inventory" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="chemicalFilter" class="form-label">Filter by Chemical</label>
+                    <select class="form-control" id="chemicalFilter" onchange="filterHistory()">
+                        <option value="">All Chemicals</option>
+                        <!-- This would be populated by available chemicals -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="actionFilter" class="form-label">Filter by Action</label>
+                    <select class="form-control" id="actionFilter" onchange="filterHistory()">
+                        <option value="">All Actions</option>
+                        <option value="created">Created</option>
+                        <option value="updated">Updated</option>
+                        <option value="quantity_changed">Quantity Changed</option>
+                        <option value="deactivated">Deactivated</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="dateRange" class="form-label">Date Range</label>
+                    <select class="form-control" id="dateRange" onchange="filterHistory()">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                        <option value="quarter">Past Quarter</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Timeline -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Activity History</h5>
+            <div>
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportHistory()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if history_entries %}
+            <div class="timeline">
+                {% for entry in history_entries %}
+                <div class="timeline-item" data-action="{{ entry.action }}" data-date="{{ entry.changed_at.isoformat() }}">
+                    <div class="timeline-marker {{ 'bg-success' if entry.action == 'created' else 'bg-warning' if entry.action == 'updated' else 'bg-info' if entry.action == 'quantity_changed' else 'bg-danger' if entry.action == 'deactivated' else 'bg-secondary' }}">
+                        <i class="fas {{ 'fa-plus' if entry.action == 'created' else 'fa-edit' if entry.action == 'updated' else 'fa-exchange-alt' if entry.action == 'quantity_changed' else 'fa-ban' if entry.action == 'deactivated' else 'fa-info' }}"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <h6 class="mb-1">
+                                {% if entry.action == 'created' %}
+                                    <i class="fas fa-plus text-success"></i> Chemical Added
+                                {% elif entry.action == 'updated' %}
+                                    <i class="fas fa-edit text-warning"></i> Information Updated
+                                {% elif entry.action == 'quantity_changed' %}
+                                    <i class="fas fa-exchange-alt text-info"></i> Quantity Changed
+                                {% elif entry.action == 'deactivated' %}
+                                    <i class="fas fa-ban text-danger"></i> Chemical Deactivated
+                                {% else %}
+                                    <i class="fas fa-info text-secondary"></i> {{ entry.action.title() }}
+                                {% endif %}
+                            </h6>
+                            <small class="text-muted">
+                                {{ entry.changed_at.strftime('%Y-%m-%d %I:%M:%S %p') }} EST
+                                {% if entry.user %}
+                                by {{ entry.user.full_name or entry.user.username }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="timeline-body">
+                            <p class="mb-1">
+                                <strong>{{ entry.chemical.chemical_name }}</strong>
+                                {% if entry.chemical.cas_number %}
+                                (CAS: {{ entry.chemical.cas_number }})
+                                {% endif %}
+                            </p>
+                            
+                            {% if entry.action == 'created' %}
+                            <p class="mb-1">
+                                Chemical added to inventory with initial quantity of 
+                                <strong>{{ entry.remaining_quantity }} {{ entry.chemical.unit }}</strong>
+                            </p>
+                            
+                            {% elif entry.action == 'updated' and entry.field_changed %}
+                            <p class="mb-1">
+                                <strong>{{ entry.field_changed.replace('_', ' ').title() }}</strong> changed
+                                {% if entry.old_value and entry.new_value %}
+                                from "<em>{{ entry.old_value }}</em>" to "<em>{{ entry.new_value }}</em>"
+                                {% endif %}
+                            </p>
+                            
+                            {% elif entry.action == 'quantity_changed' %}
+                            <div class="quantity-change-details">
+                                {% if entry.quantity_change > 0 %}
+                                <span class="badge bg-success">+{{ entry.quantity_change }} {{ entry.chemical.unit }}</span>
+                                <span class="text-success">Added to inventory</span>
+                                {% else %}
+                                <span class="badge bg-danger">{{ entry.quantity_change }} {{ entry.chemical.unit }}</span>
+                                <span class="text-danger">Used from inventory</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">
+                                    Remaining quantity: <strong>{{ entry.remaining_quantity }} {{ entry.chemical.unit }}</strong>
+                                </small>
+                            </div>
+                            {% if entry.reason %}
+                            <p class="mb-1"><strong>Reason:</strong> {{ entry.reason }}</p>
+                            {% endif %}
+                            
+                            {% elif entry.action == 'deactivated' %}
+                            <p class="mb-1 text-muted">
+                                Chemical entry was deactivated and removed from active inventory
+                            </p>
+                            {% endif %}
+                            
+                            {% if entry.notes %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Notes:</strong> {{ entry.notes }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Load More Button -->
+            {% if history_entries|length == 100 %}
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-primary" onclick="loadMoreHistory()">
+                    <i class="fas fa-chevron-down"></i> Load More History
+                </button>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No history entries found</h5>
+                <p class="text-muted">
+                    {% if chemical_id %}
+                    No activity recorded for the selected chemical
+                    {% else %}
+                    No chemical inventory activity has been recorded yet
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load available chemicals for filter dropdown
+    loadChemicalOptions();
+});
+
+async function loadChemicalOptions() {
+    try {
+        // This would make an API call to get available chemicals
+        // For now, we'll populate with current chemical if filtering by one
+        const chemicalFilter = document.getElementById('chemicalFilter');
+        
+        {% if chemical_id %}
+        // If we're filtering by a specific chemical, we could add it to the dropdown
+        // This would be replaced with a proper API call
+        {% endif %}
+    } catch (error) {
+        console.error('Error loading chemical options:', error);
+    }
+}
+
+function filterHistory() {
+    const chemicalFilter = document.getElementById('chemicalFilter').value;
+    const actionFilter = document.getElementById('actionFilter').value;
+    const dateRange = document.getElementById('dateRange').value;
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (chemicalFilter) params.append('chemical_id', chemicalFilter);
+    if (actionFilter) params.append('action', actionFilter);
+    if (dateRange) params.append('date_range', dateRange);
+    
+    // Reload page with filters
+    window.location.href = '/chemical-inventory/history?' + params.toString();
+}
+
+function exportHistory() {
+    // Get current filters
+    const chemicalFilter = document.getElementById('chemicalFilter').value;
+    const actionFilter = document.getElementById('actionFilter').value;
+    const dateRange = document.getElementById('dateRange').value;
+    
+    // Build export URL
+    const params = new URLSearchParams();
+    params.append('format', 'csv');
+    if (chemicalFilter) params.append('chemical_id', chemicalFilter);
+    if (actionFilter) params.append('action', actionFilter);
+    if (dateRange) params.append('date_range', dateRange);
+    
+    // Create download link
+    const exportUrl = '/chemical-inventory/history/export?' + params.toString();
+    window.open(exportUrl, '_blank');
+}
+
+let historyOffset = {{ history_entries|length }};
+
+async function loadMoreHistory() {
+    try {
+        const response = await fetch(`/chemical-inventory/history/api?offset=${historyOffset}&limit=50`);
+        const data = await response.json();
+        
+        if (data.entries && data.entries.length > 0) {
+            // Append new entries to timeline
+            const timeline = document.querySelector('.timeline');
+            data.entries.forEach(entry => {
+                const timelineItem = createTimelineItem(entry);
+                timeline.appendChild(timelineItem);
+            });
+            
+            historyOffset += data.entries.length;
+            
+            // Hide load more button if no more entries
+            if (data.entries.length < 50) {
+                document.querySelector('[onclick="loadMoreHistory()"]').style.display = 'none';
+            }
+        } else {
+            document.querySelector('[onclick="loadMoreHistory()"]').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading more history:', error);
+        alert('Error loading more history entries');
+    }
+}
+
+function createTimelineItem(entry) {
+    // This would create a timeline item element from the entry data
+    // For brevity, this is simplified - in reality you'd want to replicate the Jinja2 template logic
+    const div = document.createElement('div');
+    div.className = 'timeline-item';
+    div.innerHTML = `
+        <!-- Timeline item content would go here -->
+        <div class="timeline-marker bg-info">
+            <i class="fas fa-info"></i>
+        </div>
+        <div class="timeline-content">
+            <div class="timeline-header">
+                <h6>${entry.action}</h6>
+                <small class="text-muted">${new Date(entry.changed_at).toLocaleString()}</small>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+// Real-time updates (if using WebSocket)
+function initializeRealTimeUpdates() {
+    // This could be enhanced with WebSocket connections for real-time updates
+    // For now, we'll use periodic polling
+    setInterval(() => {
+        // Check for new entries
+        checkForNewEntries();
+    }, 30000); // Check every 30 seconds
+}
+
+async function checkForNewEntries() {
+    try {
+        const lastEntryDate = document.querySelector('.timeline-item')?.dataset.date;
+        if (lastEntryDate) {
+            const response = await fetch(`/chemical-inventory/history/api?since=${lastEntryDate}&limit=10`);
+            const data = await response.json();
+            
+            if (data.entries && data.entries.length > 0) {
+                // Add notification or update timeline
+                showNewEntriesNotification(data.entries.length);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking for new entries:', error);
+    }
+}
+
+function showNewEntriesNotification(count) {
+    // Show a small notification that new entries are available
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 300px;';
+    notification.innerHTML = `
+        <i class="fas fa-info-circle"></i> ${count} new history ${count === 1 ? 'entry' : 'entries'} available.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="mt-2">
+            <button class="btn btn-sm btn-primary" onclick="location.reload()">Refresh</button>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 10000);
+}
+
+// Initialize real-time updates if enabled
+// initializeRealTimeUpdates();
+</script>
+
+<style>
+.history-container .timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.history-container .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.history-container .timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.history-container .timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    z-index: 1;
+}
+
+.history-container .timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin-left: 15px;
+}
+
+.history-container .timeline-header {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.history-container .timeline-header h6 {
+    margin: 0;
+    color: #495057;
+}
+
+.history-container .timeline-body p {
+    margin: 0;
+    color: #6c757d;
+}
+
+.history-container .quantity-change-details {
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    margin: 10px 0;
+}
+
+.history-container .badge {
+    font-size: 0.75em;
+    margin-right: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .history-container .timeline {
+        padding-left: 20px;
+    }
+    
+    .history-container .timeline-marker {
+        left: -17px;
+        width: 25px;
+        height: 25px;
+    }
+    
+    .history-container .timeline-content {
+        margin-left: 10px;
+    }
+}
+</style>
+{% endblock %}

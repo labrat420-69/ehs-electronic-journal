@@ -12,11 +12,14 @@ load_dotenv()
 # Database URL from environment variable or default for development
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql://ehs_user:ehs_password@localhost:5432/ehs_electronic_journal"
+    "sqlite:///./ehs_journal.db"  # Use SQLite for development/testing
 )
 
 # SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
+if "sqlite" in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 
 # Session local class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

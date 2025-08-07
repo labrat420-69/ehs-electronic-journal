@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}Chemical Inventory{% endblock %}
+
+{% block content %}
+<div class="inventory-container">
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Search by chemical name or CAS number..." value="{{ search }}">
+                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch d-inline-block me-3">
+                        <input class="form-check-input" type="checkbox" id="showInactive" {{ 'checked' if show_inactive else '' }}>
+                        <label class="form-check-label" for="showInactive">Show Inactive</label>
+                    </div>
+                    <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input" type="checkbox" id="hazardousOnly" {{ 'checked' if hazardous_only else '' }}>
+                        <label class="form-check-label" for="hazardousOnly">Hazardous Only</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <h3 class="stat-number">{{ total_chemicals }}</h3>
+                        <p class="stat-label">Total Chemicals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="stat-number">{{ hazardous_count }}</h3>
+                        <p class="stat-label">Hazardous</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon text-danger">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="stat-number">{{ expiring_count }}</h3>
+                        <p class="stat-label">Expiring Soon</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-center">
+                {% if current_user %}
+                <a href="/chemical-inventory/add" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus"></i> Add Chemical
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Expiring Soon Alert -->
+    {% if expiring_soon %}
+    <div class="alert alert-warning" role="alert">
+        <h5><i class="fas fa-exclamation-triangle"></i> Chemicals Expiring Soon:</h5>
+        <ul class="mb-0">
+            {% for item in expiring_soon %}
+            <li><strong>{{ item.chemical.chemical_name }}</strong> - {{ item.days_remaining }} days remaining</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Chemical Inventory Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Chemical Inventory List</h5>
+            <div>
+                <button class="btn btn-outline-secondary btn-sm" id="exportBtn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if chemicals %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="chemicalTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Chemical Name</th>
+                            <th>CAS Number</th>
+                            <th>Current Qty</th>
+                            <th>Storage Location</th>
+                            <th>Expiration Date</th>
+                            <th>Hazardous</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for chemical in chemicals %}
+                        <tr class="chemical-row" data-id="{{ chemical.id }}">
+                            <td>
+                                <strong>{{ chemical.chemical_name }}</strong>
+                                {% if chemical.manufacturer %}
+                                <br><small class="text-muted">{{ chemical.manufacturer }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chemical.cas_number %}
+                                {{ chemical.cas_number }}
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="quantity-display">
+                                    {{ "%.2f"|format(chemical.current_quantity) }} {{ chemical.unit }}
+                                </span>
+                                {% if chemical.current_quantity <= 0 %}
+                                <span class="badge bg-danger ms-1">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chemical.storage_location %}
+                                {{ chemical.storage_location }}
+                                {% if chemical.storage_temperature %}
+                                <br><small class="text-muted">{{ chemical.storage_temperature }}</small>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chemical.expiration_date %}
+                                {% set exp_date = chemical.expiration_date %}
+                                {% set days_to_exp = (exp_date - current_time_est).days if exp_date > current_time_est else -1 %}
+                                <span class="expiry-date {% if days_to_exp >= 0 and days_to_exp <= 30 %}text-warning{% elif days_to_exp < 0 %}text-danger{% endif %}">
+                                    {{ exp_date.strftime('%Y-%m-%d') }}
+                                    {% if days_to_exp >= 0 and days_to_exp <= 30 %}
+                                    <br><small>({{ days_to_exp }} days)</small>
+                                    {% elif days_to_exp < 0 %}
+                                    <br><small class="text-danger">EXPIRED</small>
+                                    {% endif %}
+                                </span>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chemical.is_hazardous %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-exclamation-triangle"></i> Hazardous
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">Safe</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chemical.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary view-chemical" 
+                                            data-id="{{ chemical.id }}" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if current_user %}
+                                    <button type="button" class="btn btn-sm btn-outline-warning update-quantity" 
+                                            data-id="{{ chemical.id }}" title="Update Quantity">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if chemical.is_active %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger deactivate-chemical" 
+                                            data-id="{{ chemical.id }}" title="Deactivate">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No chemicals found</h5>
+                <p class="text-muted">{% if search %}Try adjusting your search criteria{% else %}Start by adding your first chemical to the inventory{% endif %}</p>
+                {% if current_user %}
+                <a href="/chemical-inventory/add" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add First Chemical
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Chemical Details Modal -->
+<div class="modal fade" id="chemicalDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chemical Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="chemicalDetailsContent">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quantity Update Modal -->
+<div class="modal fade" id="quantityUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Quantity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="quantityUpdateForm">
+                <div class="modal-body">
+                    <input type="hidden" id="updateChemicalId">
+                    <div class="mb-3">
+                        <label for="quantityChange" class="form-label">Quantity Change</label>
+                        <div class="input-group">
+                            <input type="number" step="0.001" class="form-control" id="quantityChange" required>
+                            <span class="input-group-text" id="quantityUnit">mL</span>
+                        </div>
+                        <small class="form-text text-muted">Enter positive value for additions, negative for usage</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason</label>
+                        <select class="form-control" id="reason">
+                            <option value="">Select reason...</option>
+                            <option value="Usage">Usage</option>
+                            <option value="Waste">Waste/Disposal</option>
+                            <option value="Addition">New Stock Added</option>
+                            <option value="Correction">Inventory Correction</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Quantity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Chemical inventory management JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const showInactive = document.getElementById('showInactive');
+    const hazardousOnly = document.getElementById('hazardousOnly');
+
+    // Search functionality
+    function performSearch() {
+        const params = new URLSearchParams();
+        if (searchInput.value) params.append('search', searchInput.value);
+        if (showInactive.checked) params.append('show_inactive', 'true');
+        if (hazardousOnly.checked) params.append('hazardous_only', 'true');
+        
+        window.location.href = '/chemical-inventory?' + params.toString();
+    }
+
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    // Filter change handlers
+    showInactive.addEventListener('change', performSearch);
+    hazardousOnly.addEventListener('change', performSearch);
+
+    // View chemical details
+    document.querySelectorAll('.view-chemical').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const chemicalId = this.dataset.id;
+            try {
+                const response = await fetch(`/chemical-inventory/${chemicalId}`);
+                const chemical = await response.json();
+                
+                document.getElementById('chemicalDetailsContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Basic Information</h6>
+                            <p><strong>Name:</strong> ${chemical.chemical_name}</p>
+                            <p><strong>CAS Number:</strong> ${chemical.cas_number || 'N/A'}</p>
+                            <p><strong>Manufacturer:</strong> ${chemical.manufacturer || 'N/A'}</p>
+                            <p><strong>Catalog #:</strong> ${chemical.catalog_number || 'N/A'}</p>
+                            <p><strong>Lot #:</strong> ${chemical.lot_number || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Inventory Details</h6>
+                            <p><strong>Current Quantity:</strong> ${chemical.current_quantity} ${chemical.unit}</p>
+                            <p><strong>Container Size:</strong> ${chemical.container_size || 'N/A'}</p>
+                            <p><strong>Storage Location:</strong> ${chemical.storage_location || 'N/A'}</p>
+                            <p><strong>Storage Temperature:</strong> ${chemical.storage_temperature || 'N/A'}</p>
+                            <p><strong>Hazard Class:</strong> ${chemical.hazard_class || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Important Dates</h6>
+                            <p><strong>Received:</strong> ${chemical.received_date ? new Date(chemical.received_date).toLocaleDateString() : 'N/A'}</p>
+                            <p><strong>Opened:</strong> ${chemical.opened_date ? new Date(chemical.opened_date).toLocaleDateString() : 'N/A'}</p>
+                            <p><strong>Expiration:</strong> ${chemical.expiration_date ? new Date(chemical.expiration_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Safety & Status</h6>
+                            <p><strong>Hazardous:</strong> ${chemical.is_hazardous ? 'Yes' : 'No'}</p>
+                            <p><strong>Status:</strong> ${chemical.is_active ? 'Active' : 'Inactive'}</p>
+                            ${chemical.safety_notes ? `<p><strong>Safety Notes:</strong> ${chemical.safety_notes}</p>` : ''}
+                            ${chemical.storage_conditions ? `<p><strong>Storage Conditions:</strong> ${chemical.storage_conditions}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                new bootstrap.Modal(document.getElementById('chemicalDetailsModal')).show();
+            } catch (error) {
+                console.error('Error fetching chemical details:', error);
+                alert('Error loading chemical details');
+            }
+        });
+    });
+
+    // Update quantity
+    document.querySelectorAll('.update-quantity').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const chemicalId = this.dataset.id;
+            document.getElementById('updateChemicalId').value = chemicalId;
+            new bootstrap.Modal(document.getElementById('quantityUpdateModal')).show();
+        });
+    });
+
+    // Handle quantity update form submission
+    document.getElementById('quantityUpdateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const chemicalId = document.getElementById('updateChemicalId').value;
+        const quantityChange = parseFloat(document.getElementById('quantityChange').value);
+        const reason = document.getElementById('reason').value;
+        const notes = document.getElementById('notes').value;
+        
+        try {
+            const response = await fetch(`/chemical-inventory/${chemicalId}/quantity`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    quantity_change: quantityChange,
+                    reason: reason,
+                    notes: notes
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            alert('Error updating quantity');
+        }
+    });
+
+    // Deactivate chemical
+    document.querySelectorAll('.deactivate-chemical').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const chemicalId = this.dataset.id;
+            
+            if (confirm('Are you sure you want to deactivate this chemical?')) {
+                try {
+                    const response = await fetch(`/chemical-inventory/${chemicalId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error deactivating chemical:', error);
+                    alert('Error deactivating chemical');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

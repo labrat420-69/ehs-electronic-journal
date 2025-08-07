@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}Add Chemical to Inventory{% endblock %}
+
+{% block content %}
+<div class="add-chemical-container">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="/chemical-inventory" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+
+    <!-- Add Chemical Form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-plus"></i> Add New Chemical</h5>
+        </div>
+        <div class="card-body">
+            <form id="addChemicalForm">
+                <div class="row">
+                    <!-- Basic Information -->
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Basic Information</h6>
+                        
+                        <div class="mb-3">
+                            <label for="chemical_name" class="form-label">Chemical Name *</label>
+                            <input type="text" class="form-control" id="chemical_name" name="chemical_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cas_number" class="form-label">CAS Number</label>
+                            <input type="text" class="form-control" id="cas_number" name="cas_number"
+                                   placeholder="e.g., 7647-01-0">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="manufacturer" class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="catalog_number" class="form-label">Catalog Number</label>
+                            <input type="text" class="form-control" id="catalog_number" name="catalog_number">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="lot_number" class="form-label">Lot Number</label>
+                            <input type="text" class="form-control" id="lot_number" name="lot_number">
+                        </div>
+                    </div>
+                    
+                    <!-- Inventory Details -->
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Inventory Details</h6>
+                        
+                        <div class="mb-3">
+                            <label for="container_size" class="form-label">Container Size</label>
+                            <input type="text" class="form-control" id="container_size" name="container_size"
+                                   placeholder="e.g., 500mL, 1L, 100g">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="current_quantity" class="form-label">Current Quantity *</label>
+                                    <input type="number" step="0.001" class="form-control" id="current_quantity" 
+                                           name="current_quantity" required min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit" class="form-label">Unit *</label>
+                                    <select class="form-control" id="unit" name="unit" required>
+                                        <option value="">Select...</option>
+                                        <optgroup label="Volume">
+                                            <option value="mL">mL</option>
+                                            <option value="L">L</option>
+                                            <option value="µL">µL</option>
+                                        </optgroup>
+                                        <optgroup label="Mass">
+                                            <option value="g">g</option>
+                                            <option value="kg">kg</option>
+                                            <option value="mg">mg</option>
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            <option value="each">each</option>
+                                            <option value="boxes">boxes</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage_location" class="form-label">Storage Location</label>
+                            <input type="text" class="form-control" id="storage_location" name="storage_location"
+                                   placeholder="e.g., Cabinet A-3, Fume Hood 1">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage_temperature" class="form-label">Storage Temperature</label>
+                            <select class="form-control" id="storage_temperature" name="storage_temperature">
+                                <option value="">Select...</option>
+                                <option value="Room Temperature">Room Temperature</option>
+                                <option value="4°C">4°C (Refrigerator)</option>
+                                <option value="-20°C">-20°C (Freezer)</option>
+                                <option value="-80°C">-80°C (Ultra-low Freezer)</option>
+                                <option value="Controlled">Controlled Environment</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <!-- Safety Information -->
+                    <div class="col-md-6">
+                        <h6 class="text-warning mb-3">Safety Information</h6>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_hazardous" name="is_hazardous">
+                                <label class="form-check-label" for="is_hazardous">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i> This chemical is hazardous
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hazard_class" class="form-label">Hazard Classification</label>
+                            <select class="form-control" id="hazard_class" name="hazard_class">
+                                <option value="">Select...</option>
+                                <option value="Explosive">Explosive</option>
+                                <option value="Flammable">Flammable</option>
+                                <option value="Oxidizing">Oxidizing</option>
+                                <option value="Compressed Gas">Compressed Gas</option>
+                                <option value="Corrosive">Corrosive</option>
+                                <option value="Toxic">Toxic</option>
+                                <option value="Harmful">Harmful</option>
+                                <option value="Health Hazard">Health Hazard</option>
+                                <option value="Environmental Hazard">Environmental Hazard</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="safety_notes" class="form-label">Safety Notes</label>
+                            <textarea class="form-control" id="safety_notes" name="safety_notes" rows="3"
+                                    placeholder="Special handling instructions, PPE requirements, etc."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage_conditions" class="form-label">Storage Conditions</label>
+                            <textarea class="form-control" id="storage_conditions" name="storage_conditions" rows="2"
+                                    placeholder="Keep dry, protect from light, inert atmosphere, etc."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Important Dates -->
+                    <div class="col-md-6">
+                        <h6 class="text-success mb-3">Important Dates</h6>
+                        
+                        <div class="mb-3">
+                            <label for="received_date" class="form-label">Date Received</label>
+                            <input type="date" class="form-control" id="received_date" name="received_date">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="expiration_date" class="form-label">Expiration Date</label>
+                            <input type="date" class="form-control" id="expiration_date" name="expiration_date">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="opened_date" class="form-label">Date Opened (if applicable)</label>
+                            <input type="date" class="form-control" id="opened_date" name="opened_date">
+                        </div>
+                        
+                        <!-- Quick Date Buttons -->
+                        <div class="mb-3">
+                            <small class="form-text text-muted">Quick dates:</small><br>
+                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="setToday('received_date')">
+                                Today (Received)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setToday('opened_date')">
+                                Today (Opened)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between">
+                    <a href="/chemical-inventory" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Add Chemical
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-check-circle"></i> Success!</h5>
+            </div>
+            <div class="modal-body" id="successMessage">
+                <!-- Success message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/chemical-inventory" class="btn btn-primary">View Inventory</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addChemicalForm');
+    const hazardousCheckbox = document.getElementById('is_hazardous');
+    const hazardClassSelect = document.getElementById('hazard_class');
+    
+    // Enable/disable hazard class when hazardous checkbox changes
+    hazardousCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            hazardClassSelect.disabled = false;
+            hazardClassSelect.required = true;
+        } else {
+            hazardClassSelect.disabled = true;
+            hazardClassSelect.required = false;
+            hazardClassSelect.value = '';
+        }
+    });
+    
+    // Initially disable hazard class
+    hazardClassSelect.disabled = true;
+    
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        submitBtn.disabled = true;
+        
+        try {
+            const formData = new FormData(form);
+            
+            const response = await fetch('/chemical-inventory/add', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('successMessage').innerHTML = result.message;
+                new bootstrap.Modal(document.getElementById('successModal')).show();
+                form.reset();
+                hazardClassSelect.disabled = true;
+                hazardClassSelect.required = false;
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error adding chemical:', error);
+            alert('Error adding chemical. Please try again.');
+        } finally {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+    
+    // Auto-set today's date for received date when form loads
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('received_date').value = today;
+});
+
+// Helper functions
+function setToday(fieldId) {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById(fieldId).value = today;
+}
+
+function resetForm() {
+    if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+        document.getElementById('addChemicalForm').reset();
+        document.getElementById('hazard_class').disabled = true;
+        document.getElementById('hazard_class').required = false;
+        
+        // Re-set today's date for received date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('received_date').value = today;
+    }
+}
+
+// Auto-complete suggestions (could be enhanced with API)
+document.getElementById('chemical_name').addEventListener('input', function() {
+    // This could be enhanced with an API call to suggest common chemicals
+    // For now, just basic validation
+    this.value = this.value.trim();
+});
+
+// CAS number validation
+document.getElementById('cas_number').addEventListener('blur', function() {
+    const casNumber = this.value.trim();
+    if (casNumber && !isValidCASNumber(casNumber)) {
+        this.classList.add('is-invalid');
+        if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Invalid CAS number format. Expected format: 123-45-6';
+            this.parentNode.appendChild(feedback);
+        }
+    } else {
+        this.classList.remove('is-invalid');
+        const feedback = this.parentNode.querySelector('.invalid-feedback');
+        if (feedback) feedback.remove();
+    }
+});
+
+function isValidCASNumber(cas) {
+    // Basic CAS number validation (could be more sophisticated)
+    const casRegex = /^\d{2,7}-\d{2}-\d$/;
+    return casRegex.test(cas);
+}
+</script>
+
+<style>
+.add-chemical-container .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.add-chemical-container .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.add-chemical-container h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.add-chemical-container .form-control:focus,
+.add-chemical-container .form-select:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
+}
+
+.add-chemical-container .btn-primary {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+.add-chemical-container .btn-primary:hover {
+    background-color: #1557b0;
+    border-color: #1557b0;
+}
+
+.add-chemical-container .form-check-input:checked {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+</style>
+{% endblock %}
