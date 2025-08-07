@@ -131,6 +131,43 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ![Analytics Dashboard](https://github.com/user-attachments/assets/4dd2d1d8-3419-4592-97fb-37f746358ca2)
 
+### Main Dashboard Overview
+- Comprehensive laboratory management dashboard with modern enterprise theme
+- Real-time status cards for all major system components
+- Global sidebar navigation with collapsible sections
+- Professional high-contrast blue color scheme (#1d4ed8)
+- Responsive design optimized for desktop and mobile use
+
+![Main Dashboard](https://github.com/user-attachments/assets/a1daef67-1a09-4c36-aef4-f4feb2afce2c)
+
+### Standards Management
+- MM (Multi-Metal) and FlameAA standards tracking
+- Concentration verification and certification management
+- Batch tracking with expiration date monitoring
+- Advanced search and filtering capabilities
+- Professional CRUD forms with comprehensive validation
+
+### Equipment Management
+- Complete laboratory equipment tracking and calibration
+- Specialized pipette accuracy and precision testing
+- Water conductivity monitoring with quality guidelines
+- Maintenance scheduling and reminder system
+- Performance verification and compliance documentation
+
+### Maintenance Management
+- ICP-OES specific maintenance record keeping
+- Preventive and corrective maintenance tracking
+- Parts usage and cost analysis
+- Performance verification workflows
+- Comprehensive maintenance dashboard with status overview
+
+### Waste Management
+- Laboratory waste container tracking
+- Disposal compliance documentation
+- Real-time capacity monitoring with visual indicators
+- Waste type classification and handling procedures
+- Complete audit trail for regulatory compliance
+
 ## API Documentation
 
 When running the development server, API documentation is available at:
@@ -184,10 +221,21 @@ This project is proprietary software for EHS Labs Environmental Hazards Services
 
 ## Version History
 
+- **v1.5.0** - Major UI/UX modernization and feature expansion
+  - Extended modern enterprise theme to all sections (Standards, Equipment, Maintenance, Waste)
+  - Implemented comprehensive global sidebar navigation
+  - Added professional high-contrast color scheme with responsive design
+  - Created advanced CRUD forms with real-time validation and user feedback
+  - Enhanced performance with optimized asset loading
+  - Integrated sophisticated filtering, search, and export capabilities
+  - Added specialized modules for pipette testing and water conductivity monitoring
+  - Implemented waste management system with compliance tracking
+  - Enhanced maintenance management with ICP-OES specific workflows
+
 - **v1.0.0** - Initial release with core functionality
-  - User authentication and role management
-  - Chemical inventory tracking
+  - User authentication and role-based access control
+  - Chemical inventory tracking with history
   - Reagents and standards management
-  - Equipment and maintenance logging
+  - Basic equipment and maintenance logging
   - Real-time EST timezone handling
-  - Professional UI with responsive design
+  - Professional UI foundation
