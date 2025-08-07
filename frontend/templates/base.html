@@ -6,8 +6,8 @@
     <title>{% block title %}EHS Electronic Journal{% endblock %}</title>
     
     <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/components.css') }}">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/components.css">
     {% block extra_css %}{% endblock %}
     
     <!-- Font Awesome for icons -->
@@ -19,7 +19,7 @@
         <!-- EHS Labs Branding -->
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
+                <img src="/static/images/ehs-logo.png" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
                 <div class="company-info">
                     <h3>EHS Labs</h3>
                     <p>Environmental Hazards Services</p>
@@ -146,7 +146,7 @@
                 </div>
                 <div class="user-details">
                     <div class="user-name">{{ current_user.full_name }}</div>
-                    <div class="user-role">{{ current_user.role.value.title() }}</div>
+                    <div class="user-role">{{ current_user.role.value.title() if current_user.role.value else current_user.role.title() }}</div>
                 </div>
             </div>
             <div class="user-actions">
@@ -210,9 +210,9 @@
     </div>
     
     <!-- JavaScript -->
-    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
-    <script src="{{ url_for('static', path='/js/sidebar.js') }}"></script>
-    <script src="{{ url_for('static', path='/js/clock.js') }}"></script>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/clock.js"></script>
     {% block extra_js %}{% endblock %}
     
     <!-- Initialize components -->

@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -68,8 +69,10 @@ app.add_middleware(
 )
 
 # Static files
-os.makedirs("static", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+# Templates
+templates = Jinja2Templates(directory="frontend/templates")
 
 # Database dependency
 def get_db():
@@ -803,6 +806,102 @@ async def notes_page():
     </body>
     </html>
     """
+
+# Test route for themed dashboard
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+    """Themed admin dashboard for testing"""
+    # Mock user data for testing
+    current_user = db.query(User).filter(User.username == "admin").first()
+    
+    # Mock stats data for testing
+    stats = {
+        "chemical_inventory": {
+            "total": 15,
+            "low_stock": 3,
+            "expired": 1,
+            "recent_activity": 7
+        },
+        "reagents": {
+            "mm_active": 8,
+            "pb_active": 5,
+            "tclp_active": 12,
+            "total_active": 25
+        },
+        "standards": {
+            "mm_active": 6,
+            "flameaa_active": 4,
+            "total_active": 10
+        },
+        "equipment": {
+            "total": 12,
+            "overdue_calibrations": 2,
+            "recent_pipette_tests": 8,
+            "recent_water_tests": 5
+        },
+        "maintenance": {
+            "recent_activities": 3
+        }
+    }
+    
+    # Mock activity data
+    recent_activity = {
+        "activities": [
+            {
+                "type": "chemical_inventory",
+                "action": "updated",
+                "description": "Chemical inventory updated",
+                "details": "Updated sulfuric acid stock levels",
+                "timestamp": datetime.now(),
+                "icon": "fas fa-flask"
+            },
+            {
+                "type": "equipment",
+                "action": "calibrated",
+                "description": "Equipment calibration performed",
+                "details": "Pipette P1000 calibration completed",
+                "timestamp": datetime.now(),
+                "icon": "fas fa-tools"
+            }
+        ]
+    }
+    
+    # Mock alerts data
+    alerts = {
+        "alerts": [
+            {
+                "type": "warning",
+                "title": "Chemical Expiring Soon",
+                "message": "Sodium chloride expires in 15 days",
+                "details": "Expires on 08/22/2025",
+                "icon": "fas fa-clock"
+            },
+            {
+                "type": "info",
+                "title": "Low Stock Alert",
+                "message": "Methanol is running low",
+                "details": "Current stock: 8 mL",
+                "icon": "fas fa-arrow-down"
+            }
+        ],
+        "summary": {
+            "total": 2,
+            "danger": 0,
+            "warning": 1,
+            "info": 1
+        }
+    }
+    
+    context = {
+        "request": request,
+        "current_user": current_user,
+        "stats": stats,
+        "recent_activity": recent_activity,
+        "alerts": alerts,
+        "current_time_est": datetime.now().strftime("%m/%d/%Y %I:%M %p")
+    }
+    
+    return templates.TemplateResponse("dashboard/overview.html", context)
 
 # Initialize default admin user
 @app.on_event("startup")
