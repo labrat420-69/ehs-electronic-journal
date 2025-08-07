@@ -175,3 +175,99 @@ async def get_optional_user(
         pass
     
     return None
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    """Get current authenticated user or raise HTTPException"""
+    token = credentials.credentials
+    
+    try:
+        payload = verify_token(token)
+        if payload is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        user = db.query(User).filter(User.username == username).first()
+        if user is None or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or inactive",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        return user
+        
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+def require_permissions(required_permissions: list):
+    """
+    Dependency factory that creates a dependency requiring specific permissions.
+    
+    Args:
+        required_permissions: List of required permissions like ['read', 'write', 'delete']
+    
+    Returns:
+        A dependency function that validates user permissions
+    """
+    async def check_permissions(
+        current_user: User = Depends(get_current_user)
+    ) -> User:
+        # Map user roles to permissions
+        role_permissions = {
+            UserRole.ADMIN: ['read', 'create', 'update', 'delete', 'manage_users'],
+            UserRole.MANAGER: ['read', 'create', 'update', 'delete'],
+            UserRole.LAB_TECH: ['read', 'create', 'update'],
+            UserRole.USER: ['read', 'create'],
+            UserRole.READ_ONLY: ['read']
+        }
+        
+        user_permissions = role_permissions.get(current_user.role, [])
+        
+        # Check if user has all required permissions
+        missing_permissions = set(required_permissions) - set(user_permissions)
+        
+        if missing_permissions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Missing: {', '.join(missing_permissions)}"
+            )
+        
+        return current_user
+    
+    return check_permissions
+
+def require_admin():
+    """Convenience function for requiring admin role"""
+    return require_permissions(['manage_users'])
+
+def require_manager_or_above():
+    """Convenience function for requiring manager role or above"""
+    async def check_manager_role(
+        current_user: User = Depends(get_current_user)
+    ) -> User:
+        if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Manager role or above required"
+            )
+        return current_user
+    
+    return check_manager_role

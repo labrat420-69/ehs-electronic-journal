@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Chemical Inventory - EHS Electronic Journal{% endblock %}
+{% block page_title %}Chemical Inventory{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Chemical Inventory Management</h2>
+            <p>Track and manage laboratory chemical inventory with real-time quantity updates</p>
+        </div>
+        <div class="page-actions">
+            <a href="/chemical_inventory/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Chemical
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Controls -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="search-input">Search Chemicals</label>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by name, CAS number, or manufacturer...">
+                    <button class="btn btn-outline" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="hazard-filter">Hazard Class</label>
+                <select id="hazard-filter" class="form-control">
+                    <option value="">All</option>
+                    <option value="Corrosive">Corrosive</option>
+                    <option value="Flammable">Flammable</option>
+                    <option value="Toxic">Toxic</option>
+                    <option value="Oxidizer">Oxidizer</option>
+                    <option value="Irritant">Irritant</option>
+                    <option value="Non-Hazardous">Non-Hazardous</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter" class="form-control">
+                    <option value="active">Active Only</option>
+                    <option value="all">All</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chemical Inventory Table -->
+<div class="table-container">
+    <table id="chemicals-table" class="data-table">
+        <thead>
+            <tr>
+                <th>Chemical Name</th>
+                <th>CAS Number</th>
+                <th>Manufacturer</th>
+                <th>Lot Number</th>
+                <th>Quantity</th>
+                <th>Location</th>
+                <th>Expiration</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="chemicals-tbody">
+            {% for chemical in chemicals %}
+            <tr data-chemical-id="{{ chemical.id }}" class="{% if not chemical.is_active %}inactive{% endif %}">
+                <td>
+                    <div class="chemical-info">
+                        <strong>{{ chemical.chemical_name }}</strong>
+                        {% if chemical.is_hazardous %}
+                        <span class="badge badge-warning" title="Hazardous Chemical">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </span>
+                        {% endif %}
+                        {% if chemical.hazard_class %}
+                        <span class="badge badge-secondary">{{ chemical.hazard_class }}</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>{{ chemical.cas_number or 'N/A' }}</td>
+                <td>{{ chemical.manufacturer or 'N/A' }}</td>
+                <td>{{ chemical.lot_number or 'N/A' }}</td>
+                <td>
+                    <div class="quantity-info">
+                        <span class="quantity-value" data-quantity="{{ chemical.current_quantity }}">
+                            {{ "%.3f"|format(chemical.current_quantity) }} {{ chemical.unit }}
+                        </span>
+                        {% if chemical.current_quantity <= 0 %}
+                        <span class="badge badge-danger">Empty</span>
+                        {% elif chemical.current_quantity < 10 %}
+                        <span class="badge badge-warning">Low</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>{{ chemical.storage_location or 'N/A' }}</td>
+                <td>
+                    {% if chemical.expiration_date %}
+                        {% set expiry = chemical.expiration_date %}
+                        <span class="expiry-date" data-expiry="{{ expiry.isoformat() }}">
+                            {{ expiry.strftime('%m/%d/%Y') }}
+                        </span>
+                        {% set days_to_expiry = (expiry.date() - today).days %}
+                        {% if days_to_expiry < 0 %}
+                        <span class="badge badge-danger">Expired</span>
+                        {% elif days_to_expiry < 30 %}
+                        <span class="badge badge-warning">Expires Soon</span>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if chemical.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/chemical_inventory/{{ chemical.id }}" class="btn btn-sm btn-outline" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if current_user.role in ['admin', 'manager', 'lab_tech'] %}
+                        <a href="/chemical_inventory/edit/{{ chemical.id }}" class="btn btn-sm btn-secondary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-primary quantity-update-btn" 
+                                data-chemical-id="{{ chemical.id }}" 
+                                data-chemical-name="{{ chemical.chemical_name }}"
+                                data-current-quantity="{{ chemical.current_quantity }}"
+                                data-unit="{{ chemical.unit }}"
+                                title="Update Quantity">
+                            <i class="fas fa-balance-scale"></i>
+                        </button>
+                        {% endif %}
+                        {% if current_user.role in ['admin', 'manager'] %}
+                        <button class="btn btn-sm btn-danger delete-btn" 
+                                data-chemical-id="{{ chemical.id }}" 
+                                data-chemical-name="{{ chemical.chemical_name }}"
+                                title="Deactivate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not chemicals %}
+    <div class="empty-state">
+        <i class="fas fa-flask"></i>
+        <h3>No chemicals found</h3>
+        <p>Get started by adding your first chemical to the inventory.</p>
+        <a href="/chemical_inventory/add" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Chemical
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quantity Update Modal -->
+<div id="quantity-update-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Quantity</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="quantity-update-form">
+                <div class="form-group">
+                    <label>Chemical</label>
+                    <p id="modal-chemical-name" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label>Current Quantity</label>
+                    <p id="modal-current-quantity" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label for="quantity-change">Quantity Change *</label>
+                    <div class="input-group">
+                        <input type="number" id="quantity-change" step="0.001" class="form-control" required>
+                        <span class="input-group-text" id="modal-unit"></span>
+                    </div>
+                    <small class="form-help">Enter positive value to add, negative to subtract</small>
+                </div>
+                <div class="form-group">
+                    <label for="change-reason">Reason *</label>
+                    <select id="change-reason" class="form-control" required>
+                        <option value="">Select reason...</option>
+                        <option value="Usage">Usage</option>
+                        <option value="Stock Addition">Stock Addition</option>
+                        <option value="Waste Disposal">Waste Disposal</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Correction">Inventory Correction</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="change-notes">Notes</label>
+                    <textarea id="change-notes" class="form-control" rows="3" placeholder="Optional notes..."></textarea>
+                </div>
+                <div id="new-quantity-preview" class="alert alert-info" style="display: none;">
+                    <strong>New Quantity: </strong><span id="preview-quantity"></span>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="modal-submit">Update Quantity</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirm Deactivation</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to deactivate <strong id="delete-chemical-name"></strong>?</p>
+            <p class="text-warning">This will mark the chemical as inactive but preserve all historical data.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="delete-cancel">Cancel</button>
+            <button class="btn btn-danger" id="delete-confirm">Deactivate</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/chemical_inventory.js') }}"></script>
+{% endblock %}
+
+{% block page_init %}
+initializeChemicalInventory();
+{% endblock %}

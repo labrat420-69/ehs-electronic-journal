@@ -38,43 +38,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-class ChemicalInventory(Base):
-    __tablename__ = "chemical_inventory"
-    id = Column(Integer, primary_key=True, index=True)
-    chemical_name = Column(String, index=True)
-    cas_number = Column(String)
-    lot_number = Column(String)
-    expiry_date = Column(String)
-    quantity = Column(Float)
-    unit = Column(String)
-    location = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_by = Column(String)
-
-class MMReagents(Base):
-    __tablename__ = "mm_reagents"
-    id = Column(Integer, primary_key=True, index=True)
-    reagent_name = Column(String)
-    preparation_date = Column(String)
-    expiry_date = Column(String)
-    concentration = Column(String)
-    volume = Column(Float)
-    prepared_by = Column(String)
-    notes = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-class EquipmentCalibration(Base):
-    __tablename__ = "equipment_calibration"
-    id = Column(Integer, primary_key=True, index=True)
-    equipment_name = Column(String)
-    serial_number = Column(String)
-    calibration_date = Column(String)
-    next_calibration = Column(String)
-    technician = Column(String)
-    status = Column(String, default="Active")
-    notes = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
 # Pydantic models
 class UserCreate(BaseModel):
     username: str
@@ -89,18 +52,6 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class ChemicalCreate(BaseModel):
-    chemical_name: str
-    cas_number: Optional[str] = None
-    lot_number: Optional[str] = None
-    expiry_date: Optional[str] = None
-    quantity: Optional[float] = None
-    unit: Optional[str] = None
-    location: Optional[str] = None
-
-# Create tables
-Base.metadata.create_all(bind=engine)
 
 # FastAPI app
 app = FastAPI(title="EHS Electronic Journal", version="1.0.0")
@@ -327,19 +278,6 @@ async def dashboard():
     </body>
     </html>
     """
-
-@app.get("/chemicals")
-async def get_chemicals(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    chemicals = db.query(ChemicalInventory).all()
-    return chemicals
-
-@app.post("/chemicals")
-async def create_chemical(chemical: ChemicalCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_chemical = ChemicalInventory(**chemical.dict(), updated_by=current_user.username)
-    db.add(db_chemical)
-    db.commit()
-    db.refresh(db_chemical)
-    return db_chemical
 
 # Initialize default admin user
 @app.on_event("startup")
