@@ -173,8 +173,26 @@ For technical support or questions:
 
 This project is proprietary software for EHS Labs Environmental Hazards Services.
 
+## Screenshots
+
+### Analytics Dashboard
+![Analytics Dashboard](https://github.com/user-attachments/assets/d9b82f7a-7ec1-431f-95aa-e54c879e0b1e)
+
+The Analytics Dashboard provides a clean, professional interface for:
+- Customizable graph creation from multiple data sources
+- Interactive chart builder with dropdown field selection
+- Multiple graph types (Line, Bar, Area, Scatter)
+- Export functionality for data analysis
+- Quick actions for templates and data management
+
 ## Version History
 
+- **v1.1.0** - Analytics Dashboard improvements
+  - Fixed raw CSS/text rendering issues
+  - Clean, professional layout with no code leaks
+  - Fully functional chart builder interface
+  - Verified visual alignment and responsive design
+  
 - **v1.0.0** - Initial release with core functionality
   - User authentication and role management
   - Chemical inventory tracking
