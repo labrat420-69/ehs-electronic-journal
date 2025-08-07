@@ -5,230 +5,313 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EHS Electronic Journal{% endblock %}</title>
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/components.css') }}">
+    <!-- Tabler CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    
+    <!-- Custom CSS for science lab theme -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/tabler-theme.css') }}">
     {% block extra_css %}{% endblock %}
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <!-- EHS Labs Branding -->
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
-                <div class="company-info">
-                    <h3>EHS Labs</h3>
-                    <p>Environmental Hazards Services</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Real-time EST Clock -->
-        <div class="clock-container">
-            <div class="current-time" id="current-time">
-                {{ current_time_est }}
-            </div>
-            <div class="timezone">EST</div>
-        </div>
-        
-        <!-- Navigation Menu -->
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="/analytics" class="nav-link {% if request.url.path == '/analytics' %}active{% endif %}">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                
-                <!-- Chemical Inventory Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-flask"></i>
-                        <span>Chemical Inventory</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/chemical_inventory/" class="nav-link">Inventory Log</a></li>
-                        <li><a href="/chemical_inventory/add" class="nav-link">Add Chemical</a></li>
-                        <li><a href="/chemical_inventory/history" class="nav-link">History</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Reagents Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-vial"></i>
-                        <span>Reagents</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/reagents/mm" class="nav-link">MM Reagents</a></li>
-                        <li><a href="/reagents/pb" class="nav-link">Pb Reagents</a></li>
-                        <li><a href="/reagents/tclp" class="nav-link">TCLP Reagents</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Standards Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-balance-scale"></i>
-                        <span>Standards</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/standards/mm" class="nav-link">MM Standards</a></li>
-                        <li><a href="/standards/flameaa" class="nav-link">FlameAA Standards</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Equipment Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-tools"></i>
-                        <span>Equipment</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/equipment/" class="nav-link">Equipment Log</a></li>
-                        <li><a href="/equipment/pipettes" class="nav-link">Pipette Log</a></li>
-                        <li><a href="/equipment/water-conductivity" class="nav-link">Water Conductivity</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Maintenance Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-wrench"></i>
-                        <span>Maintenance</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/maintenance/icp-oes" class="nav-link">ICP-OES Maintenance</a></li>
-                        <li><a href="/maintenance/" class="nav-link">Maintenance Dashboard</a></li>
-                    </ul>
-                </li>
-                
-                <!-- User Management (Admin only) -->
-                {% if current_user and current_user.role == 'admin' %}
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-users"></i>
-                        <span>Administration</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/auth/users" class="nav-link">User Management</a></li>
-                        <li><a href="/admin/departments" class="nav-link">Departments</a></li>
-                    </ul>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        
-        <!-- User Info & Logout -->
-        <div class="sidebar-footer">
-            {% if current_user %}
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-details">
-                    <div class="user-name">{{ current_user.full_name }}</div>
-                    <div class="user-role">{{ current_user.role.value.title() }}</div>
-                </div>
-            </div>
-            <div class="user-actions">
-                <a href="/auth/profile" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-cog"></i> Profile
-                </a>
-                <a href="/auth/logout" class="btn btn-outline btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-            {% else %}
-            <div class="auth-actions">
-                <a href="/auth/login" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Main Content Area -->
-    <div id="main-content" class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
+<body data-bs-theme="{% block theme %}light{% endblock %}">
+    <div class="page">
+        <!-- Navbar -->
+        <header class="navbar navbar-expand-md navbar-light d-print-none">
+            <div class="container-xl">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
-                <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
-            </div>
-            
-            <div class="top-bar-right">
-                {% if current_user %}
-                <span class="welcome-text">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- Flash Messages -->
-            {% if get_flashed_messages %}
-            <div class="flash-messages">
-                {% for category, message in get_flashed_messages(with_categories=true) %}
-                <div class="alert alert-{{ category }}">
-                    <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
-                    {{ message }}
-                    <button class="alert-close">&times;</button>
+                <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                    <a href="/">
+                        <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" width="32" height="32" alt="EHS Labs" class="navbar-brand-image" onerror="this.style.display='none'">
+                        EHS Electronic Journal
+                    </a>
+                </h1>
+                <div class="navbar-nav flex-row order-md-last">
+                    <!-- Theme toggle -->
+                    <div class="nav-item d-none d-md-flex me-3">
+                        <div class="btn-list">
+                            <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-theme">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="12" r="4"/>
+                                    <path d="m3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+                                </svg>
+                                Theme
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Real-time EST Clock -->
+                    <div class="nav-item d-none d-md-flex me-3">
+                        <div class="nav-link px-0 text-muted">
+                            <span id="current-time">Loading...</span>
+                        </div>
+                    </div>
+                    <!-- User dropdown -->
+                    {% if current_user %}
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                            <span class="avatar avatar-sm" style="background-image: url('{{ url_for('static', path='/images/avatars/000m.jpg') }}')">{{ current_user.full_name[0] }}</span>
+                            <div class="d-none d-xl-block ps-2">
+                                <div>{{ current_user.full_name }}</div>
+                                <div class="mt-1 small text-muted">{{ current_user.role }}</div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                            <a href="/auth/profile" class="dropdown-item">Profile</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="/auth/logout" class="dropdown-item">Logout</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="nav-item">
+                        <a href="/auth/login" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
+                                <path d="M3 12h13l-3 -3m0 6l3 -3"/>
+                            </svg>
+                            Login
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
             </div>
-            {% endif %}
+        </header>
+        
+        <!-- Navbar with navigation tabs -->
+        <header class="navbar-expand-md">
+            <div class="collapse navbar-collapse" id="navbar-menu">
+                <div class="navbar">
+                    <div class="container-xl">
+                        <ul class="navbar-nav">
+                            <li class="nav-item {% if request.url.path == '/' or request.url.path == '/dashboard' %}active{% endif %}">
+                                <a class="nav-link" href="/dashboard">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <polyline points="5 12 3 12 12 3 21 12 19 12"/>
+                                            <path d="m5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/>
+                                            <path d="m9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>
+                                        </svg>
+                                    </span>
+                                    <span class="nav-link-title">Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown {% if '/analytics' in request.url.path %}active{% endif %}">
+                                <a class="nav-link dropdown-toggle" href="#navbar-extra" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <line x1="3" y1="12" x2="6" y2="12"/>
+                                            <line x1="9" y1="12" x2="21" y2="12"/>
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="3" y1="18" x2="21" y2="18"/>
+                                        </svg>
+                                    </span>
+                                    <span class="nav-link-title">Laboratory Modules</span>
+                                </a>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-menu-columns">
+                                        <div class="dropdown-menu-column">
+                                            <a class="dropdown-item" href="/analytics">
+                                                <i class="fas fa-chart-line me-2"></i>
+                                                Analytics Dashboard
+                                            </a>
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-flask me-2"></i>
+                                                    Chemical Inventory
+                                                    <!-- INTEGRATION POINT: Chemical inventory module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/chemical_inventory/" class="dropdown-item">Inventory Log</a>
+                                                    <a href="/chemical_inventory/add" class="dropdown-item">Add Chemical</a>
+                                                    <a href="/chemical_inventory/history" class="dropdown-item">History</a>
+                                                </div>
+                                            </div>
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-vial me-2"></i>
+                                                    Reagents
+                                                    <!-- INTEGRATION POINT: Reagent management module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/reagents/mm" class="dropdown-item">MM Reagents</a>
+                                                    <a href="/reagents/pb" class="dropdown-item">Pb Reagents</a>
+                                                    <a href="/reagents/tclp" class="dropdown-item">TCLP Reagents</a>
+                                                </div>
+                                            </div>
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-balance-scale me-2"></i>
+                                                    Standards
+                                                    <!-- INTEGRATION POINT: Standards management module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/standards/mm" class="dropdown-item">MM Standards</a>
+                                                    <a href="/standards/flameaa" class="dropdown-item">FlameAA Standards</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown-menu-column">
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-tools me-2"></i>
+                                                    Equipment
+                                                    <!-- INTEGRATION POINT: Equipment management module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/equipment/" class="dropdown-item">Equipment Log</a>
+                                                    <a href="/equipment/pipettes" class="dropdown-item">Pipette Log</a>
+                                                    <a href="/equipment/water-conductivity" class="dropdown-item">Water Conductivity</a>
+                                                </div>
+                                            </div>
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-wrench me-2"></i>
+                                                    Maintenance
+                                                    <!-- INTEGRATION POINT: Maintenance management module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/maintenance/icp-oes" class="dropdown-item">ICP-OES Maintenance</a>
+                                                    <a href="/maintenance/" class="dropdown-item">Maintenance Dashboard</a>
+                                                </div>
+                                            </div>
+                                            {% if current_user and current_user.role == 'admin' %}
+                                            <div class="dropend">
+                                                <a class="dropdown-item dropdown-toggle" href="#sidebar-authentication" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+                                                    <i class="fas fa-users me-2"></i>
+                                                    Administration
+                                                    <!-- INTEGRATION POINT: Admin module will be inserted here -->
+                                                </a>
+                                                <div class="dropdown-menu">
+                                                    <a href="/auth/users" class="dropdown-item">User Management</a>
+                                                    <a href="/admin/departments" class="dropdown-item">Departments</a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="my-2 my-md-0 flex-grow-1 flex-md-grow-0 order-first order-md-last">
+                            <form action="." method="get" autocomplete="off" novalidate>
+                                <div class="input-group input-group-flat">
+                                    <input type="text" class="form-control" placeholder="Search..." autocomplete="off">
+                                    <span class="input-group-text">
+                                        <a href="#" class="link-secondary" title="Search" data-bs-toggle="tooltip">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                <circle cx="10" cy="10" r="7"/>
+                                                <path d="m21 21l-6 -6"/>
+                                            </svg>
+                                        </a>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page wrapper -->
+        <div class="page-wrapper">
+            {% block page_header %}{% endblock %}
             
-            <!-- URL Parameter Messages -->
-            <div id="url-messages"></div>
+            <!-- Page body -->
+            <div class="page-body">
+                <div class="container-xl">
+                    {% block content %}
+                    <!-- Page content goes here -->
+                    {% endblock %}
+                </div>
+            </div>
             
-            {% block content %}
-            <!-- Page content goes here -->
-            {% endblock %}
+            <!-- Page footer -->
+            <footer class="footer footer-transparent d-print-none">
+                <div class="container-xl">
+                    <div class="row text-center align-items-center flex-row-reverse">
+                        <div class="col-lg-auto ms-lg-auto">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    <a href="/docs" class="link-secondary" rel="noopener">API Documentation</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    Copyright &copy; 2025
+                                    <a href="/" class="link-secondary">EHS Electronic Journal</a>.
+                                    All rights reserved.
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#" class="link-secondary" rel="noopener">
+                                        v1.0.0
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Modal -->
+    <div class="modal modal-blur fade" id="modal-theme" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Theme Selection</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="#" class="btn w-100" id="theme-light" data-theme="light">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="4"/>
+                                    <path d="m3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+                                </svg>
+                                Light
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="btn w-100" id="theme-dark" data-theme="dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79z"/>
+                                </svg>
+                                Dark
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
-    <!-- JavaScript -->
+    <!-- Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+    
+    <!-- Custom JavaScript -->
     <script src="{{ url_for('static', path='/js/main.js') }}"></script>
-    <script src="{{ url_for('static', path='/js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', path='/js/clock.js') }}"></script>
     {% block extra_js %}{% endblock %}
     
     <!-- Initialize components -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize sidebar
-            initializeSidebar();
-            
             // Initialize real-time clock
             initializeClock();
             
-            // Initialize flash message handlers
-            initializeFlashMessages();
-            
-            // Initialize URL parameter messages
-            initializeUrlMessages();
+            // Initialize theme switcher
+            initializeThemeSwitcher();
             
             // Page-specific initialization
             {% block page_init %}{% endblock %}

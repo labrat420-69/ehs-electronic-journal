@@ -21,9 +21,55 @@ window.EHSJournal = {
     // State management
     state: {
         user: null,
-        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true'
+        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+        theme: localStorage.getItem('theme') || 'light'
     }
 };
+
+/**
+ * Initialize theme switcher
+ */
+function initializeThemeSwitcher() {
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    
+    // Theme toggle event listeners
+    document.querySelectorAll('[data-theme]').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const theme = this.getAttribute('data-theme');
+            applyTheme(theme);
+            localStorage.setItem('theme', theme);
+            
+            // Close modal if it's open
+            const modal = document.querySelector('.modal.show');
+            if (modal) {
+                const backdrop = bootstrap.Modal.getInstance(modal);
+                if (backdrop) backdrop.hide();
+            }
+        });
+    });
+}
+
+/**
+ * Apply theme to the document
+ */
+function applyTheme(theme) {
+    document.body.setAttribute('data-bs-theme', theme);
+    EHSJournal.state.theme = theme;
+    
+    // Update theme toggle buttons
+    document.querySelectorAll('[data-theme]').forEach(button => {
+        if (button.getAttribute('data-theme') === theme) {
+            button.classList.add('btn-primary');
+            button.classList.remove('btn-outline-primary');
+        } else {
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-outline-primary');
+        }
+    });
+}
 
 /**
  * Initialize flash messages handling
@@ -189,17 +235,10 @@ EHSJournal.utils.api = {
     },
     
     /**
-     * Get authentication token from cookie
+     * Get authentication token from localStorage
      */
     getAuthToken() {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'access_token') {
-                return value.replace('Bearer ', '');
-            }
-        }
-        return null;
+        return localStorage.getItem('token');
     },
     
     /**
@@ -282,11 +321,11 @@ EHSJournal.utils.validation = {
         if (existingError) existingError.remove();
         
         // Add error class to field
-        field.classList.add('error');
+        field.classList.add('is-invalid');
         
         // Add error message
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'form-error';
+        errorDiv.className = 'invalid-feedback form-error';
         errorDiv.textContent = message;
         field.parentNode.appendChild(errorDiv);
     },
@@ -298,7 +337,7 @@ EHSJournal.utils.validation = {
         const field = document.querySelector(`[name="${fieldName}"]`);
         if (!field) return;
         
-        field.classList.remove('error');
+        field.classList.remove('is-invalid');
         const errorDiv = field.parentNode.querySelector('.form-error');
         if (errorDiv) errorDiv.remove();
     },
@@ -307,8 +346,8 @@ EHSJournal.utils.validation = {
      * Clear all form errors
      */
     clearFormErrors(form) {
-        form.querySelectorAll('.form-control.error').forEach(field => {
-            field.classList.remove('error');
+        form.querySelectorAll('.form-control.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
         });
         form.querySelectorAll('.form-error').forEach(error => {
             error.remove();
@@ -370,71 +409,7 @@ EHSJournal.utils.datetime = {
 };
 
 /**
- * Modal utilities
- */
-EHSJournal.utils.modal = {
-    /**
-     * Show modal
-     */
-    show(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    },
-    
-    /**
-     * Hide modal
-     */
-    hide(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    },
-    
-    /**
-     * Initialize modal close handlers
-     */
-    init() {
-        // Close modal when clicking overlay
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-        });
-        
-        // Close modal when clicking close button
-        document.querySelectorAll('.modal-close').forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.modal-overlay');
-                if (modal) {
-                    modal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const activeModal = document.querySelector('.modal-overlay.active');
-                if (activeModal) {
-                    activeModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-        });
-    }
-};
-
-/**
- * Table utilities
+ * Table utilities for Tabler tables
  */
 EHSJournal.utils.table = {
     /**
@@ -447,7 +422,7 @@ EHSJournal.utils.table = {
         const headers = table.querySelectorAll('th[data-sortable]');
         headers.forEach(header => {
             header.style.cursor = 'pointer';
-            header.innerHTML += ' <i class="fas fa-sort"></i>';
+            header.innerHTML += ' <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="6,15 12,9 18,15"/></svg>';
             
             header.addEventListener('click', () => {
                 this.sortTable(table, header.cellIndex, header.dataset.type || 'string');
@@ -516,8 +491,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-// Initialize modal utilities when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    EHSJournal.utils.modal.init();
-});

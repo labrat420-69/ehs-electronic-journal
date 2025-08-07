@@ -1,0 +1,283 @@
+/* 
+EHS Electronic Journal - Tabler Theme Customization
+Science lab color scheme with professional blue tones
+*/
+
+:root {
+  /* Science Lab Color Palette - Primary Blues */
+  --tblr-primary: #1a73e8;
+  --tblr-primary-rgb: 26, 115, 232;
+  --tblr-primary-darker: #1557b0;
+  --tblr-primary-lighter: #4285f4;
+  --tblr-primary-lightest: #e8f0fe;
+  
+  /* Secondary colors for science equipment */
+  --tblr-secondary: #5f6368;
+  --tblr-secondary-rgb: 95, 99, 104;
+  
+  /* Success - Green for valid/safe */
+  --tblr-success: #34a853;
+  --tblr-success-rgb: 52, 168, 83;
+  
+  /* Warning - Amber for caution */
+  --tblr-warning: #fbbc04;
+  --tblr-warning-rgb: 251, 188, 4;
+  
+  /* Danger - Red for alerts/hazards */
+  --tblr-danger: #ea4335;
+  --tblr-danger-rgb: 234, 67, 53;
+  
+  /* Info - Blue for information */
+  --tblr-info: #4285f4;
+  --tblr-info-rgb: 66, 133, 244;
+  
+  /* Minimal purple accent (as requested) */
+  --lab-purple-accent: #6366f1;
+  --lab-purple-light: #e0e7ff;
+  
+  /* Background colors */
+  --tblr-body-bg: #f8f9fa;
+  --tblr-border-color: #dee2e6;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] {
+  --tblr-primary: #4285f4;
+  --tblr-body-bg: #1a1d23;
+  --tblr-border-color: #2d3748;
+}
+
+/* Brand styling */
+.navbar-brand {
+  color: var(--tblr-primary) !important;
+  font-weight: 600;
+}
+
+/* Navigation styling */
+.navbar .nav-link.active {
+  background-color: var(--tblr-primary-lightest);
+  color: var(--tblr-primary) !important;
+  font-weight: 500;
+}
+
+.navbar .nav-link:hover {
+  background-color: rgba(26, 115, 232, 0.1);
+  color: var(--tblr-primary);
+}
+
+/* Cards with lab theme */
+.card {
+  border: 1px solid var(--tblr-border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(26, 115, 232, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Lab equipment icons styling */
+.lab-icon {
+  color: var(--tblr-primary);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Status indicators for lab equipment */
+.status-online {
+  color: var(--tblr-success);
+}
+
+.status-warning {
+  color: var(--tblr-warning);
+}
+
+.status-offline {
+  color: var(--tblr-danger);
+}
+
+/* Custom dashboard cards */
+.dashboard-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-left: 4px solid var(--tblr-primary);
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  border-left-color: var(--tblr-primary-darker);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(26, 115, 232, 0.15);
+}
+
+.dashboard-card .card-icon {
+  font-size: 2.5rem;
+  color: var(--tblr-primary);
+  opacity: 0.8;
+}
+
+/* Lab data tables */
+.table-lab {
+  --tblr-table-striped-bg: rgba(26, 115, 232, 0.03);
+}
+
+/* Button variations for lab operations */
+.btn-lab-primary {
+  background: linear-gradient(135deg, var(--tblr-primary) 0%, var(--tblr-primary-lighter) 100%);
+  border: none;
+  color: white;
+}
+
+.btn-lab-primary:hover {
+  background: linear-gradient(135deg, var(--tblr-primary-darker) 0%, var(--tblr-primary) 100%);
+  transform: translateY(-1px);
+}
+
+/* Clock styling */
+#current-time {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--tblr-secondary);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  border: 1px solid var(--tblr-border-color);
+  background: var(--tblr-body-bg);
+  color: var(--tblr-secondary);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--tblr-primary-lightest);
+  color: var(--tblr-primary);
+  border-color: var(--tblr-primary);
+}
+
+/* Dropdown menus for lab modules */
+.dropdown-menu {
+  border: 1px solid var(--tblr-border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--tblr-primary-lightest);
+  color: var(--tblr-primary);
+}
+
+/* Footer styling */
+.footer {
+  border-top: 1px solid var(--tblr-border-color);
+  background: rgba(248, 249, 250, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar-nav .nav-link {
+    padding: 0.75rem 1rem;
+  }
+  
+  .dashboard-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animation for loading states */
+@keyframes pulse-lab {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-lab {
+  animation: pulse-lab 1.5s ease-in-out infinite;
+}
+
+/* Chart containers for analytics */
+.chart-container {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+[data-bs-theme="dark"] .chart-container {
+  background: var(--tblr-dark);
+  border: 1px solid var(--tblr-border-color);
+}
+
+/* Custom scrollbar for lab data */
+.lab-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.lab-scrollbar::-webkit-scrollbar-track {
+  background: var(--tblr-body-bg);
+}
+
+.lab-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--tblr-primary);
+  border-radius: 4px;
+}
+
+.lab-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--tblr-primary-darker);
+}
+
+/* INTEGRATION POINTS - Future module styling */
+/* These classes will be used by future laboratory modules */
+
+/* Chemical inventory specific styling */
+.chemical-card {
+  border-left: 4px solid var(--tblr-success);
+}
+
+.chemical-expired {
+  border-left-color: var(--tblr-danger);
+}
+
+.chemical-expiring-soon {
+  border-left-color: var(--tblr-warning);
+}
+
+/* Equipment status indicators */
+.equipment-calibrated {
+  color: var(--tblr-success);
+}
+
+.equipment-due-calibration {
+  color: var(--tblr-warning);
+}
+
+.equipment-overdue {
+  color: var(--tblr-danger);
+}
+
+/* Reagent preparation tracking */
+.reagent-fresh {
+  background: linear-gradient(135deg, rgba(52, 168, 83, 0.1) 0%, rgba(52, 168, 83, 0.05) 100%);
+}
+
+.reagent-aging {
+  background: linear-gradient(135deg, rgba(251, 188, 4, 0.1) 0%, rgba(251, 188, 4, 0.05) 100%);
+}
+
+/* Standards management */
+.standard-active {
+  border: 2px solid var(--tblr-success);
+}
+
+.standard-inactive {
+  border: 2px solid var(--tblr-secondary);
+  opacity: 0.7;
+}
