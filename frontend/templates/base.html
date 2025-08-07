@@ -146,7 +146,7 @@
                 </div>
                 <div class="user-details">
                     <div class="user-name">{{ current_user.full_name }}</div>
-                    <div class="user-role">{{ current_user.role.value.title() }}</div>
+                    <div class="user-role">{{ current_user.role.value.title() if current_user.role.value else current_user.role.title() }}</div>
                 </div>
             </div>
             <div class="user-actions">
