@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+
+{% block title %}Chemical Inventory - EHS Electronic Journal{% endblock %}
+{% block page_title %}Chemical Inventory{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
+<li class="breadcrumb-item active">Chemical Inventory</li>
+{% endblock %}
+
+{% block page_description %}
+<div class="text-muted">Track and manage laboratory chemical inventory with real-time quantity updates</div>
+{% endblock %}
+
+{% block page_actions %}
+<div class="btn-list">
+    <a href="/chemical_inventory/add" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>
+        Add Chemical
+    </a>
+    <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-download me-2"></i>
+            Export
+        </button>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="#" onclick="exportData('csv')">
+                <i class="fas fa-file-csv me-2"></i>
+                Export as CSV
+            </a>
+            <a class="dropdown-item" href="#" onclick="exportData('excel')">
+                <i class="fas fa-file-excel me-2"></i>
+                Export as Excel
+            </a>
+            <a class="dropdown-item" href="#" onclick="exportData('pdf')">
+                <i class="fas fa-file-pdf me-2"></i>
+                Export as PDF
+            </a>
+        </div>
+    </div>
+    <button class="btn btn-outline-secondary" onclick="window.location.reload()">
+        <i class="fas fa-sync-alt me-2"></i>
+        Refresh
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Search and Filter Section -->
+<div class="row row-cards mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-search me-2"></i>
+                    Search & Filter
+                </h3>
+                <div class="card-actions">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearAllFilters()">
+                        <i class="fas fa-times me-1"></i>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <label class="form-label">Search Chemicals</label>
+                        <div class="input-group">
+                            <input type="text" id="search-input" class="form-control" 
+                                   placeholder="Name, CAS number, manufacturer...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Hazard Class</label>
+                        <select id="hazard-filter" class="form-select">
+                            <option value="">All</option>
+                            <option value="Corrosive">Corrosive</option>
+                            <option value="Flammable">Flammable</option>
+                            <option value="Toxic">Toxic</option>
+                            <option value="Oxidizer">Oxidizer</option>
+                            <option value="Environmental">Environmental</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Stock Status</label>
+                        <select id="stock-filter" class="form-select">
+                            <option value="">All</option>
+                            <option value="in_stock">In Stock</option>
+                            <option value="low_stock">Low Stock</option>
+                            <option value="out_of_stock">Out of Stock</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Location</label>
+                        <select id="location-filter" class="form-select">
+                            <option value="">All Locations</option>
+                            <option value="Lab A">Lab A</option>
+                            <option value="Lab B">Lab B</option>
+                            <option value="Storage">Storage</option>
+                            <option value="Fume Hood">Fume Hood</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label">Actions</label>
+                        <div class="btn-group w-100">
+                            <button class="btn btn-primary" onclick="applyFilters()">
+                                <i class="fas fa-filter"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row row-deck mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="subheader">Total Chemicals</div>
+                    <div class="ms-auto">
+                        <div class="status-indicator bg-primary"></div>
+                    </div>
+                </div>
+                <div class="h1 mb-1">{{ inventory_stats.total_chemicals if inventory_stats else 0 }}</div>
+                <div class="text-muted">Active inventory items</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="subheader">Low Stock</div>
+                    <div class="ms-auto">
+                        <div class="status-indicator bg-warning"></div>
+                    </div>
+                </div>
+                <div class="h1 mb-1">{{ inventory_stats.low_stock if inventory_stats else 0 }}</div>
+                <div class="text-muted">Items below threshold</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="subheader">Expired</div>
+                    <div class="ms-auto">
+                        <div class="status-indicator bg-danger"></div>
+                    </div>
+                </div>
+                <div class="h1 mb-1">{{ inventory_stats.expired if inventory_stats else 0 }}</div>
+                <div class="text-muted">Past expiration date</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="subheader">Total Value</div>
+                    <div class="ms-auto">
+                        <div class="status-indicator bg-success"></div>
+                    </div>
+                </div>
+                <div class="h1 mb-1">${{ "${:,.0f}".format(inventory_stats.total_value) if inventory_stats else 0 }}</div>
+                <div class="text-muted">Inventory value</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chemical Inventory Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-flask me-2"></i>
+                    Chemical Inventory
+                </h3>
+                <div class="card-actions">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-columns me-1"></i>
+                            Columns
+                        </button>
+                        <div class="dropdown-menu">
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="chemical_name" checked>
+                                Chemical Name
+                            </label>
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="cas_number" checked>
+                                CAS Number
+                            </label>
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="quantity" checked>
+                                Quantity
+                            </label>
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="hazard_class">
+                                Hazard Class
+                            </label>
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="location" checked>
+                                Location
+                            </label>
+                            <label class="dropdown-item">
+                                <input type="checkbox" class="column-toggle me-2" data-column="expiration_date" checked>
+                                Expiration
+                            </label>
+                        </div>
+                    </div>
+                    <span class="badge bg-secondary" id="results-count">Loading...</span>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter" id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1">
+                                <input class="form-check-input" type="checkbox" id="select-all">
+                            </th>
+                            <th data-column="chemical_name">
+                                <button class="table-sort" data-sort="chemical_name">
+                                    Chemical Name <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="cas_number">
+                                <button class="table-sort" data-sort="cas_number">
+                                    CAS Number <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="manufacturer">Manufacturer</th>
+                            <th data-column="quantity" class="text-center">
+                                <button class="table-sort" data-sort="quantity">
+                                    Quantity <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="hazard_class">
+                                <button class="table-sort" data-sort="hazard_class">
+                                    Hazard Class <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="location">
+                                <button class="table-sort" data-sort="location">
+                                    Location <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="expiration_date">
+                                <button class="table-sort" data-sort="expiration_date">
+                                    Expiration <i class="fas fa-sort ms-1"></i>
+                                </button>
+                            </th>
+                            <th data-column="status">Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-tbody">
+                        <!-- Table content will be loaded dynamically -->
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted mt-2">Loading chemical inventory...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="text-muted">
+                        Showing <span id="showing-count">0</span> of <span id="total-count">0</span> items
+                    </div>
+                    <nav aria-label="Pagination">
+                        <ul class="pagination mb-0" id="pagination">
+                            <!-- Pagination will be generated dynamically -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal" id="bulk-actions-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Action</label>
+                    <select class="form-select" id="bulk-action-select">
+                        <option value="">Select action...</option>
+                        <option value="update_location">Update Location</option>
+                        <option value="mark_expired">Mark as Expired</option>
+                        <option value="delete">Delete Items</option>
+                    </select>
+                </div>
+                <div id="bulk-action-params"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="execute-bulk-action">Execute</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chemical Inventory Management JavaScript
+let inventoryData = [];
+let filteredData = [];
+let currentPage = 1;
+let itemsPerPage = 25;
+let sortField = 'chemical_name';
+let sortDirection = 'asc';
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeInventoryTable();
+    setupEventListeners();
+    loadInventoryData();
+});
+
+function initializeInventoryTable() {
+    // Initialize table sorting
+    document.querySelectorAll('.table-sort').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const field = this.dataset.sort;
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+            updateSortIcons();
+            renderTable();
+        });
+    });
+    
+    // Initialize column toggles
+    document.querySelectorAll('.column-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const column = this.dataset.column;
+            const isVisible = this.checked;
+            toggleColumn(column, isVisible);
+        });
+    });
+    
+    // Initialize select all checkbox
+    document.getElementById('select-all').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('#inventory-tbody .row-select');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkActionsVisibility();
+    });
+}
+
+function setupEventListeners() {
+    // Search input
+    document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
+    
+    // Filter selects
+    ['hazard-filter', 'stock-filter', 'location-filter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', applyFilters);
+    });
+}
+
+async function loadInventoryData() {
+    try {
+        showLoadingState();
+        
+        const response = await fetch('/api/chemical-inventory');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        inventoryData = await response.json();
+        filteredData = [...inventoryData];
+        renderTable();
+        updateStatistics();
+        
+    } catch (error) {
+        console.error('Error loading inventory data:', error);
+        showError('Failed to load chemical inventory data');
+    }
+}
+
+function renderTable() {
+    const tbody = document.getElementById('inventory-tbody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+    const pageData = filteredData.slice(startIndex, endIndex);
+    
+    if (pageData.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center py-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No chemicals found matching your criteria</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = pageData.map(item => `
+        <tr>
+            <td>
+                <input class="form-check-input row-select" type="checkbox" value="${item.id}">
+            </td>
+            <td data-column="chemical_name">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-sm me-3 ${getHazardColor(item.hazard_class)}">
+                        <i class="fas ${getHazardIcon(item.hazard_class)}"></i>
+                    </div>
+                    <div>
+                        <strong>${item.chemical_name}</strong>
+                        <div class="text-muted small">${item.molecular_formula || 'N/A'}</div>
+                    </div>
+                </div>
+            </td>
+            <td data-column="cas_number">
+                <span class="font-monospace">${item.cas_number || 'N/A'}</span>
+            </td>
+            <td data-column="manufacturer">
+                <span class="text-muted">${item.manufacturer || 'Unknown'}</span>
+            </td>
+            <td data-column="quantity" class="text-center">
+                <span class="badge bg-${getQuantityStatus(item)} fs-6">
+                    ${item.quantity_current} ${item.quantity_units}
+                </span>
+            </td>
+            <td data-column="hazard_class">
+                <span class="badge bg-${getHazardColor(item.hazard_class)}-lt">
+                    ${item.hazard_class || 'N/A'}
+                </span>
+            </td>
+            <td data-column="location">
+                <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                ${item.storage_location || 'N/A'}
+            </td>
+            <td data-column="expiration_date">
+                ${formatExpirationDate(item.expiration_date)}
+            </td>
+            <td data-column="status">
+                ${getStatusBadge(item)}
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewItem(${item.id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editItem(${item.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Update pagination and counters
+    updatePagination();
+    updateCounters();
+    
+    // Re-attach event listeners
+    document.querySelectorAll('.row-select').forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActionsVisibility);
+    });
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const hazardFilter = document.getElementById('hazard-filter').value;
+    const stockFilter = document.getElementById('stock-filter').value;
+    const locationFilter = document.getElementById('location-filter').value;
+    
+    filteredData = inventoryData.filter(item => {
+        // Search filter
+        const matchesSearch = !searchTerm || 
+            item.chemical_name.toLowerCase().includes(searchTerm) ||
+            (item.cas_number && item.cas_number.toLowerCase().includes(searchTerm)) ||
+            (item.manufacturer && item.manufacturer.toLowerCase().includes(searchTerm));
+        
+        // Hazard filter
+        const matchesHazard = !hazardFilter || item.hazard_class === hazardFilter;
+        
+        // Stock filter
+        const matchesStock = !stockFilter || getStockStatus(item) === stockFilter;
+        
+        // Location filter
+        const matchesLocation = !locationFilter || item.storage_location === locationFilter;
+        
+        return matchesSearch && matchesHazard && matchesStock && matchesLocation;
+    });
+    
+    currentPage = 1; // Reset to first page
+    renderTable();
+}
+
+// Helper functions
+function getHazardColor(hazardClass) {
+    const colors = {
+        'Corrosive': 'danger',
+        'Flammable': 'warning',
+        'Toxic': 'purple',
+        'Oxidizer': 'info',
+        'Environmental': 'success'
+    };
+    return colors[hazardClass] || 'secondary';
+}
+
+function getHazardIcon(hazardClass) {
+    const icons = {
+        'Corrosive': 'fa-exclamation-triangle',
+        'Flammable': 'fa-fire',
+        'Toxic': 'fa-skull-crossbones',
+        'Oxidizer': 'fa-atom',
+        'Environmental': 'fa-leaf'
+    };
+    return icons[hazardClass] || 'fa-flask';
+}
+
+function getQuantityStatus(item) {
+    if (item.quantity_current <= 0) return 'danger';
+    if (item.quantity_current <= (item.minimum_quantity || 10)) return 'warning';
+    return 'success';
+}
+
+function getStockStatus(item) {
+    if (item.quantity_current <= 0) return 'out_of_stock';
+    if (item.quantity_current <= (item.minimum_quantity || 10)) return 'low_stock';
+    if (item.expiration_date && new Date(item.expiration_date) < new Date()) return 'expired';
+    return 'in_stock';
+}
+
+function getStatusBadge(item) {
+    const status = getStockStatus(item);
+    const badges = {
+        'in_stock': '<span class="badge bg-success">In Stock</span>',
+        'low_stock': '<span class="badge bg-warning">Low Stock</span>',
+        'out_of_stock': '<span class="badge bg-danger">Out of Stock</span>',
+        'expired': '<span class="badge bg-danger">Expired</span>'
+    };
+    return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
+}
+
+function formatExpirationDate(dateString) {
+    if (!dateString) return '<span class="text-muted">N/A</span>';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const isExpired = date < now;
+    const daysDiff = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
+    
+    let className = 'text-muted';
+    if (isExpired) className = 'text-danger';
+    else if (daysDiff <= 30) className = 'text-warning';
+    
+    return `<span class="${className}">${date.toLocaleDateString()}</span>`;
+}
+
+function showLoadingState() {
+    document.getElementById('inventory-tbody').innerHTML = `
+        <tr>
+            <td colspan="10" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2">Loading chemical inventory...</p>
+            </td>
+        </tr>
+    `;
+}
+
+function showError(message) {
+    document.getElementById('inventory-tbody').innerHTML = `
+        <tr>
+            <td colspan="10" class="text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <p class="text-danger">${message}</p>
+                <button class="btn btn-primary" onclick="loadInventoryData()">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Retry
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Action functions
+function viewItem(id) {
+    window.location.href = `/chemical_inventory/view/${id}`;
+}
+
+function editItem(id) {
+    window.location.href = `/chemical_inventory/edit/${id}`;
+}
+
+function deleteItem(id) {
+    if (confirm('Are you sure you want to delete this chemical?')) {
+        // Implementation for deletion
+        console.log('Delete item:', id);
+    }
+}
+
+function exportData(format) {
+    // Implementation for export functionality
+    console.log('Export as:', format);
+}
+
+function clearAllFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('hazard-filter').value = '';
+    document.getElementById('stock-filter').value = '';
+    document.getElementById('location-filter').value = '';
+    applyFilters();
+}
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    applyFilters();
+}
+
+// Initialize page
+console.log('Chemical Inventory page initialized');
+</script>
+{% endblock %}
