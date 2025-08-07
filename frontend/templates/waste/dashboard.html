@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}Waste Management - EHS Electronic Journal{% endblock %}
+{% block page_title %}Waste Disposal Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Waste Disposal Management</h2>
+            <p>Track laboratory waste containers, disposal records, and compliance documentation</p>
+        </div>
+        <div class="page-actions">
+            <a href="/waste/add-box" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Waste Box
+            </a>
+            <a href="/waste/add-item" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> Add Waste Item
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Waste Status Overview -->
+<div class="stats-container">
+    <div class="stats-grid">
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Active Boxes</div>
+                <div class="stats-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ active_boxes_count }}</div>
+            <div class="stats-subtitle">Available for waste</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Full Boxes</div>
+                <div class="stats-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ full_boxes_count }}</div>
+            <div class="stats-subtitle">Ready for pickup</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Disposed This Month</div>
+                <div class="stats-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ monthly_disposed_count }}</div>
+            <div class="stats-subtitle">Boxes disposed</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Total Weight</div>
+                <div class="stats-icon">
+                    <i class="fas fa-weight-hanging"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ "%.1f"|format(total_weight_kg) }} kg</div>
+            <div class="stats-subtitle">Current active boxes</div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Waste Boxes -->
+<div class="section-container">
+    <div class="section-header">
+        <h3>Active Waste Boxes</h3>
+        <div class="section-actions">
+            <select id="status-filter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="full">Full</option>
+                <option value="sealed">Sealed</option>
+                <option value="disposed">Disposed</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="waste-boxes-grid">
+        {% for box in active_boxes %}
+        <div class="waste-box-card" data-status="{{ box.status }}">
+            <div class="box-header">
+                <div class="box-id">
+                    <strong>{{ box.box_id }}</strong>
+                    <span class="box-type">{{ box.box_type }}</span>
+                </div>
+                <span class="status-badge status-{{ box.status }}">{{ box.status.title() }}</span>
+            </div>
+            
+            <div class="box-content">
+                <div class="box-info">
+                    <div class="info-item">
+                        <span class="label">Location:</span>
+                        <span class="value">{{ box.location or 'Not specified' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Waste Type:</span>
+                        <span class="value">{{ box.waste_type }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Items:</span>
+                        <span class="value">{{ box.items|length if box.items else 0 }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Weight:</span>
+                        <span class="value">
+                            {% if box.current_weight_kg %}
+                            {{ "%.2f"|format(box.current_weight_kg) }} kg
+                            {% else %}
+                            Not weighed
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="capacity-bar">
+                    <div class="capacity-label">Capacity</div>
+                    <div class="capacity-progress">
+                        <div class="capacity-fill" style="width: {{ (box.fill_percentage or 0) }}%"></div>
+                    </div>
+                    <div class="capacity-text">{{ "%.0f"|format(box.fill_percentage or 0) }}%</div>
+                </div>
+                
+                {% if box.items %}
+                <div class="recent-items">
+                    <h5>Recent Items</h5>
+                    <ul>
+                        {% for item in box.items[:3] %}
+                        <li>
+                            <strong>{{ item.item_description|truncate(30) }}</strong>
+                            <small>{{ item.added_date.strftime('%m/%d') }}</small>
+                        </li>
+                        {% endfor %}
+                        {% if box.items|length > 3 %}
+                        <li><small>... and {{ box.items|length - 3 }} more</small></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="box-actions">
+                <a href="/waste/box/{{ box.id }}" class="btn btn-sm btn-outline">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+                {% if box.status == 'active' %}
+                <a href="/waste/add-item?box_id={{ box.id }}" class="btn btn-sm btn-success">
+                    <i class="fas fa-plus"></i> Add Item
+                </a>
+                {% endif %}
+                {% if box.status == 'full' %}
+                <button class="btn btn-sm btn-warning seal-btn" data-id="{{ box.id }}">
+                    <i class="fas fa-lock"></i> Seal Box
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recent Waste Items -->
+<div class="table-container">
+    <div class="table-header">
+        <h3>Recent Waste Items</h3>
+        <div class="table-actions">
+            <a href="/waste/items" class="btn btn-outline">View All Items</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date Added</th>
+                    <th>Description</th>
+                    <th>Waste Type</th>
+                    <th>Box ID</th>
+                    <th>Weight</th>
+                    <th>Added By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in recent_items %}
+                <tr>
+                    <td>{{ item.added_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <div class="item-description">
+                            <strong>{{ item.item_description }}</strong>
+                            {% if item.chemical_name %}
+                            <br><small class="text-muted">Chemical: {{ item.chemical_name }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ item.waste_type }}</td>
+                    <td>
+                        <a href="/waste/box/{{ item.waste_box.id }}" class="box-link">
+                            {{ item.waste_box.box_id }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if item.weight_kg %}
+                        {{ "%.3f"|format(item.weight_kg) }} kg
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>{{ item.added_by_user.full_name if item.added_by_user else 'Unknown' }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/waste/item/{{ item.id }}" class="btn btn-sm btn-outline" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="/waste/item/edit/{{ item.id }}" class="btn btn-sm btn-outline" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Empty States -->
+{% if not active_boxes and not recent_items %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-recycle"></i>
+    </div>
+    <h3>No Waste Management Records Found</h3>
+    <p>Get started by creating your first waste disposal box.</p>
+    <a href="/waste/add-box" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Create Waste Box
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status filter
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            const filterValue = this.value.toLowerCase();
+            const boxes = document.querySelectorAll('.waste-box-card');
+            
+            boxes.forEach(box => {
+                const boxStatus = box.dataset.status.toLowerCase();
+                if (!filterValue || boxStatus === filterValue) {
+                    box.style.display = 'block';
+                } else {
+                    box.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Seal box functionality
+    document.querySelectorAll('.seal-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const boxId = this.dataset.id;
+            if (confirm('Are you sure you want to seal this waste box? This action cannot be undone.')) {
+                fetch(`/waste/box/${boxId}/seal`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Error sealing box. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error sealing box. Please try again.');
+                });
+            }
+        });
+    });
+    
+    // Export functionality
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            window.open('/waste/export', '_blank');
+        });
+    }
+});
+</script>
+
+<style>
+/* Waste management specific styles */
+.waste-boxes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.waste-box-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.waste-box-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.box-id {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.box-id strong {
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.box-type {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.box-content {
+    margin-bottom: 15px;
+}
+
+.box-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.info-item .label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.capacity-bar {
+    margin-bottom: 15px;
+}
+
+.capacity-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.capacity-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.capacity-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #f59e0b 70%, #ef4444 90%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.capacity-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.recent-items h5 {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.recent-items ul {
+    list-style: none;
+    font-size: 13px;
+}
+
+.recent-items li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.recent-items li:last-child {
+    border-bottom: none;
+}
+
+.box-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.box-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.box-link:hover {
+    text-decoration: underline;
+}
+
+.section-container {
+    margin-bottom: 30px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.status-active { background: #f0fdf4; color: #047857; }
+.status-full { background: #fffbeb; color: #d97706; }
+.status-sealed { background: #f3f4f6; color: #4b5563; }
+.status-disposed { background: #fef2f2; color: #dc2626; }
+
+@media (max-width: 768px) {
+    .waste-boxes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .box-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+}
+</style>
+{% endblock %}
