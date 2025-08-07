@@ -1,0 +1,101 @@
+/* 
+Enhanced Responsive and Accessibility Improvements
+Added to main.css for better mobile experience
+*/
+
+/* Enhanced Mobile Responsive Design */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 800px; /* Ensures table remains readable */
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .action-buttons .btn {
+        padding: 6px;
+        min-width: 36px;
+    }
+    
+    .page-header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .page-actions {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .filters-section .row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+}
+
+/* Accessibility Enhancements */
+.btn:focus,
+.form-control:focus,
+select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .badge {
+        border: 2px solid currentColor;
+    }
+    
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Enhanced chart container for mobile */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 200px;
+    }
+    
+    .equipment-chart {
+        padding: 15px;
+    }
+    
+    .chart-placeholder {
+        font-size: 14px;
+    }
+}

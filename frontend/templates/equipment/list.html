@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment Management - EHS Electronic Journal{% endblock %}
+{% block page_title %}Equipment Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+<style>
+/* Equipment-specific styles */
+.calibration-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.calibration-status.current {
+    background-color: #e8f5e8;
+    color: #2d5d2d;
+}
+
+.calibration-status.due-soon {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.calibration-status.overdue {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.equipment-chart {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #f8f9fa;
+    border: 2px dashed #dadce0;
+    border-radius: 8px;
+    color: #5f6368;
+    font-size: 16px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Equipment Management & Calibration</h2>
+            <p>Track equipment status, calibration schedules, and maintenance records</p>
+        </div>
+        <div class="page-actions">
+            <button id="add-equipment-btn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Equipment
+            </button>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export Schedule
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Calibration Analytics Chart -->
+<div class="equipment-chart">
+    <h3><i class="fas fa-chart-line"></i> Calibration Status Overview</h3>
+    <div class="chart-container">
+        <canvas id="calibration-chart"></canvas>
+        <div class="chart-placeholder" id="chart-placeholder">
+            <div class="text-center">
+                <i class="fas fa-chart-bar" style="font-size: 48px; margin-bottom: 10px;"></i>
+                <p>Calibration timeline chart will appear here</p>
+                <small>Using local Chart.js library</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Controls -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="search-input">Search Equipment</label>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by name, model, or location...">
+                    <button class="btn btn-outline" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter" class="form-control">
+                    <option value="">All</option>
+                    <option value="Operational">Operational</option>
+                    <option value="Calibration Due">Calibration Due</option>
+                    <option value="Maintenance Required">Maintenance Required</option>
+                    <option value="Out of Service">Out of Service</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="location-filter">Location</label>
+                <select id="location-filter" class="form-control">
+                    <option value="">All Locations</option>
+                    <option value="Main Lab">Main Lab</option>
+                    <option value="Analysis Room B">Analysis Room B</option>
+                    <option value="Weighing Room">Weighing Room</option>
+                    <option value="QC Lab">QC Lab</option>
+                    <option value="Prep Station 1">Prep Station 1</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Table -->
+<div class="table-container">
+    <table id="equipment-table" class="data-table">
+        <thead>
+            <tr>
+                <th>Equipment Name</th>
+                <th>Model</th>
+                <th>Serial Number</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Last Calibration</th>
+                <th>Next Due</th>
+                <th>Calibration Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="equipment-tbody">
+            {% for item in equipment %}
+            <tr data-equipment-id="{{ item.id }}" class="{% if item.status == 'Calibration Due' %}calibration-due{% endif %}">
+                <td>
+                    <div class="equipment-info">
+                        <strong>{{ item.equipment_name }}</strong>
+                        {% if item.status == 'Calibration Due' %}
+                        <span class="badge badge-warning" title="Calibration Required">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>{{ item.model }}</td>
+                <td>{{ item.serial_number }}</td>
+                <td>{{ item.location }}</td>
+                <td>
+                    {% if item.status == 'Operational' %}
+                    <span class="badge badge-success">{{ item.status }}</span>
+                    {% elif item.status == 'Calibration Due' %}
+                    <span class="badge badge-warning">{{ item.status }}</span>
+                    {% else %}
+                    <span class="badge badge-secondary">{{ item.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.calibration_date %}
+                    {{ item.calibration_date.strftime('%m/%d/%Y') }}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.next_calibration_due %}
+                        {% set due_date = item.next_calibration_due %}
+                        {{ due_date.strftime('%m/%d/%Y') }}
+                        {% set days_until_due = (due_date.date() - today).days %}
+                        {% if days_until_due < 0 %}
+                        <span class="badge badge-danger">{{ (-days_until_due) }} days overdue</span>
+                        {% elif days_until_due < 30 %}
+                        <span class="badge badge-warning">{{ days_until_due }} days</span>
+                        {% endif %}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.next_calibration_due %}
+                        {% set days_until_due = (item.next_calibration_due.date() - today).days %}
+                        {% if days_until_due < 0 %}
+                        <span class="calibration-status overdue">Overdue</span>
+                        {% elif days_until_due < 30 %}
+                        <span class="calibration-status due-soon">Due Soon</span>
+                        {% else %}
+                        <span class="calibration-status current">Current</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="calibration-status current">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/equipment/{{ item.id }}" class="btn btn-sm btn-outline" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if current_user.role.value in ['admin', 'manager', 'lab_tech'] %}
+                        <button class="btn btn-sm btn-secondary calibrate-btn" 
+                                data-equipment-id="{{ item.id }}" 
+                                data-equipment-name="{{ item.equipment_name }}"
+                                title="Record Calibration">
+                            <i class="fas fa-tools"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary maintenance-btn" 
+                                data-equipment-id="{{ item.id }}" 
+                                data-equipment-name="{{ item.equipment_name }}"
+                                title="Log Maintenance">
+                            <i class="fas fa-wrench"></i>
+                        </button>
+                        {% endif %}
+                        {% if current_user.role.value in ['admin', 'manager'] %}
+                        <button class="btn btn-sm btn-danger edit-btn" 
+                                data-equipment-id="{{ item.id }}" 
+                                data-equipment-name="{{ item.equipment_name }}"
+                                title="Edit Equipment">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not equipment %}
+    <div class="empty-state">
+        <i class="fas fa-tools"></i>
+        <h3>No equipment found</h3>
+        <p>Get started by adding your first equipment item.</p>
+        <button id="add-first-equipment" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Equipment
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Calibration Modal -->
+<div id="calibration-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Record Calibration</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="calibration-form">
+                <div class="form-group">
+                    <label>Equipment</label>
+                    <p id="modal-equipment-name" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label for="calibration-date">Calibration Date *</label>
+                    <input type="date" id="calibration-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="next-due-date">Next Calibration Due *</label>
+                    <input type="date" id="next-due-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="performed-by">Performed By *</label>
+                    <input type="text" id="performed-by" class="form-control" required placeholder="Technician name">
+                </div>
+                <div class="form-group">
+                    <label for="calibration-notes">Notes</label>
+                    <textarea id="calibration-notes" class="form-control" rows="3" placeholder="Calibration details and observations..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="calibration-cancel">Cancel</button>
+            <button class="btn btn-primary" id="calibration-submit">Record Calibration</button>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Modal -->
+<div id="maintenance-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Log Maintenance</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="maintenance-form">
+                <div class="form-group">
+                    <label>Equipment</label>
+                    <p id="maintenance-equipment-name" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label for="maintenance-date">Maintenance Date *</label>
+                    <input type="date" id="maintenance-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="maintenance-type">Maintenance Type *</label>
+                    <select id="maintenance-type" class="form-control" required>
+                        <option value="">Select type...</option>
+                        <option value="Preventive">Preventive Maintenance</option>
+                        <option value="Repair">Repair</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Software Update">Software Update</option>
+                        <option value="Parts Replacement">Parts Replacement</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maintenance-performed-by">Performed By *</label>
+                    <input type="text" id="maintenance-performed-by" class="form-control" required placeholder="Technician name">
+                </div>
+                <div class="form-group">
+                    <label for="maintenance-notes">Maintenance Notes *</label>
+                    <textarea id="maintenance-notes" class="form-control" rows="4" required placeholder="Describe the maintenance performed..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="maintenance-cancel">Cancel</button>
+            <button class="btn btn-primary" id="maintenance-submit">Log Maintenance</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple local chart implementation since CDN is blocked
+function createCalibrationChart() {
+    const canvas = document.getElementById('calibration-chart');
+    const placeholder = document.getElementById('chart-placeholder');
+    
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        // Hide placeholder and show canvas
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        
+        // Simple bar chart implementation
+        const data = [
+            { label: 'Current', count: 3, color: '#28a745' },
+            { label: 'Due Soon', count: 1, color: '#ffc107' }, 
+            { label: 'Overdue', count: 1, color: '#dc3545' }
+        ];
+        
+        const canvasWidth = canvas.width = canvas.offsetWidth;
+        const canvasHeight = canvas.height = 250;
+        
+        const maxValue = Math.max(...data.map(d => d.count));
+        const barWidth = canvasWidth / data.length * 0.8;
+        const barSpacing = canvasWidth / data.length * 0.2;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        
+        // Draw bars
+        data.forEach((item, index) => {
+            const barHeight = (item.count / maxValue) * (canvasHeight - 60);
+            const x = index * (barWidth + barSpacing) + barSpacing / 2;
+            const y = canvasHeight - barHeight - 40;
+            
+            // Draw bar
+            ctx.fillStyle = item.color;
+            ctx.fillRect(x, y, barWidth, barHeight);
+            
+            // Draw label
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.label, x + barWidth / 2, canvasHeight - 20);
+            
+            // Draw count
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(item.count, x + barWidth / 2, y + barHeight / 2 + 5);
+        });
+        
+        // Draw title
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Equipment Calibration Status', canvasWidth / 2, 20);
+    }
+}
+
+// Equipment management functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize chart
+    createCalibrationChart();
+    
+    // Modal functionality
+    const calibrationModal = document.getElementById('calibration-modal');
+    const maintenanceModal = document.getElementById('maintenance-modal');
+    
+    // Calibration buttons
+    document.querySelectorAll('.calibrate-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const equipmentId = this.getAttribute('data-equipment-id');
+            const equipmentName = this.getAttribute('data-equipment-name');
+            
+            document.getElementById('modal-equipment-name').textContent = equipmentName;
+            calibrationModal.style.display = 'flex';
+        });
+    });
+    
+    // Maintenance buttons  
+    document.querySelectorAll('.maintenance-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const equipmentId = this.getAttribute('data-equipment-id');
+            const equipmentName = this.getAttribute('data-equipment-name');
+            
+            document.getElementById('maintenance-equipment-name').textContent = equipmentName;
+            maintenanceModal.style.display = 'flex';
+        });
+    });
+    
+    // Close modals
+    document.querySelectorAll('.modal-close, #calibration-cancel, #maintenance-cancel').forEach(btn => {
+        btn.addEventListener('click', function() {
+            calibrationModal.style.display = 'none';
+            maintenanceModal.style.display = 'none';
+        });
+    });
+    
+    // Form submissions (stub implementations)
+    document.getElementById('calibration-submit').addEventListener('click', function() {
+        alert('Calibration recorded successfully! (Demo functionality)');
+        calibrationModal.style.display = 'none';
+    });
+    
+    document.getElementById('maintenance-submit').addEventListener('click', function() {
+        alert('Maintenance logged successfully! (Demo functionality)');
+        maintenanceModal.style.display = 'none';
+    });
+    
+    // Search and filter functionality (basic implementation)
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const locationFilter = document.getElementById('location-filter');
+    
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const locationValue = locationFilter.value;
+        const rows = document.querySelectorAll('#equipment-tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const statusCell = row.cells[4].textContent.trim();
+            const locationCell = row.cells[3].textContent.trim();
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesStatus = !statusValue || statusCell === statusValue;
+            const matchesLocation = !locationValue || locationCell === locationValue;
+            
+            row.style.display = (matchesSearch && matchesStatus && matchesLocation) ? '' : 'none';
+        });
+    }
+    
+    searchInput.addEventListener('input', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    locationFilter.addEventListener('change', filterTable);
+    
+    document.getElementById('clear-search').addEventListener('click', function() {
+        searchInput.value = '';
+        filterTable();
+    });
+});
+</script>
+{% endblock %}
+
+{% block page_init %}
+// Equipment-specific initialization
+console.log('Equipment Management initialized');
+{% endblock %}

@@ -6,6 +6,35 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/responsive.css') }}">
+<style>
+/* Chemical Inventory Chart Styles */
+.inventory-chart {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #f8f9fa;
+    border: 2px dashed #dadce0;
+    border-radius: 8px;
+    color: #5f6368;
+    font-size: 16px;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -22,6 +51,21 @@
             <button id="export-btn" class="btn btn-secondary">
                 <i class="fas fa-download"></i> Export
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Analytics Chart -->
+<div class="inventory-chart">
+    <h3><i class="fas fa-chart-bar"></i> Inventory Analytics</h3>
+    <div class="chart-container">
+        <canvas id="inventory-chart"></canvas>
+        <div class="chart-placeholder" id="chart-placeholder">
+            <div class="text-center">
+                <i class="fas fa-chart-pie" style="font-size: 48px; margin-bottom: 10px;"></i>
+                <p>Chemical quantity distribution chart</p>
+                <small>Using local charting library</small>
+            </div>
         </div>
     </div>
 </div>
@@ -258,6 +302,78 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='/js/chemical_inventory.js') }}"></script>
+<script>
+// Simple local chart implementation for chemical inventory
+function createInventoryChart() {
+    const canvas = document.getElementById('inventory-chart');
+    const placeholder = document.getElementById('chart-placeholder');
+    
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        // Hide placeholder and show canvas
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        
+        // Sample data - would come from backend in real implementation
+        const chemicalData = [
+            { label: 'Low Stock', count: 12, color: '#ffc107' },
+            { label: 'Normal', count: 230, color: '#28a745' },
+            { label: 'Expired', count: 3, color: '#dc3545' }
+        ];
+        
+        const canvasWidth = canvas.width = canvas.offsetWidth;
+        const canvasHeight = canvas.height = 250;
+        
+        // Simple pie chart
+        const total = chemicalData.reduce((sum, item) => sum + item.count, 0);
+        let currentAngle = 0;
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2 - 20;
+        const radius = Math.min(centerX, centerY) - 40;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        
+        // Draw pie slices
+        chemicalData.forEach((item, index) => {
+            const sliceAngle = (item.count / total) * 2 * Math.PI;
+            
+            // Draw slice
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = item.color;
+            ctx.fill();
+            
+            // Draw label
+            const labelAngle = currentAngle + sliceAngle / 2;
+            const labelX = centerX + Math.cos(labelAngle) * (radius + 25);
+            const labelY = centerY + Math.sin(labelAngle) * (radius + 25);
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.label, labelX, labelY);
+            ctx.fillText(item.count.toString(), labelX, labelY + 15);
+            
+            currentAngle += sliceAngle;
+        });
+        
+        // Draw title
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Chemical Inventory Distribution', canvasWidth / 2, 25);
+    }
+}
+
+// Initialize chart when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    createInventoryChart();
+});
+</script>
 {% endblock %}
 
 {% block page_init %}

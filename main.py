@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -68,8 +69,11 @@ app.add_middleware(
 )
 
 # Static files
-os.makedirs("static", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs("frontend/static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+# Templates
+templates = Jinja2Templates(directory="frontend/templates")
 
 # Database dependency
 def get_db():
@@ -266,21 +270,279 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard():
-    return """
-    <html>
-    <head><title>EHS Dashboard</title></head>
-    <body style="font-family: Arial; padding: 20px; background: #f5f5f5;">
-        <h1 style="color: #1a73e8;">🔬 EHS Electronic Journal Dashboard</h1>
-        <p>✅ System is running successfully!</p>
-        <p>📊 <a href="/analytics" style="color: #1a73e8; text-decoration: none;">Analytics Dashboard</a></p>
-        <p>📋 Access the API documentation: <a href="/docs">/docs</a></p>
-        <p>🧪 Chemical Inventory: <a href="/chemicals">/chemicals</a></p>
-        <p>⚗️ Reagents Management: <a href="/reagents">/reagents</a></p>
-        <p>🔧 Equipment Calibration: <a href="/equipment">/equipment</a></p>
-    </body>
-    </html>
-    """
+async def dashboard(request: Request):
+    """Enhanced dashboard with Tabler-style UI"""
+    
+    # Mock data for demonstration
+    current_user = {
+        "full_name": "Admin User",
+        "role": {"value": "admin"}
+    }
+    
+    # Sample statistics
+    stats = {
+        "chemical_inventory": {
+            "total": 245,
+            "low_stock": 12,
+            "expired": 3,
+            "recent_activity": 8
+        },
+        "reagents": {
+            "mm_active": 18,
+            "pb_active": 15,
+            "tclp_active": 22,
+            "total_active": 55
+        },
+        "standards": {
+            "mm_active": 8,
+            "flameaa_active": 12,
+            "total_active": 20
+        },
+        "equipment": {
+            "total": 35,
+            "overdue_calibrations": 2,
+            "recent_pipette_tests": 5,
+            "recent_water_tests": 3
+        },
+        "maintenance": {
+            "recent_activities": 7
+        }
+    }
+    
+    # Sample alerts
+    alerts = {
+        "summary": {"total": 5},
+        "alerts": [
+            {
+                "type": "danger",
+                "icon": "fas fa-exclamation-triangle",
+                "title": "Expired Chemicals",
+                "message": "3 chemicals have passed their expiration date",
+                "details": "Acetone (Lot: AC-2024-01) expired 5 days ago",
+                "action_url": "/chemical_inventory/"
+            },
+            {
+                "type": "warning", 
+                "icon": "fas fa-balance-scale",
+                "title": "Low Stock Alert",
+                "message": "12 chemicals are running low on stock",
+                "details": "Sulfuric Acid: 0.5L remaining",
+                "action_url": "/chemical_inventory/"
+            },
+            {
+                "type": "info",
+                "icon": "fas fa-tools", 
+                "title": "Calibration Due",
+                "message": "2 equipment items require calibration",
+                "details": "ICP-OES calibration due in 3 days",
+                "action_url": "/equipment/"
+            }
+        ]
+    }
+    
+    # Sample recent activity
+    recent_activity = {
+        "activities": [
+            {
+                "icon": "fas fa-flask",
+                "description": "Added new chemical to inventory",
+                "details": "Hydrochloric Acid, 1L bottle",
+                "timestamp": datetime.now() - timedelta(hours=2)
+            },
+            {
+                "icon": "fas fa-balance-scale",
+                "description": "Updated quantity for Acetone",
+                "details": "Reduced from 2.5L to 1.8L",
+                "timestamp": datetime.now() - timedelta(hours=4)
+            },
+            {
+                "icon": "fas fa-wrench",
+                "description": "ICP-OES maintenance completed",
+                "details": "Routine cleaning and calibration check",
+                "timestamp": datetime.now() - timedelta(days=1)
+            }
+        ]
+    }
+    
+    return templates.TemplateResponse("dashboard/overview.html", {
+        "request": request,
+        "current_user": current_user,
+        "stats": stats,
+        "recent_activity": recent_activity,
+        "alerts": alerts,
+        "current_time_est": datetime.now().strftime("%m/%d/%Y %I:%M %p"),
+        "today": datetime.now().date()
+    })
+
+@app.get("/chemical_inventory", response_class=HTMLResponse)
+async def chemical_inventory(request: Request):
+    """Chemical Inventory with fully styled data table"""
+    
+    current_user = {
+        "full_name": "Admin User", 
+        "role": {"value": "admin"}
+    }
+    
+    # Sample chemical data
+    chemicals = [
+        {
+            "id": 1,
+            "chemical_name": "Hydrochloric Acid",
+            "cas_number": "7647-01-0",
+            "manufacturer": "Fisher Scientific",
+            "lot_number": "HCl-2024-001",
+            "current_quantity": 2.5,
+            "unit": "L",
+            "storage_location": "Acid Cabinet A1",
+            "expiration_date": datetime(2025, 12, 31),
+            "is_active": True,
+            "is_hazardous": True,
+            "hazard_class": "Corrosive"
+        },
+        {
+            "id": 2,
+            "chemical_name": "Acetone",
+            "cas_number": "67-64-1", 
+            "manufacturer": "Sigma-Aldrich",
+            "lot_number": "ACE-2024-015",
+            "current_quantity": 0.8,
+            "unit": "L",
+            "storage_location": "Solvent Cabinet B2",
+            "expiration_date": datetime(2025, 6, 15),
+            "is_active": True,
+            "is_hazardous": True,
+            "hazard_class": "Flammable"
+        },
+        {
+            "id": 3,
+            "chemical_name": "Sodium Chloride",
+            "cas_number": "7647-14-5",
+            "manufacturer": "VWR",
+            "lot_number": "NaCl-2024-088", 
+            "current_quantity": 500.0,
+            "unit": "g",
+            "storage_location": "General Storage C3",
+            "expiration_date": datetime(2026, 3, 20),
+            "is_active": True,
+            "is_hazardous": False,
+            "hazard_class": "Non-Hazardous"
+        },
+        {
+            "id": 4,
+            "chemical_name": "Sulfuric Acid",
+            "cas_number": "7664-93-9",
+            "manufacturer": "Fisher Scientific", 
+            "lot_number": "H2SO4-2024-003",
+            "current_quantity": 0.5,
+            "unit": "L",
+            "storage_location": "Acid Cabinet A1",
+            "expiration_date": datetime(2024, 8, 1),  # Expired
+            "is_active": True,
+            "is_hazardous": True,
+            "hazard_class": "Corrosive"
+        },
+        {
+            "id": 5,
+            "chemical_name": "Methanol",
+            "cas_number": "67-56-1",
+            "manufacturer": "Honeywell",
+            "lot_number": "MEOH-2024-022",
+            "current_quantity": 1.2,
+            "unit": "L", 
+            "storage_location": "Solvent Cabinet B1",
+            "expiration_date": datetime(2025, 11, 30),
+            "is_active": True,
+            "is_hazardous": True,
+            "hazard_class": "Toxic"
+        }
+    ]
+    
+    return templates.TemplateResponse("chemical_inventory/list.html", {
+        "request": request,
+        "current_user": current_user,
+        "chemicals": chemicals,
+        "today": datetime.now().date()
+    })
+
+@app.get("/equipment", response_class=HTMLResponse)
+async def equipment_management(request: Request):
+    """Equipment Management with calibration tracking"""
+    
+    current_user = {
+        "full_name": "Admin User",
+        "role": {"value": "admin"}
+    }
+    
+    # Sample equipment data
+    equipment_data = [
+        {
+            "id": 1,
+            "equipment_name": "ICP-OES Spectrometer",
+            "model": "Agilent 5110",
+            "serial_number": "US15081234",
+            "location": "Main Lab",
+            "status": "Operational",
+            "calibration_date": datetime(2024, 7, 15),
+            "next_calibration_due": datetime(2025, 1, 15),
+            "last_maintenance": datetime(2024, 8, 1),
+            "maintenance_notes": "Routine cleaning and optical alignment check completed"
+        },
+        {
+            "id": 2,
+            "equipment_name": "Flame AA Spectrometer",  
+            "model": "PerkinElmer PinAAcle 500",
+            "serial_number": "PE20240456",
+            "location": "Analysis Room B",
+            "status": "Operational",
+            "calibration_date": datetime(2024, 6, 20),
+            "next_calibration_due": datetime(2024, 12, 20),
+            "last_maintenance": datetime(2024, 7, 28),
+            "maintenance_notes": "Burner head cleaned, gas flow rates verified"
+        },
+        {
+            "id": 3,
+            "equipment_name": "Analytical Balance", 
+            "model": "Mettler Toledo XP205",
+            "serial_number": "MT2024789",
+            "location": "Weighing Room",
+            "status": "Calibration Due",
+            "calibration_date": datetime(2024, 5, 10),
+            "next_calibration_due": datetime(2024, 8, 10),  # Overdue
+            "last_maintenance": datetime(2024, 7, 5),
+            "maintenance_notes": "Level adjustment and linearity check performed"
+        },
+        {
+            "id": 4,
+            "equipment_name": "pH Meter",
+            "model": "Hanna HI-2020", 
+            "serial_number": "HI24561234",
+            "location": "QC Lab",
+            "status": "Operational",
+            "calibration_date": datetime(2024, 7, 30),
+            "next_calibration_due": datetime(2024, 10, 30),
+            "last_maintenance": datetime(2024, 8, 2),
+            "maintenance_notes": "Electrode cleaned and buffer solutions replaced"
+        },
+        {
+            "id": 5,
+            "equipment_name": "Pipette Set (10-100μL)",
+            "model": "Eppendorf Research Plus",
+            "serial_number": "EP2024100",
+            "location": "Prep Station 1", 
+            "status": "Operational",
+            "calibration_date": datetime(2024, 7, 22),
+            "next_calibration_due": datetime(2025, 1, 22),
+            "last_maintenance": datetime(2024, 7, 22),
+            "maintenance_notes": "Accuracy and precision verification completed"
+        }
+    ]
+    
+    return templates.TemplateResponse("equipment/list.html", {
+        "request": request,
+        "current_user": current_user,
+        "equipment": equipment_data,
+        "today": datetime.now().date()
+    })
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics_dashboard():
