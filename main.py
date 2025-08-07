@@ -446,22 +446,22 @@ async def analytics_dashboard():
             <div class="quick-actions">
                 <h3><i class="fas fa-bolt"></i> Quick Actions & Features</h3>
                 <div class="quick-actions-grid">
-                    <div class="quick-action">
+                    <div class="quick-action" onclick="window.location.href='/analytics'">
                         <i class="fas fa-download"></i><br>
                         <strong>CSV Templates</strong><br>
                         <small>Download import templates</small>
                     </div>
-                    <div class="quick-action">
+                    <div class="quick-action" onclick="window.location.href='/reminders'">
                         <i class="fas fa-bell"></i><br>
                         <strong>Reminders</strong><br>
                         <small>Set dashboard reminders</small>
                     </div>
-                    <div class="quick-action">
+                    <div class="quick-action" onclick="window.location.href='/notes'">
                         <i class="fas fa-sticky-note"></i><br>
                         <strong>Notes</strong><br>
                         <small>Department-wide notes</small>
                     </div>
-                    <div class="quick-action">
+                    <div class="quick-action" onclick="window.location.href='/waste'">
                         <i class="fas fa-trash"></i><br>
                         <strong>Waste Tracking</strong><br>
                         <small>COC & disposal module</small>
@@ -619,8 +619,190 @@ async def analytics_dashboard():
     </body>
     </html>
     """
-    
     return html_content
+
+@app.get("/waste", response_class=HTMLResponse)
+async def waste_management():
+    return """
+    <html>
+    <head>
+        <title>🗑️ Waste Management - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #ea4335; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🗑️ Waste Disposal Management</div>
+                <div class="subtitle">COC Tracking, Waste Box Labels & Sample Disposal</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-boxes" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Waste Box Tracking</h3>
+                        <p>Create and manage waste boxes with COC job IDs</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-print" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Label Printing</h3>
+                        <p>Generate printable labels with QR codes</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-clock" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Storage Timer</h3>
+                        <p>Track extra sample storage periods</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-exchange-alt" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Item Movement</h3>
+                        <p>Move samples between boxes seamlessly</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full waste management functionality will be available soon with database integration.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/reminders", response_class=HTMLResponse)
+async def reminders_page():
+    return """
+    <html>
+    <head>
+        <title>🔔 Reminders - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #fbbc04; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🔔 Reminders & Events</div>
+                <div class="subtitle">Stay on top of important lab tasks and deadlines</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-bell" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Task Reminders</h3>
+                        <p>Set and track important lab tasks</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-calendar" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Event Calendar</h3>
+                        <p>Schedule upcoming events and deadlines</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Priority Alerts</h3>
+                        <p>High-priority notifications for critical tasks</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Team Assignment</h3>
+                        <p>Assign reminders to team members</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full reminder system will be integrated with user authentication soon.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/notes", response_class=HTMLResponse)
+async def notes_page():
+    return """
+    <html>
+    <head>
+        <title>📝 Department Notes - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #34a853; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📝 Department Notes</div>
+                <div class="subtitle">Shared announcements, procedures, and important information</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-thumbtack" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Pinned Notes</h3>
+                        <p>Important announcements at the top</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Department-wide</h3>
+                        <p>Visible to all department members</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-calendar" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Dated Entries</h3>
+                        <p>Automatic timestamping and organization</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-filter" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Categorized</h3>
+                        <p>Filter by type: procedures, announcements, etc.</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full notes system with database integration coming soon.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 # Initialize default admin user
 @app.on_event("startup")
