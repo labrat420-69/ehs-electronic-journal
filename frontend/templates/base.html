@@ -5,234 +5,523 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EHS Electronic Journal{% endblock %}</title>
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/components.css') }}">
-    {% block extra_css %}{% endblock %}
+    <!-- Bootstrap CSS for basic styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Tabler-inspired CSS -->
+    <style>
+        :root {
+            --tblr-primary: #206bc4;
+            --tblr-secondary: #6c757d;
+            --tblr-success: #2fb344;
+            --tblr-info: #4299e1;
+            --tblr-warning: #f76707;
+            --tblr-danger: #d63384;
+            --tblr-light: #f8f9fa;
+            --tblr-dark: #354052;
+            --tblr-body-bg: #f8fafc;
+            --tblr-border-color: #dadfe7;
+        }
+
+        body {
+            background-color: var(--tblr-body-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .navbar-vertical {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--tblr-dark);
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.7) !important;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin: 0.125rem 0.5rem;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-menu {
+            background: var(--tblr-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+
+        .page-wrapper {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            border-bottom: 1px solid var(--tblr-border-color);
+            padding: 1.5rem 0;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--tblr-dark);
+            margin: 0;
+        }
+
+        .card {
+            border: 1px solid var(--tblr-border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+
+        .subheader {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--tblr-secondary);
+            letter-spacing: 0.04em;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+
+        .status-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 50%;
+            margin-right: 0.375rem;
+        }
+
+        .status-green {
+            color: var(--tblr-success);
+            background-color: rgba(47, 179, 68, 0.1);
+        }
+
+        .status-green .status-dot {
+            background-color: var(--tblr-success);
+        }
+
+        .status-yellow {
+            color: var(--tblr-warning);
+            background-color: rgba(247, 103, 7, 0.1);
+        }
+
+        .status-yellow .status-dot {
+            background-color: var(--tblr-warning);
+        }
+
+        .status-red {
+            color: var(--tblr-danger);
+            background-color: rgba(214, 51, 132, 0.1);
+        }
+
+        .status-red .status-dot {
+            background-color: var(--tblr-danger);
+        }
+
+        .status-purple {
+            color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        .status-purple .status-dot {
+            background-color: #8b5cf6;
+        }
+
+        .text-green { color: var(--tblr-success) !important; }
+        .text-yellow { color: var(--tblr-warning) !important; }
+        .text-red { color: var(--tblr-danger) !important; }
+        .text-purple { color: #8b5cf6 !important; }
+
+        .btn-purple {
+            background-color: #8b5cf6;
+            border-color: #8b5cf6;
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background-color: #7c3aed;
+            border-color: #7c3aed;
+        }
+
+        .btn-ghost-primary {
+            color: var(--tblr-primary);
+            background: transparent;
+            border: 1px solid var(--tblr-primary);
+        }
+
+        .btn-ghost-success {
+            color: var(--tblr-success);
+            background: transparent;
+            border: 1px solid var(--tblr-success);
+        }
+
+        .btn-ghost-warning {
+            color: var(--tblr-warning);
+            background: transparent;
+            border: 1px solid var(--tblr-warning);
+        }
+
+        .btn-ghost-danger {
+            color: var(--tblr-danger);
+            background: transparent;
+            border: 1px solid var(--tblr-danger);
+        }
+
+        .btn-ghost-purple {
+            color: #8b5cf6;
+            background: transparent;
+            border: 1px solid #8b5cf6;
+        }
+
+        .card-body-scrollable {
+            overflow-y: auto;
+        }
+
+        .avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--tblr-light);
+            color: var(--tblr-secondary);
+        }
+
+        .avatar-sm {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            color: var(--tblr-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--tblr-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-subtitle {
+            color: var(--tblr-secondary);
+        }
+
+        .user-section {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-vertical {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .navbar-vertical.show {
+                transform: translateX(0);
+            }
+
+            .page-wrapper {
+                margin-left: 0;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <!-- EHS Labs Branding -->
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
-                <div class="company-info">
-                    <h3>EHS Labs</h3>
-                    <p>Environmental Hazards Services</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Real-time EST Clock -->
-        <div class="clock-container">
-            <div class="current-time" id="current-time">
-                {{ current_time_est }}
-            </div>
-            <div class="timezone">EST</div>
-        </div>
-        
-        <!-- Navigation Menu -->
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+    <div class="page">
+        <!-- Sidebar -->
+        <aside class="navbar navbar-vertical navbar-expand-lg">
+            <div class="container-fluid h-100 d-flex flex-column">
+                <!-- Brand -->
+                <div class="navbar-brand">
+                    <a href="/dashboard" class="text-decoration-none text-white">
+                        <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" width="32" height="32" alt="EHS Labs" class="me-2" onerror="this.style.display='none'">
+                        EHS Labs
                     </a>
-                </li>
+                </div>
                 
-                <li>
-                    <a href="/analytics" class="nav-link {% if request.url.path == '/analytics' %}active{% endif %}">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
+                <!-- Real-time EST Clock -->
+                <div class="text-center mb-3">
+                    <div class="text-white small">
+                        <div id="current-time">{{ current_time_est }}</div>
+                        <div class="text-muted">EST</div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar navigation -->
+                <div class="flex-grow-1">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}" href="/dashboard">
+                                <span class="me-2">🏠</span>
+                                Dashboard
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.url.path == '/analytics' %}active{% endif %}" href="/analytics">
+                                <span class="me-2">📊</span>
+                                Analytics
+                            </a>
+                        </li>
+                        
+                        <!-- Chemical Inventory Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">🧪</span>
+                                Chemical Inventory
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/chemical_inventory/">Inventory Log</a></li>
+                                <li><a class="dropdown-item" href="/chemical_inventory/add">Add Chemical</a></li>
+                                <li><a class="dropdown-item" href="/chemical_inventory/history">History</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Reagents Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">🧫</span>
+                                Reagents
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/reagents/mm">MM Reagents</a></li>
+                                <li><a class="dropdown-item" href="/reagents/pb">Pb Reagents</a></li>
+                                <li><a class="dropdown-item" href="/reagents/tclp">TCLP Reagents</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Standards Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">⚖️</span>
+                                Standards
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/standards/mm">MM Standards</a></li>
+                                <li><a class="dropdown-item" href="/standards/flameaa">FlameAA Standards</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Equipment Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">🔧</span>
+                                Equipment
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/equipment/">Equipment Log</a></li>
+                                <li><a class="dropdown-item" href="/equipment/pipettes">Pipette Log</a></li>
+                                <li><a class="dropdown-item" href="/equipment/water-conductivity">Water Conductivity</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Maintenance Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">🛠️</span>
+                                Maintenance
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/maintenance/icp-oes">ICP-OES Maintenance</a></li>
+                                <li><a class="dropdown-item" href="/maintenance/">Maintenance Dashboard</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- User Management (Admin only) -->
+                        {% if current_user and current_user.role == 'admin' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                <span class="me-2">👥</span>
+                                Administration
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/auth/users">User Management</a></li>
+                                <li><a class="dropdown-item" href="/admin/departments">Departments</a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- User section at bottom -->
+                <div class="user-section">
+                    {% if current_user %}
+                    <div class="d-flex align-items-center">
+                        <div class="avatar avatar-sm me-3">
+                            👤
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="text-white small">{{ current_user.full_name }}</div>
+                            <div class="text-muted small">{{ current_user.role.value.title() }}</div>
+                        </div>
+                        <div class="dropdown">
+                            <a href="#" class="text-white text-decoration-none" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                ⋮
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/auth/profile">👤 Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/auth/logout">🚪 Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="/auth/login" class="btn btn-primary btn-sm w-100">
+                        🚪 Login
                     </a>
-                </li>
-                
-                <!-- Chemical Inventory Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-flask"></i>
-                        <span>Chemical Inventory</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/chemical_inventory/" class="nav-link">Inventory Log</a></li>
-                        <li><a href="/chemical_inventory/add" class="nav-link">Add Chemical</a></li>
-                        <li><a href="/chemical_inventory/history" class="nav-link">History</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Reagents Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-vial"></i>
-                        <span>Reagents</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/reagents/mm" class="nav-link">MM Reagents</a></li>
-                        <li><a href="/reagents/pb" class="nav-link">Pb Reagents</a></li>
-                        <li><a href="/reagents/tclp" class="nav-link">TCLP Reagents</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Standards Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-balance-scale"></i>
-                        <span>Standards</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/standards/mm" class="nav-link">MM Standards</a></li>
-                        <li><a href="/standards/flameaa" class="nav-link">FlameAA Standards</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Equipment Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-tools"></i>
-                        <span>Equipment</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/equipment/" class="nav-link">Equipment Log</a></li>
-                        <li><a href="/equipment/pipettes" class="nav-link">Pipette Log</a></li>
-                        <li><a href="/equipment/water-conductivity" class="nav-link">Water Conductivity</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Maintenance Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-wrench"></i>
-                        <span>Maintenance</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/maintenance/icp-oes" class="nav-link">ICP-OES Maintenance</a></li>
-                        <li><a href="/maintenance/" class="nav-link">Maintenance Dashboard</a></li>
-                    </ul>
-                </li>
-                
-                <!-- User Management (Admin only) -->
-                {% if current_user and current_user.role == 'admin' %}
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-users"></i>
-                        <span>Administration</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/auth/users" class="nav-link">User Management</a></li>
-                        <li><a href="/admin/departments" class="nav-link">Departments</a></li>
-                    </ul>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
         
-        <!-- User Info & Logout -->
-        <div class="sidebar-footer">
-            {% if current_user %}
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
+        <!-- Main page content -->
+        <div class="page-wrapper">
+            <!-- Page header -->
+            <div class="page-header">
+                <div class="container-xl">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="page-title">
+                                {% block page_title %}EHS Electronic Journal{% endblock %}
+                            </h2>
+                        </div>
+                        
+                        <div class="col-auto">
+                            {% if current_user %}
+                            <span class="text-muted">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div class="user-details">
-                    <div class="user-name">{{ current_user.full_name }}</div>
-                    <div class="user-role">{{ current_user.role.value.title() }}</div>
+            </div>
+            
+            <!-- Page body -->
+            <div class="page-body">
+                <div class="container-xl">
+                    <!-- Flash Messages -->
+                    {% if get_flashed_messages %}
+                    {% for category, message in get_flashed_messages(with_categories=true) %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'success' %}success{% else %}info{% endif %} alert-dismissible" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- URL Parameter Messages -->
+                    <div id="url-messages"></div>
+                    
+                    {% block content %}
+                    <!-- Page content goes here -->
+                    {% endblock %}
                 </div>
             </div>
-            <div class="user-actions">
-                <a href="/auth/profile" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-cog"></i> Profile
-                </a>
-                <a href="/auth/logout" class="btn btn-outline btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-            {% else %}
-            <div class="auth-actions">
-                <a href="/auth/login" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
     
-    <!-- Main Content Area -->
-    <div id="main-content" class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
-            </div>
-            
-            <div class="top-bar-right">
-                {% if current_user %}
-                <span class="welcome-text">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- Flash Messages -->
-            {% if get_flashed_messages %}
-            <div class="flash-messages">
-                {% for category, message in get_flashed_messages(with_categories=true) %}
-                <div class="alert alert-{{ category }}">
-                    <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
-                    {{ message }}
-                    <button class="alert-close">&times;</button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <!-- URL Parameter Messages -->
-            <div id="url-messages"></div>
-            
-            {% block content %}
-            <!-- Page content goes here -->
-            {% endblock %}
-        </div>
-    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     
-    <!-- JavaScript -->
-    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
-    <script src="{{ url_for('static', path='/js/sidebar.js') }}"></script>
-    <script src="{{ url_for('static', path='/js/clock.js') }}"></script>
-    {% block extra_js %}{% endblock %}
-    
-    <!-- Initialize components -->
+    <!-- Clock update script -->
     <script>
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            const timeString = now.toLocaleString('en-US', options);
+            const clockElement = document.getElementById('current-time');
+            if (clockElement) clockElement.textContent = timeString;
+        }
+        
+        // Update clock every second
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+        
+        // URL parameter messages handler
+        function initializeUrlMessages() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const messagesContainer = document.getElementById('url-messages');
+            
+            if (urlParams.has('success')) {
+                const message = urlParams.get('success');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible';
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                messagesContainer.appendChild(alertDiv);
+            }
+            
+            if (urlParams.has('error')) {
+                const message = urlParams.get('error');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible';
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                messagesContainer.appendChild(alertDiv);
+            }
+        }
+        
+        // Initialize components when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize sidebar
-            initializeSidebar();
-            
-            // Initialize real-time clock
-            initializeClock();
-            
-            // Initialize flash message handlers
-            initializeFlashMessages();
-            
-            // Initialize URL parameter messages
             initializeUrlMessages();
-            
-            // Page-specific initialization
             {% block page_init %}{% endblock %}
         });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

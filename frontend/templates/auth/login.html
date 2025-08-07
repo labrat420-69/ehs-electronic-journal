@@ -4,34 +4,39 @@
 
 {% block extra_css %}
 <style>
+    /* Hide sidebar and top bar for login page */
+    .navbar-vertical {
+        display: none;
+    }
+    .page-wrapper {
+        margin-left: 0;
+    }
+    .page-header {
+        display: none;
+    }
+    .page-body {
+        padding: 0;
+    }
+    
     .auth-container {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        padding: var(--spacing-lg);
+        background: linear-gradient(135deg, var(--tblr-primary) 0%, var(--tblr-info) 100%);
+        padding: 2rem;
     }
     
     .auth-card {
-        background: var(--bg-primary);
-        border-radius: 12px;
-        box-shadow: var(--shadow-lg);
-        padding: var(--spacing-2xl);
         width: 100%;
         max-width: 420px;
-    }
-    
-    .auth-header {
-        text-align: center;
-        margin-bottom: var(--spacing-2xl);
     }
     
     .auth-logo {
         width: 80px;
         height: 80px;
-        margin: 0 auto var(--spacing-lg);
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, var(--tblr-primary), var(--tblr-info));
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -41,117 +46,82 @@
     }
     
     .auth-title {
-        font-size: var(--font-size-2xl);
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: var(--spacing-sm);
+        text-align: center;
+        color: var(--tblr-dark);
+        margin-bottom: 0.5rem;
     }
     
     .auth-subtitle {
-        color: var(--text-secondary);
-        font-size: var(--font-size-sm);
-    }
-    
-    .auth-form {
-        margin-bottom: var(--spacing-lg);
+        text-align: center;
+        color: var(--tblr-secondary);
+        margin-bottom: 2rem;
     }
     
     .auth-footer {
         text-align: center;
-        padding-top: var(--spacing-lg);
-        border-top: 1px solid var(--border-light);
-        color: var(--text-secondary);
-        font-size: var(--font-size-sm);
-    }
-    
-    .remember-me {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        margin-bottom: var(--spacing-lg);
-    }
-    
-    .forgot-password {
-        text-align: center;
-        margin-top: var(--spacing-md);
-    }
-    
-    .forgot-password a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-size: var(--font-size-sm);
-    }
-    
-    .forgot-password a:hover {
-        text-decoration: underline;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--tblr-border-color);
+        color: var(--tblr-secondary);
+        font-size: 0.875rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hide sidebar and top bar for login page -->
-<style>
-    .sidebar { display: none; }
-    .main-content { margin-left: 0; }
-    .top-bar { display: none; }
-    .page-content { padding: 0; }
-</style>
-
 <div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
+    <div class="card auth-card">
+        <div class="card-body p-4">
             <div class="auth-logo">
-                <i class="fas fa-flask"></i>
+                🧪
             </div>
-            <h1 class="auth-title">Welcome Back</h1>
+            <h1 class="h3 auth-title">Welcome Back</h1>
             <p class="auth-subtitle">Sign in to EHS Electronic Journal</p>
-        </div>
-        
-        <form class="auth-form" method="POST" action="/auth/login" id="loginForm">
-            <div class="form-group">
-                <label for="username" class="form-label required">Username</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    class="form-control" 
-                    required 
-                    autocomplete="username"
-                    placeholder="Enter your username"
-                >
-            </div>
             
-            <div class="form-group">
-                <label for="password" class="form-label required">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="form-control" 
-                    required 
-                    autocomplete="current-password"
-                    placeholder="Enter your password"
-                >
-            </div>
+            <form method="POST" action="/auth/login" id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-control" 
+                        required 
+                        autocomplete="username"
+                        placeholder="Enter your username"
+                    >
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-control" 
+                        required 
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                    >
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 mb-3">
+                    🚪 Sign In
+                </button>
+                
+                <div class="text-center">
+                    <a href="/auth/forgot-password" class="text-muted">Forgot your password?</a>
+                </div>
+            </form>
             
-            <div class="remember-me">
-                <input type="checkbox" id="remember" name="remember" value="1">
-                <label for="remember">Remember me</label>
+            <div class="auth-footer">
+                <p class="mb-1">&copy; 2025 EHS Labs Environmental Hazards Services</p>
+                <p class="mb-0">Electronic Laboratory Journal System</p>
             </div>
-            
-            <button type="submit" class="btn btn-primary btn-block btn-lg">
-                <i class="fas fa-sign-in-alt"></i>
-                Sign In
-            </button>
-            
-            <div class="forgot-password">
-                <a href="/auth/forgot-password">Forgot your password?</a>
-            </div>
-        </form>
-        
-        <div class="auth-footer">
-            <p>&copy; 2025 EHS Labs Environmental Hazards Services</p>
-            <p>Electronic Laboratory Journal System</p>
         </div>
     </div>
 </div>
@@ -170,33 +140,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!username) {
             e.preventDefault();
-            showMessage('error', 'Please enter your username');
+            alert('Please enter your username');
             document.getElementById('username').focus();
             return;
         }
         
         if (!password) {
             e.preventDefault();
-            showMessage('error', 'Please enter your password');
+            alert('Please enter your password');
             document.getElementById('password').focus();
             return;
         }
         
         // Show loading state
         submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+        submitButton.innerHTML = '⏳ Signing In...';
     });
     
     // Handle URL parameters for messages
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('logout') === 'true') {
-        showMessage('success', 'You have been logged out successfully');
+        setTimeout(() => alert('You have been logged out successfully'), 100);
     }
     if (urlParams.get('session_expired') === 'true') {
-        showMessage('warning', 'Your session has expired. Please log in again.');
+        setTimeout(() => alert('Your session has expired. Please log in again.'), 100);
     }
     if (urlParams.get('access_denied') === 'true') {
-        showMessage('error', 'Access denied. Please log in to continue.');
+        setTimeout(() => alert('Access denied. Please log in to continue.'), 100);
     }
     
     // Clear URL parameters
