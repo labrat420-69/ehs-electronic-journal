@@ -507,7 +507,7 @@ async def fetch_graph_data(db: Session, data_source: str, x_field: str, y_field:
     
     elif data_source == "pipette_tests":
         query = db.query(PipetteLog)
-        records = query.order_by(desc(PipetteLog.test_date)).limit(limit).all()
+        records = query.order_by(desc(PipetteLog.calibration_date)).limit(limit).all()
         data = []
         for record in records:
             x_val = getattr(record, x_field, None)
