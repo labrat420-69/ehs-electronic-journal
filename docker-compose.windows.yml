@@ -1,5 +1,5 @@
-# EHS Electronic Journal - Docker Compose Configuration
-# Complete laboratory management system deployment
+# EHS Electronic Journal - Windows Docker Compose Configuration
+# Optimized for Windows deployment with proper volume handling
 
 services:
   # PostgreSQL Database
@@ -15,7 +15,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/postgresql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      # Windows-compatible path mounting for init script
+      - type: bind
+        source: ./database/postgresql/schema.sql
+        target: /docker-entrypoint-initdb.d/01-schema.sql
+        read_only: true
     networks:
       - ehs_network
     restart: unless-stopped
@@ -30,18 +34,26 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
+      target: production
     container_name: ehs_backend
     environment:
       - DATABASE_URL=postgresql://ehs_user:ehs_password@postgres:5432/ehs_electronic_journal
-      - SECRET_KEY=your-production-secret-key-change-this
-      - DEBUG=false
+      - SECRET_KEY=${SECRET_KEY:-your-production-secret-key-change-this}
+      - DEBUG=${DEBUG:-false}
       - HOST=0.0.0.0
       - PORT=8000
     ports:
       - "8000:8000"
+    # Windows-compatible volume mounts with explicit bind types
     volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
+      - type: bind
+        source: ./backend
+        target: /app/backend
+        read_only: true
+      - type: bind
+        source: ./frontend
+        target: /app/frontend
+        read_only: true
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,7 +66,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Nginx Reverse Proxy (Production)
+  # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
     container_name: ehs_nginx
@@ -62,15 +74,21 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./docker/nginx.conf:/etc/nginx/nginx.conf
-      - ./docker/ssl:/etc/nginx/ssl
+      - type: bind
+        source: ./docker/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+      - type: bind
+        source: ./docker/ssl
+        target: /etc/nginx/ssl
+        read_only: true
     depends_on:
       - backend
     networks:
       - ehs_network
     restart: unless-stopped
 
-  # Redis for Session Management (Optional)
+  # Redis for Session Management
   redis:
     image: redis:7-alpine
     container_name: ehs_redis

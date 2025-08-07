@@ -1,7 +1,7 @@
 # EHS Electronic Journal Backend Dockerfile
 # Multi-stage build for production optimization
 
-FROM python:3.11-slim as base
+FROM python:3.11-slim AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -24,11 +24,11 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 WORKDIR /app
 
 # Development stage
-FROM base as development
+FROM base AS development
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 # Copy application code
 COPY backend/ ./backend/
@@ -45,11 +45,11 @@ EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Production stage
-FROM base as production
+FROM base AS production
 
 # Install production dependencies only
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY backend/ ./backend/
