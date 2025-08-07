@@ -4,6 +4,7 @@ User model for authentication and authorization
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
 
@@ -52,6 +53,9 @@ class User(Base):
     
     # Profile picture
     profile_picture = Column(String(255), nullable=True)  # File path or URL
+    
+    # Relationships
+    dashboard_preferences = relationship("DashboardPreferences", back_populates="user", uselist=False)
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}')>"

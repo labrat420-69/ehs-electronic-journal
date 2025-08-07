@@ -341,6 +341,9 @@
             <button class="btn btn-success" onclick="exportToExcel()" disabled id="export-btn">
                 <i class="fas fa-file-excel"></i> Export to Excel
             </button>
+            <button class="btn btn-secondary" onclick="saveCurrentConfiguration()" id="save-config-btn">
+                <i class="fas fa-bookmark"></i> Save Configuration
+            </button>
             <button class="btn btn-warning" onclick="clearGraphs()">
                 <i class="fas fa-trash"></i> Clear All Graphs
             </button>
@@ -465,6 +468,7 @@
 window.dataSourcesData = {{ data_sources | tojson }};
 window.userPresets = {{ user_presets | tojson }};
 window.publicPresets = {{ public_presets | tojson }};
+window.userPreferences = {{ user_preferences | tojson }};
 </script>
 {% endblock %}
 
@@ -473,11 +477,15 @@ window.publicPresets = {{ public_presets | tojson }};
 <script>
 let currentGraphSlot = 1;
 let activeGraphs = {};
+let userPreferences = window.userPreferences || {};
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     initializeDataSources();
     checkGenerateButton();
+    loadUserPreferences();
+    setupPreferencesUI();
+});
 });
 
 function initializeDataSources() {
@@ -692,9 +700,236 @@ async function downloadTemplate(dataSource) {
     }
 }
 
+// Preference management functions
+function loadUserPreferences() {
+    if (!userPreferences) return;
+    
+    // Apply chart type preference
+    if (userPreferences.default_chart_type) {
+        document.getElementById('graph-type').value = userPreferences.default_chart_type;
+    }
+    
+    // Apply data source preference
+    if (userPreferences.default_data_source) {
+        const dataSourceSelect = document.getElementById('data-source');
+        dataSourceSelect.value = userPreferences.default_data_source;
+        dataSourceSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // Apply auto-refresh setting
+    if (userPreferences.auto_refresh && userPreferences.refresh_interval) {
+        setupAutoRefresh(userPreferences.refresh_interval);
+    }
+}
+
+function setupPreferencesUI() {
+    // Add preferences button to dashboard controls
+    const actionButtons = document.querySelector('.action-buttons');
+    if (actionButtons) {
+        const prefsButton = document.createElement('button');
+        prefsButton.className = 'btn btn-secondary';
+        prefsButton.innerHTML = '<i class="fas fa-cog"></i> Preferences';
+        prefsButton.onclick = showPreferencesModal;
+        actionButtons.appendChild(prefsButton);
+    }
+    
+    // Load saved charts dropdown
+    loadSavedChartsDropdown();
+}
+
+function setupAutoRefresh(intervalSeconds) {
+    setInterval(() => {
+        // Auto-refresh active graphs if enabled
+        if (userPreferences && userPreferences.auto_refresh) {
+            for (let slot in activeGraphs) {
+                if (activeGraphs[slot]) {
+                    // Re-generate the graph with current settings
+                    regenerateGraph(slot);
+                }
+            }
+        }
+    }, intervalSeconds * 1000);
+}
+
+async function regenerateGraph(slot) {
+    const graphConfig = activeGraphs[slot];
+    if (!graphConfig) return;
+    
+    try {
+        const response = await fetch(`/api/analytics/graph-data?data_source=${graphConfig.dataSource}&x_field=${graphConfig.xAxis}&y_field=${graphConfig.yAxis}&graph_type=${graphConfig.graphType}&limit=100`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const graphCard = document.getElementById(`graph-${slot}`);
+            const graphContent = graphCard.querySelector('.graph-content');
+            graphContent.innerHTML = result.graph_html;
+        }
+    } catch (error) {
+        console.error('Error refreshing graph:', error);
+    }
+}
+
+async function saveCurrentConfiguration() {
+    const activeSlots = Object.keys(activeGraphs);
+    if (activeSlots.length === 0) {
+        alert('No active graphs to save');
+        return;
+    }
+    
+    const configName = prompt('Enter configuration name:');
+    if (!configName) return;
+    
+    const configuration = {
+        name: configName,
+        description: `Dashboard configuration with ${activeSlots.length} chart(s)`,
+        charts: activeGraphs,
+        created_by: 'user'
+    };
+    
+    try {
+        const response = await fetch('/api/analytics/preferences/save-chart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(configuration)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Configuration saved successfully!');
+            loadSavedChartsDropdown(); // Refresh dropdown
+        } else {
+            throw new Error('Failed to save configuration');
+        }
+    } catch (error) {
+        console.error('Error saving configuration:', error);
+        alert('Error saving configuration: ' + error.message);
+    }
+}
+
+async function loadSavedChartsDropdown() {
+    if (!userPreferences || !userPreferences.saved_charts) return;
+    
+    const actionButtons = document.querySelector('.action-buttons');
+    
+    // Remove existing dropdown if present
+    const existingDropdown = document.getElementById('saved-charts-dropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
+    }
+    
+    if (userPreferences.saved_charts.length > 0) {
+        const dropdown = document.createElement('select');
+        dropdown.id = 'saved-charts-dropdown';
+        dropdown.className = 'btn btn-secondary';
+        dropdown.style.marginLeft = '10px';
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Load Saved Configuration...';
+        dropdown.appendChild(defaultOption);
+        
+        userPreferences.saved_charts.forEach(chart => {
+            const option = document.createElement('option');
+            option.value = chart.id;
+            option.textContent = chart.name;
+            dropdown.appendChild(option);
+        });
+        
+        dropdown.onchange = function() {
+            if (this.value) {
+                loadSavedConfiguration(this.value);
+                this.value = ''; // Reset selection
+            }
+        };
+        
+        actionButtons.appendChild(dropdown);
+    }
+}
+
+function loadSavedConfiguration(chartId) {
+    if (!userPreferences || !userPreferences.saved_charts) return;
+    
+    const savedChart = userPreferences.saved_charts.find(chart => chart.id === chartId);
+    if (!savedChart) return;
+    
+    // Clear existing graphs
+    clearGraphs();
+    
+    // Load the saved charts configuration
+    if (savedChart.charts) {
+        for (const [slot, config] of Object.entries(savedChart.charts)) {
+            // Set the form values
+            document.getElementById('data-source').value = config.dataSource;
+            document.getElementById('data-source').dispatchEvent(new Event('change'));
+            
+            setTimeout(() => {
+                document.getElementById('x-axis').value = config.xAxis;
+                document.getElementById('y-axis').value = config.yAxis;
+                document.getElementById('graph-type').value = config.graphType;
+                
+                // Generate the graph in the specific slot
+                generateGraphInSlot(parseInt(slot));
+            }, 500); // Allow time for field population
+        }
+    }
+}
+
+async function generateGraphInSlot(targetSlot) {
+    const dataSource = document.getElementById('data-source').value;
+    const xAxis = document.getElementById('x-axis').value;
+    const yAxis = document.getElementById('y-axis').value;
+    const graphType = document.getElementById('graph-type').value;
+    
+    const graphCard = document.getElementById(`graph-${targetSlot}`);
+    const graphContent = graphCard.querySelector('.graph-content');
+    const graphTitle = graphCard.querySelector('.graph-title');
+    
+    // Update title
+    graphTitle.textContent = `${window.dataSourcesData[dataSource].name}: ${yAxis} vs ${xAxis}`;
+    
+    // Show loading
+    graphContent.innerHTML = `
+        <div class="graph-placeholder">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Generating graph...</span>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/api/analytics/graph-data?data_source=${dataSource}&x_field=${xAxis}&y_field=${yAxis}&graph_type=${graphType}&limit=100`);
+        const result = await response.json();
+        
+        if (result.success) {
+            graphContent.innerHTML = result.graph_html;
+            activeGraphs[targetSlot] = { dataSource, xAxis, yAxis, graphType };
+        } else {
+            throw new Error(result.error || 'Failed to generate graph');
+        }
+        
+    } catch (error) {
+        console.error('Error generating graph:', error);
+        graphContent.innerHTML = `
+            <div class="graph-placeholder">
+                <i class="fas fa-exclamation-triangle" style="color: #ea4335;"></i>
+                <p>Error generating graph: ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function showPreferencesModal() {
+    alert('Dashboard Preferences Modal - Feature coming soon!\n\nCurrent features:\n- Auto-save chart configurations\n- Persistent default chart types\n- Load saved configurations from dropdown');
+}
+
 // Placeholder functions for modal dialogs (to be implemented)
 function showAddReminderModal() {
     alert('Add reminder functionality - to be implemented');
+}
 }
 
 function showAddNoteModal() {

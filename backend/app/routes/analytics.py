@@ -21,6 +21,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from app.database import get_db
 from app.auth.jwt_handler import get_optional_user
 from app.models.analytics import GraphPreset, DashboardReminder, DepartmentNote, WasteBox, WasteItem
+from app.models.dashboard import DashboardPreferences
 from app.models.chemical_inventory import ChemicalInventoryLog, ChemicalInventoryHistory
 from app.models.reagents import MMReagents, PbReagents, TCLPReagents
 from app.models.standards import MMStandards, FlameAAStandards  
@@ -81,6 +82,20 @@ class WasteItemCreate(BaseModel):
     is_extra_sample: bool = False
     waste_box_id: int
 
+class DashboardPreferencesUpdate(BaseModel):
+    layout_type: Optional[str] = None
+    chart_positions: Optional[List[Dict[str, Any]]] = None
+    default_chart_type: Optional[str] = None
+    default_data_source: Optional[str] = None
+    auto_refresh: Optional[bool] = None
+    refresh_interval: Optional[int] = None
+    show_sidebar: Optional[bool] = None
+    sidebar_collapsed: Optional[bool] = None
+    theme_preference: Optional[str] = None
+    default_date_range: Optional[str] = None
+    max_data_points: Optional[int] = None
+    saved_charts: Optional[List[Dict[str, Any]]] = None
+
 @router.get("/analytics", response_class=HTMLResponse)
 async def analytics_dashboard(
     request: Request,
@@ -88,6 +103,37 @@ async def analytics_dashboard(
 ):
     """Analytics dashboard page with customizable graphs"""
     current_user = await get_optional_user(request, db)
+    
+    # Get or create user dashboard preferences
+    user_preferences = None
+    if current_user:
+        user_preferences = db.query(DashboardPreferences).filter(
+            DashboardPreferences.user_id == current_user.id
+        ).first()
+        
+        if not user_preferences:
+            # Create default preferences for new user
+            default_prefs = DashboardPreferences()
+            default_data = default_prefs.get_default_preferences()
+            
+            user_preferences = DashboardPreferences(
+                user_id=current_user.id,
+                layout_type=default_data["layout_type"],
+                chart_positions=default_data["chart_positions"],
+                default_chart_type=default_data["default_chart_type"],
+                default_data_source=default_data["default_data_source"],
+                auto_refresh=default_data["auto_refresh"],
+                refresh_interval=default_data["refresh_interval"],
+                show_sidebar=default_data["show_sidebar"],
+                sidebar_collapsed=default_data["sidebar_collapsed"],
+                theme_preference=default_data["theme_preference"],
+                default_date_range=default_data["default_date_range"],
+                max_data_points=default_data["max_data_points"],
+                saved_charts=default_data["saved_charts"]
+            )
+            db.add(user_preferences)
+            db.commit()
+            db.refresh(user_preferences)
     
     # Get user's graph presets
     user_presets = []
@@ -131,7 +177,8 @@ async def analytics_dashboard(
         "public_presets": [preset.to_dict() for preset in public_presets],
         "data_sources": data_sources,
         "recent_reminders": [reminder.to_dict() for reminder in recent_reminders],
-        "recent_notes": [note.to_dict() for note in recent_notes]
+        "recent_notes": [note.to_dict() for note in recent_notes],
+        "user_preferences": user_preferences.to_dict() if user_preferences else None
     }
     
     return templates.TemplateResponse("analytics/dashboard.html", context)
@@ -677,3 +724,122 @@ def get_import_template_data(data_source: str):
     })
 
 # Additional routes for reminders, notes, and waste management will be added in separate route files
+
+# Dashboard preferences routes
+@router.get("/api/analytics/preferences")
+async def get_dashboard_preferences(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Get user dashboard preferences"""
+    current_user = await get_optional_user(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    preferences = db.query(DashboardPreferences).filter(
+        DashboardPreferences.user_id == current_user.id
+    ).first()
+    
+    if not preferences:
+        # Return default preferences
+        default_prefs = DashboardPreferences()
+        return {"success": True, "preferences": default_prefs.get_default_preferences()}
+    
+    return {"success": True, "preferences": preferences.to_dict()}
+
+@router.post("/api/analytics/preferences")
+async def update_dashboard_preferences(
+    preferences_update: DashboardPreferencesUpdate,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Update user dashboard preferences"""
+    current_user = await get_optional_user(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Get or create preferences
+    preferences = db.query(DashboardPreferences).filter(
+        DashboardPreferences.user_id == current_user.id
+    ).first()
+    
+    if not preferences:
+        preferences = DashboardPreferences(user_id=current_user.id)
+        db.add(preferences)
+    
+    # Update fields that were provided
+    update_data = preferences_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(preferences, field, value)
+    
+    db.commit()
+    db.refresh(preferences)
+    
+    return {"success": True, "preferences": preferences.to_dict()}
+
+@router.post("/api/analytics/preferences/save-chart")
+async def save_chart_configuration(
+    chart_config: Dict[str, Any],
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Save a chart configuration to user preferences"""
+    current_user = await get_optional_user(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    preferences = db.query(DashboardPreferences).filter(
+        DashboardPreferences.user_id == current_user.id
+    ).first()
+    
+    if not preferences:
+        preferences = DashboardPreferences(user_id=current_user.id)
+        db.add(preferences)
+    
+    # Add chart to saved charts
+    saved_charts = preferences.saved_charts or []
+    
+    # Add timestamp and unique ID
+    import uuid
+    chart_config["id"] = str(uuid.uuid4())
+    chart_config["created_at"] = datetime.utcnow().isoformat()
+    
+    saved_charts.append(chart_config)
+    preferences.saved_charts = saved_charts
+    
+    db.commit()
+    db.refresh(preferences)
+    
+    return {"success": True, "chart_id": chart_config["id"]}
+
+@router.delete("/api/analytics/preferences/saved-charts/{chart_id}")
+async def delete_saved_chart(
+    chart_id: str,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Delete a saved chart configuration"""
+    current_user = await get_optional_user(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    preferences = db.query(DashboardPreferences).filter(
+        DashboardPreferences.user_id == current_user.id
+    ).first()
+    
+    if not preferences:
+        raise HTTPException(status_code=404, detail="Preferences not found")
+    
+    saved_charts = preferences.saved_charts or []
+    original_length = len(saved_charts)
+    
+    # Remove chart with matching ID
+    saved_charts = [chart for chart in saved_charts if chart.get("id") != chart_id]
+    
+    if len(saved_charts) == original_length:
+        raise HTTPException(status_code=404, detail="Chart not found")
+    
+    preferences.saved_charts = saved_charts
+    db.commit()
+    
+    return {"success": True}
