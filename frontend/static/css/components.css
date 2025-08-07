@@ -1,5 +1,6 @@
 /* 
 Components CSS - Buttons, Forms, Cards, Tables, etc.
+Enterprise Professional Theme
 */
 
 /* Button components */
@@ -7,16 +8,18 @@ Components CSS - Buttons, Forms, Cards, Tables, etc.
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: var(--font-size-sm);
-    font-weight: 500;
+    padding: 10px 16px;
+    border: 2px solid transparent;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: 700;
     text-decoration: none;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.15s;
     white-space: nowrap;
     user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn:focus {
@@ -26,64 +29,72 @@ Components CSS - Buttons, Forms, Cards, Tables, etc.
 
 /* Button variants */
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    color: var(--text-inverse);
-    box-shadow: var(--shadow-sm);
+    background: #1d4ed8;
+    color: white;
+    border-color: #1d4ed8;
+    box-shadow: 0 2px 4px rgba(29, 78, 216, 0.2);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+    background: #1e40af;
+    border-color: #1e40af;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
 }
 
 .btn-secondary {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    border-color: var(--border-color);
+    background-color: #f8f9fa;
+    color: #374151;
+    border-color: #6b7280;
 }
 
 .btn-secondary:hover {
-    background-color: var(--bg-secondary);
-    border-color: var(--border-dark);
+    background-color: #e5e7eb;
+    border-color: #374151;
+    color: #1f2937;
 }
 
 .btn-outline {
     background: transparent;
     color: var(--sidebar-text);
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .btn-outline:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 .btn-success {
-    background-color: var(--success-color);
-    color: var(--text-inverse);
+    background-color: #059669;
+    color: white;
+    border-color: #059669;
 }
 
 .btn-success:hover {
-    background-color: #2d7a3d;
+    background-color: #047857;
+    border-color: #047857;
 }
 
 .btn-warning {
-    background-color: var(--warning-color);
-    color: var(--text-primary);
+    background-color: #d97706;
+    color: white;
+    border-color: #d97706;
 }
 
 .btn-warning:hover {
-    background-color: #e8a813;
+    background-color: #b45309;
+    border-color: #b45309;
 }
 
 .btn-error {
-    background-color: var(--error-color);
-    color: var(--text-inverse);
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
 }
 
 .btn-error:hover {
-    background-color: #d33b2c;
+    background-color: #b91c1c;
+    border-color: #b91c1c;
 }
 
 /* Button sizes */
@@ -109,9 +120,12 @@ Components CSS - Buttons, Forms, Cards, Tables, etc.
 
 .form-label {
     display: block;
-    margin-bottom: var(--spacing-sm);
-    font-weight: 500;
-    color: var(--text-primary);
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-label.required::after {
@@ -121,44 +135,50 @@ Components CSS - Buttons, Forms, Cards, Tables, etc.
 
 .form-control {
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    padding: 10px 14px;
+    border: 2px solid #9ca3af;
+    border-radius: 2px;
     font-size: var(--font-size-base);
-    background-color: var(--bg-primary);
-    transition: all var(--transition-fast);
+    background-color: #ffffff;
+    color: #1f2937;
+    transition: all 0.15s;
+    font-weight: 500;
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+    background-color: #f8fafc;
 }
 
 .form-control:disabled {
-    background-color: var(--bg-secondary);
-    color: var(--text-disabled);
+    background-color: #f3f4f6;
+    color: #6b7280;
     cursor: not-allowed;
+    border-color: #d1d5db;
 }
 
 .form-control.error {
-    border-color: var(--error-color);
+    border-color: #dc2626;
 }
 
 .form-control.success {
-    border-color: var(--success-color);
+    border-color: #059669;
 }
 
 .form-text {
     font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    color: #6b7280;
     margin-top: var(--spacing-xs);
+    font-weight: 500;
 }
 
 .form-error {
     font-size: var(--font-size-sm);
-    color: var(--error-color);
+    color: #dc2626;
     margin-top: var(--spacing-xs);
+    font-weight: 600;
 }
 
 /* Form layouts */
@@ -178,34 +198,37 @@ Components CSS - Buttons, Forms, Cards, Tables, etc.
 
 /* Card components */
 .card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    box-shadow: var(--shadow-sm);
+    background: #ffffff;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     overflow: hidden;
 }
 
 .card-header {
-    padding: var(--spacing-lg);
-    background: linear-gradient(135deg, var(--primary-lighter), #ffffff);
-    border-bottom: 1px solid var(--border-light);
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-bottom: 2px solid #d1d5db;
 }
 
 .card-header h2,
 .card-header h3 {
     margin: 0;
-    color: var(--text-primary);
-    font-weight: 600;
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .card-body {
-    padding: var(--spacing-lg);
+    padding: 20px;
 }
 
 .card-footer {
-    padding: var(--spacing-md) var(--spacing-lg);
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-light);
+    padding: 16px 20px;
+    background-color: #f8fafc;
+    border-top: 2px solid #d1d5db;
     display: flex;
     justify-content: space-between;
     align-items: center;
