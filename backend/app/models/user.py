@@ -48,6 +48,9 @@ class User(Base):
     
     # Contact information
     phone = Column(String(20), nullable=True)
+    
+    # Profile picture
+    profile_picture = Column(String(255), nullable=True)  # Stores filename/path
     extension = Column(String(10), nullable=True)
     
     def __repr__(self):
@@ -67,6 +70,10 @@ class User(Base):
     
     def to_dict(self):
         """Convert user to dictionary for JSON serialization"""
+        profile_picture_url = None
+        if self.profile_picture:
+            profile_picture_url = f"/api/profile-picture/{self.profile_picture}"
+            
         return {
             "id": self.id,
             "username": self.username,
@@ -78,6 +85,8 @@ class User(Base):
             "department": self.department,
             "phone": self.phone,
             "extension": self.extension,
+            "profile_picture": self.profile_picture,
+            "profile_picture_url": profile_picture_url,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "last_login": self.last_login.isoformat() if self.last_login else None
         }

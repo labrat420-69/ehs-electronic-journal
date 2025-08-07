@@ -4,8 +4,8 @@ Authentication routes for login, logout, and user management
 
 from datetime import timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -146,19 +146,6 @@ async def logout():
     response = RedirectResponse(url="/auth/login", status_code=302)
     response.delete_cookie(key="access_token")
     return response
-
-@router.get("/profile", response_class=HTMLResponse)
-async def profile_page(
-    request: Request,
-    current_user: User = Depends(get_current_user)
-):
-    """Display user profile page"""
-    context = {
-        "request": request,
-        "title": "Profile - EHS Electronic Journal",
-        "user": current_user
-    }
-    return templates.TemplateResponse("auth/profile.html", context)
 
 @router.post("/profile")
 async def update_profile(
@@ -347,3 +334,130 @@ async def create_user(
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information"""
     return current_user.to_dict()
+
+@router.post("/profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload or update user profile picture"""
+    import os
+    import uuid
+    from pathlib import Path
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/jpg", "image/png"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Only PNG and JPG files are allowed."
+        )
+    
+    # Validate file size (max 2MB)
+    content = await file.read()
+    if len(content) > 2 * 1024 * 1024:  # 2MB in bytes
+        raise HTTPException(
+            status_code=400,
+            detail="File size too large. Maximum size is 2MB."
+        )
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("uploads/profile_pictures")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = file.filename.split('.')[-1].lower()
+    unique_filename = f"{current_user.id}_{uuid.uuid4().hex}.{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Remove old profile picture if it exists
+    if current_user.profile_picture:
+        old_file_path = Path("uploads/profile_pictures") / current_user.profile_picture
+        if old_file_path.exists():
+            try:
+                os.remove(old_file_path)
+            except OSError:
+                pass  # Ignore errors removing old file
+    
+    # Save new file
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    # Update user record
+    current_user.profile_picture = unique_filename
+    db.commit()
+    
+    return {
+        "success": True,
+        "filename": unique_filename,
+        "url": f"/api/profile-picture/{unique_filename}"
+    }
+
+@router.delete("/profile-picture")
+async def delete_profile_picture(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete user profile picture"""
+    import os
+    from pathlib import Path
+    
+    if not current_user.profile_picture:
+        raise HTTPException(
+            status_code=404,
+            detail="No profile picture to delete."
+        )
+    
+    # Remove file from filesystem
+    file_path = Path("uploads/profile_pictures") / current_user.profile_picture
+    if file_path.exists():
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass  # Ignore errors removing file
+    
+    # Update user record
+    current_user.profile_picture = None
+    db.commit()
+    
+    return {"success": True, "message": "Profile picture deleted."}
+
+@router.get("/api/profile-picture/{filename}")
+async def get_profile_picture(filename: str):
+    """Serve profile picture files"""
+    from pathlib import Path
+    
+    file_path = Path("uploads/profile_pictures") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Profile picture not found.")
+    
+    return FileResponse(
+        path=str(file_path),
+        media_type="image/*",
+        filename=filename
+    )
+
+@router.get("/api/profile-picture-url/{user_id}")
+async def get_profile_picture_url(user_id: int, db: Session = Depends(get_db)):
+    """Get profile picture URL for a specific user"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    
+    if user.profile_picture:
+        return {"url": f"/api/profile-picture/{user.profile_picture}"}
+    else:
+        return {"url": None}
+
+@router.get("/profile", response_class=HTMLResponse)
+async def profile_page(request: Request, current_user: User = Depends(get_current_user)):
+    """User profile management page"""
+    return templates.TemplateResponse(
+        "auth/profile.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "page_title": "My Profile"
+        }
+    )
