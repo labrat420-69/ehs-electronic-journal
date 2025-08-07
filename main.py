@@ -3,9 +3,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from contextlib import asynccontextmanager
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from datetime import datetime, timedelta
 import jwt
 from passlib.context import CryptContext
@@ -99,11 +99,33 @@ class ChemicalCreate(BaseModel):
     unit: Optional[str] = None
     location: Optional[str] = None
 
+# Initialize default admin user
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    admin_user = db.query(User).filter(User.username == "admin").first()
+    if not admin_user:
+        hashed_password = get_password_hash("admin123!")
+        admin = User(
+            username="admin",
+            email="admin@ehslabs.com",
+            hashed_password=hashed_password,
+            role="Admin"
+        )
+        db.add(admin)
+        db.commit()
+        print("✅ Default admin user created: admin/admin123!")
+    db.close()
+    yield
+    # Shutdown (cleanup if needed)
+
 # Create tables
-Base.metadata.create_all(bind=engine)
+# Note: moved to lifespan function
 
 # FastAPI app
-app = FastAPI(title="EHS Electronic Journal", version="1.0.0")
+app = FastAPI(title="EHS Electronic Journal", version="1.0.0", lifespan=lifespan)
 
 # CORS middleware
 app.add_middleware(
@@ -265,7 +287,7 @@ async def read_root():
                     hour12: true
                 };
                 document.getElementById('clock').innerHTML = 
-                    '🕒 EST Time: ' + est.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$1/$2/$3');
+                    '🕒 EST Time: ' + est.toLocaleString('en-US', options).replace(/(\\d+)\\/(\\d+)\\/(\\d+),/, '$1/$2/$3');
             }
             updateClock();
             setInterval(updateClock, 1000);
@@ -342,8 +364,10 @@ async def create_chemical(chemical: ChemicalCreate, db: Session = Depends(get_db
     return db_chemical
 
 # Initialize default admin user
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     admin_user = db.query(User).filter(User.username == "admin").first()
     if not admin_user:
@@ -358,6 +382,10 @@ async def startup_event():
         db.commit()
         print("✅ Default admin user created: admin/admin123!")
     db.close()
+    yield
+    # Shutdown (cleanup if needed)
+
+
 
 if __name__ == "__main__":
     import uvicorn
