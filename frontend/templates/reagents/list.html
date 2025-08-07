@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}{{ reagent_type }} Reagents - EHS Electronic Journal{% endblock %}
+{% block page_title %}{{ reagent_type }} Reagents Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>{{ reagent_type }} Reagents</h2>
+            <p>Manage {{ reagent_type }} reagent preparation, tracking, and usage history</p>
+        </div>
+        <div class="page-actions">
+            <a href="/reagents/{{ reagent_type.lower() }}/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add {{ reagent_type }} Reagent
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Controls -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="search-input">Search Reagents</label>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by name or batch number...">
+                    <button class="btn btn-outline" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter" class="form-control">
+                    <option value="active">Active Only</option>
+                    <option value="all">All</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="date-filter">Prepared</label>
+                <select id="date-filter" class="form-control">
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reagents Table -->
+<div class="table-container">
+    <table id="reagents-table" class="data-table">
+        <thead>
+            <tr>
+                <th>Reagent Name</th>
+                <th>Batch Number</th>
+                <th>Preparation Date</th>
+                <th>Expiration</th>
+                <th>Volume</th>
+                {% if reagent_type == "MM" %}
+                <th>pH</th>
+                <th>Conductivity</th>
+                {% elif reagent_type == "Pb" %}
+                <th>Pb Concentration</th>
+                {% elif reagent_type == "TCLP" %}
+                <th>Type</th>
+                <th>pH (Target/Final)</th>
+                <th>Verified</th>
+                {% endif %}
+                <th>Prepared By</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reagents-tbody">
+            {% for reagent in reagents %}
+            <tr data-reagent-id="{{ reagent.id }}" class="{% if not reagent.is_active %}inactive{% endif %}">
+                <td>
+                    <div class="reagent-info">
+                        <strong>{{ reagent.reagent_name }}</strong>
+                        {% if reagent.concentration %}
+                        <small class="text-muted">{{ reagent.concentration }}</small>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <code>{{ reagent.batch_number }}</code>
+                </td>
+                <td>
+                    {{ reagent.preparation_date.strftime('%m/%d/%Y') if reagent.preparation_date else 'N/A' }}
+                </td>
+                <td>
+                    {% if reagent.expiration_date %}
+                        {% set expiry = reagent.expiration_date %}
+                        <span class="expiry-date" data-expiry="{{ expiry.isoformat() }}">
+                            {{ expiry.strftime('%m/%d/%Y') }}
+                        </span>
+                        {% set days_to_expiry = (expiry.date() - today).days %}
+                        {% if days_to_expiry < 0 %}
+                        <span class="badge badge-danger">Expired</span>
+                        {% elif days_to_expiry < 7 %}
+                        <span class="badge badge-warning">Expires Soon</span>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="volume-info">
+                        <span class="volume-value" data-volume="{{ reagent.total_volume }}">
+                            {{ "%.1f"|format(reagent.total_volume) }} mL
+                        </span>
+                        {% if reagent.total_volume <= 0 %}
+                        <span class="badge badge-danger">Empty</span>
+                        {% elif reagent.total_volume < 50 %}
+                        <span class="badge badge-warning">Low</span>
+                        {% endif %}
+                    </div>
+                </td>
+                {% if reagent_type == "MM" %}
+                <td>{{ "%.2f"|format(reagent.ph_value) if reagent.ph_value else 'N/A' }}</td>
+                <td>{{ "%.1f"|format(reagent.conductivity) if reagent.conductivity else 'N/A' }} μS/cm</td>
+                {% elif reagent_type == "Pb" %}
+                <td>{{ "%.3f"|format(reagent.lead_concentration) if reagent.lead_concentration else 'N/A' }} mg/L</td>
+                {% elif reagent_type == "TCLP" %}
+                <td>{{ reagent.reagent_type or 'N/A' }}</td>
+                <td>
+                    {% if reagent.ph_target and reagent.final_ph %}
+                    {{ "%.2f"|format(reagent.ph_target) }} / {{ "%.2f"|format(reagent.final_ph) }}
+                    {% elif reagent.ph_target %}
+                    {{ "%.2f"|format(reagent.ph_target) }} / -
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if reagent.verification_passed %}
+                    <span class="badge badge-success">✓ Verified</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Pending</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td>
+                    {% if reagent.preparer %}
+                    {{ reagent.preparer.full_name }}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if reagent.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="/reagents/{{ reagent_type.lower() }}/{{ reagent.id }}" class="btn btn-sm btn-outline" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if current_user.role in ['admin', 'manager', 'lab_tech'] %}
+                        <a href="/reagents/{{ reagent_type.lower() }}/edit/{{ reagent.id }}" class="btn btn-sm btn-secondary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-primary volume-update-btn" 
+                                data-reagent-id="{{ reagent.id }}" 
+                                data-reagent-name="{{ reagent.reagent_name }}"
+                                data-current-volume="{{ reagent.total_volume }}"
+                                data-reagent-type="{{ reagent_type.lower() }}"
+                                title="Update Volume">
+                            <i class="fas fa-flask"></i>
+                        </button>
+                        {% endif %}
+                        {% if current_user.role in ['admin', 'manager'] %}
+                        <button class="btn btn-sm btn-danger delete-btn" 
+                                data-reagent-id="{{ reagent.id }}" 
+                                data-reagent-name="{{ reagent.reagent_name }}"
+                                data-reagent-type="{{ reagent_type.lower() }}"
+                                title="Deactivate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not reagents %}
+    <div class="empty-state">
+        <i class="fas fa-vial"></i>
+        <h3>No {{ reagent_type.lower() }} reagents found</h3>
+        <p>Get started by adding your first {{ reagent_type.lower() }} reagent preparation.</p>
+        <a href="/reagents/{{ reagent_type.lower() }}/add" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add {{ reagent_type }} Reagent
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Volume Update Modal -->
+<div id="volume-update-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Volume</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="volume-update-form">
+                <div class="form-group">
+                    <label>Reagent</label>
+                    <p id="modal-reagent-name" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label>Current Volume</label>
+                    <p id="modal-current-volume" class="form-text"></p>
+                </div>
+                <div class="form-group">
+                    <label for="volume-change">Volume Change *</label>
+                    <div class="input-group">
+                        <input type="number" id="volume-change" step="0.1" class="form-control" required>
+                        <span class="input-group-text">mL</span>
+                    </div>
+                    <small class="form-help">Enter positive value to add, negative to use/remove</small>
+                </div>
+                <div class="form-group">
+                    <label for="change-reason">Reason *</label>
+                    <select id="change-reason" class="form-control" required>
+                        <option value="">Select reason...</option>
+                        <option value="Usage">Usage/Consumption</option>
+                        <option value="Addition">Volume Addition</option>
+                        <option value="Waste">Waste/Disposal</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Correction">Inventory Correction</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="change-notes">Notes</label>
+                    <textarea id="change-notes" class="form-control" rows="3" placeholder="Optional notes..."></textarea>
+                </div>
+                <div id="new-volume-preview" class="alert alert-info" style="display: none;">
+                    <strong>New Volume: </strong><span id="preview-volume"></span> mL
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="modal-submit">Update Volume</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirm Deactivation</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to deactivate <strong id="delete-reagent-name"></strong>?</p>
+            <p class="text-warning">This will mark the reagent as inactive but preserve all historical data.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="delete-cancel">Cancel</button>
+            <button class="btn btn-danger" id="delete-confirm">Deactivate</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/reagents.js') }}"></script>
+{% endblock %}
+
+{% block page_init %}
+initializeReagents('{{ reagent_type.lower() }}');
+{% endblock %}
