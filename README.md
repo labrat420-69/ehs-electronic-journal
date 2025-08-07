@@ -52,14 +52,45 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
 
 ## Docker Deployment
 
+### Quick Start (All Platforms)
+```bash
+docker compose up -d
+```
+
+### Windows Deployment
+For Windows users, we provide a PowerShell script for easy deployment:
+
+```powershell
+# Start in production mode (recommended)
+.\start-ehs.ps1
+
+# Start in development mode
+.\start-ehs.ps1 -Mode development
+
+# Force rebuild
+.\start-ehs.ps1 -Build
+
+# Check status
+.\start-ehs.ps1 -Status
+
+# Stop services
+.\start-ehs.ps1 -Stop
+```
+
+See [WINDOWS_DEPLOYMENT.md](WINDOWS_DEPLOYMENT.md) for detailed Windows-specific instructions.
+
 ### Development with Docker
 ```bash
-docker-compose up -d
+docker compose -f docker-compose-simple.yml up -d
 ```
 
 ### Production Deployment
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Standard production
+docker compose up -d
+
+# Windows-optimized production
+docker compose -f docker-compose.windows.yml up -d
 ```
 
 ## System Architecture

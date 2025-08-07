@@ -17,7 +17,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: docker/Dockerfile.backend
+      target: development
     container_name: ehs_backend
     environment:
       - DATABASE_URL=postgresql://ehs_user:ehs_password@postgres:5432/ehs_electronic_journal
