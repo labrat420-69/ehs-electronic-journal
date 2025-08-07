@@ -120,7 +120,7 @@ async def get_dashboard_statistics(db: Session) -> dict:
     ).count()
     
     recent_pipette_tests = db.query(PipetteLog).filter(
-        PipetteLog.test_date >= week_ago
+        PipetteLog.calibration_date >= week_ago
     ).count()
     
     recent_water_tests = db.query(WaterConductivityTests).filter(
@@ -171,7 +171,7 @@ async def get_recent_activity(db: Session, limit: int = 15) -> dict:
     
     # Recent equipment tests
     pipette_tests = db.query(PipetteLog).order_by(
-        PipetteLog.test_date.desc()
+        PipetteLog.calibration_date.desc()
     ).limit(10).all()
     
     water_tests = db.query(WaterConductivityTests).order_by(

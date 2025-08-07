@@ -52,34 +52,34 @@
                 <div class="d-flex align-items-center">
                     <div class="subheader">Chemical Inventory</div>
                     <div class="ms-auto">
-                        <div class="status-indicator bg-{{ 'danger' if stats.chemical_inventory.expired > 0 else 'success' if stats.chemical_inventory.low_stock == 0 else 'warning' }}"></div>
+                        <div class="status-indicator bg-{{ 'danger' if stats.chemicals.expired > 0 else 'success' if stats.chemicals.low_stock == 0 else 'warning' }}"></div>
                     </div>
                 </div>
-                <div class="h1 mb-3 text-primary">{{ stats.chemical_inventory.total }}</div>
+                <div class="h1 mb-3 text-primary">{{ stats.chemicals.total_active }}</div>
                 <div class="d-flex mb-2">
                     <div>Total Active</div>
                 </div>
                 <div class="row">
                     <div class="col">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-{{ 'danger' if stats.chemical_inventory.low_stock > 0 else 'success' }}">{{ stats.chemical_inventory.low_stock }}</div>
+                            <div class="lab-metric-value text-{{ 'danger' if stats.chemicals.low_stock > 0 else 'success' }}">{{ stats.chemicals.low_stock }}</div>
                             <div class="lab-metric-label">Low Stock</div>
                         </div>
                     </div>
                     <div class="col">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-{{ 'danger' if stats.chemical_inventory.expired > 0 else 'success' }}">{{ stats.chemical_inventory.expired }}</div>
+                            <div class="lab-metric-value text-{{ 'danger' if stats.chemicals.expired > 0 else 'success' }}">{{ stats.chemicals.expired }}</div>
                             <div class="lab-metric-label">Expired</div>
                         </div>
                     </div>
                 </div>
                 <div class="lab-metric">
-                    <div class="lab-metric-value text-info">{{ stats.chemical_inventory.recent_activity }}</div>
+                    <div class="lab-metric-value text-info">{{ stats.chemicals.recent_activity }}</div>
                     <div class="lab-metric-label">Recent Activity</div>
                 </div>
                 <div class="progress progress-sm mt-2">
-                    <div class="progress-bar bg-{{ 'danger' if stats.chemical_inventory.expired > 0 else 'warning' if stats.chemical_inventory.low_stock > 0 else 'success' }}" 
-                         style="width: {{ ((stats.chemical_inventory.total - stats.chemical_inventory.low_stock - stats.chemical_inventory.expired) / stats.chemical_inventory.total * 100) if stats.chemical_inventory.total > 0 else 100 }}%" 
+                    <div class="progress-bar bg-{{ 'danger' if stats.chemicals.expired > 0 else 'warning' if stats.chemicals.low_stock > 0 else 'success' }}" 
+                         style="width: {{ ((stats.chemicals.total_active - stats.chemicals.low_stock - stats.chemicals.expired) / stats.chemicals.total_active * 100) if stats.chemicals.total_active > 0 else 100 }}%" 
                          role="progressbar"></div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                         <div class="status-indicator bg-success"></div>
                     </div>
                 </div>
-                <div class="h1 mb-3 text-success">{{ stats.reagents.total_active }}</div>
+                <div class="h1 mb-3 text-success">{{ stats.reagents.mm_active + stats.reagents.pb_active + stats.reagents.tclp_active }}</div>
                 <div class="d-flex mb-2">
                     <div>Total Active</div>
                 </div>
@@ -158,26 +158,26 @@
                         <div class="status-indicator bg-warning"></div>
                     </div>
                 </div>
-                <div class="h1 mb-3 text-warning">{{ stats.standards.total_active }}</div>
+                <div class="h1 mb-3 text-warning">{{ stats.standards.mm_standards + stats.standards.flameaa_standards }}</div>
                 <div class="d-flex mb-2">
                     <div>Total Active</div>
                 </div>
                 <div class="row">
                     <div class="col-6">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-warning">{{ stats.standards.mm_active }}</div>
+                            <div class="lab-metric-value text-warning">{{ stats.standards.mm_standards }}</div>
                             <div class="lab-metric-label">MM Standards</div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-warning">{{ stats.standards.flameaa_active }}</div>
+                            <div class="lab-metric-value text-warning">{{ stats.standards.flameaa_standards }}</div>
                             <div class="lab-metric-label">FlameAA Standards</div>
                         </div>
                     </div>
                 </div>
                 <div class="lab-metric">
-                    <div class="lab-metric-value text-muted">N/A</div>
+                    <div class="lab-metric-value text-muted">{{ stats.standards.verified if stats.standards.verified != '-' else 'N/A' }}</div>
                     <div class="lab-metric-label">Verified</div>
                 </div>
             </div>
@@ -203,17 +203,17 @@
                 <div class="d-flex align-items-center">
                     <div class="subheader">Equipment</div>
                     <div class="ms-auto">
-                        <div class="status-indicator bg-{{ 'danger' if stats.equipment.overdue_calibrations > 0 else 'success' }}"></div>
+                        <div class="status-indicator bg-{{ 'danger' if stats.equipment.overdue_calibration > 0 else 'success' }}"></div>
                     </div>
                 </div>
-                <div class="h1 mb-3 text-danger">{{ stats.equipment.total }}</div>
+                <div class="h1 mb-3 text-danger">{{ stats.equipment.total_equipment }}</div>
                 <div class="d-flex mb-2">
                     <div>Total Equipment</div>
                 </div>
                 <div class="row">
                     <div class="col-6">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-{{ 'danger' if stats.equipment.overdue_calibrations > 0 else 'success' }}">{{ stats.equipment.overdue_calibrations }}</div>
+                            <div class="lab-metric-value text-{{ 'danger' if stats.equipment.overdue_calibration > 0 else 'success' }}">{{ stats.equipment.overdue_calibration }}</div>
                             <div class="lab-metric-label">Overdue Calibration</div>
                         </div>
                     </div>
@@ -261,19 +261,19 @@
                 <div class="row">
                     <div class="col-4">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-muted">N/A</div>
+                            <div class="lab-metric-value text-muted">{{ stats.maintenance.scheduled if stats.maintenance.scheduled != '-' else 'N/A' }}</div>
                             <div class="lab-metric-label">Scheduled</div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-muted">N/A</div>
+                            <div class="lab-metric-value text-muted">{{ stats.maintenance.overdue if stats.maintenance.overdue != '-' else 'N/A' }}</div>
                             <div class="lab-metric-label">Overdue</div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="lab-metric">
-                            <div class="lab-metric-value text-muted">N/A</div>
+                            <div class="lab-metric-value text-muted">{{ stats.maintenance.this_month if stats.maintenance.this_month != '-' else 'N/A' }}</div>
                             <div class="lab-metric-label">This Month</div>
                         </div>
                     </div>
