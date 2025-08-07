@@ -33,6 +33,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
+    full_name = Column(String, nullable=False)
     hashed_password = Column(String)
     role = Column(String, default="Technician")
     is_active = Column(Boolean, default=True)
@@ -42,6 +43,7 @@ class User(Base):
 class UserCreate(BaseModel):
     username: str
     email: str
+    full_name: str = "Admin User"
     password: str
     role: str = "Technician"
 
@@ -282,6 +284,7 @@ async def dashboard():
 # Initialize default admin user
 @app.on_event("startup")
 async def startup_event():
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     admin_user = db.query(User).filter(User.username == "admin").first()
     if not admin_user:
@@ -289,6 +292,7 @@ async def startup_event():
         admin = User(
             username="admin",
             email="admin@ehslabs.com",
+            full_name="Admin User",
             hashed_password=hashed_password,
             role="Admin"
         )
