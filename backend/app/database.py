@@ -13,7 +13,7 @@ load_dotenv()
 # Database URL from environment variable or default for development
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "sqlite:///./ehs_journal.db"
+    "sqlite:///../ehs_journal.db"  # Point to the database in the parent directory
 )
 
 # SQLAlchemy engine

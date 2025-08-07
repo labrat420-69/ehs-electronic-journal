@@ -36,7 +36,8 @@ def health():
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
-@app.get("/")
-def read_root(request: Request):
-    est_time = get_est_time()
-    return templates.TemplateResponse("index.html", {"request": request, "time": est_time})
+# Remove this conflicting route - dashboard router handles "/"
+# @app.get("/")
+# def read_root(request: Request):
+#     est_time = get_est_time()
+#     return templates.TemplateResponse("index.html", {"request": request, "time": est_time})
