@@ -413,7 +413,6 @@ async def analytics_dashboard():
                         <div class="graph-placeholder">
                             <i class="fas fa-chart-line"></i>
                             <p>Select data source and fields to generate a graph</p>
-                            <small>Crypto-style visualization with red/green trendlines</small>
                         </div>
                     </div>
                 </div>
