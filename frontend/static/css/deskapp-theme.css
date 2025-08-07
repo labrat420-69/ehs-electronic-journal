@@ -1,0 +1,449 @@
+/*
+DeskApp Admin Theme CSS Override
+Modern admin dashboard styling matching DeskApp/Dropways template
+*/
+
+/* Global Variables */
+:root {
+    --primary-color: #1b00ff;
+    --primary-hover: #0056b3;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6c7293;
+    --sidebar-active: #1b00ff;
+    --main-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-color: #e6e6e6;
+    --text-color: #6c7293;
+    --heading-color: #2c3782;
+}
+
+/* Body & Base Layout */
+.deskapp-body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--main-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Preloader */
+.pre-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ana-spin {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Left Sidebar */
+.left-side-bar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+/* Brand Logo */
+.brand-logo {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand-logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--heading-color);
+}
+
+.brand-logo .dark-logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+}
+
+.brand-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.close-sidebar {
+    display: none;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+/* Menu Block */
+.menu-block {
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    padding: 0;
+}
+
+.customscroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.customscroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.customscroll::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+/* Clock Widget */
+.clock-widget {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.widget-style3.card-box {
+    background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(27, 0, 255, 0.2);
+}
+
+.current-time {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.timezone-label {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    padding: 0;
+}
+
+.metismenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.metismenu li {
+    position: relative;
+}
+
+.metismenu a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-radius: 0;
+}
+
+.metismenu a:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.metismenu a.active,
+.metismenu li.active > a {
+    background-color: var(--primary-color);
+    color: white;
+    position: relative;
+}
+
+.metismenu a.active::before,
+.metismenu li.active > a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary-color);
+}
+
+.metismenu i {
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.mtext {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+/* Submenu */
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: #f8f9fa;
+    display: none;
+}
+
+.submenu li a {
+    padding: 10px 20px 10px 52px;
+    font-size: 13px;
+    color: #6c7293;
+    border-radius: 0;
+}
+
+.submenu li a:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Dropdown Toggle */
+.dropdown-toggle::after {
+    content: '\f107';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+/* User Profile */
+.user-profile {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    padding: 0 20px;
+}
+
+.user-info-dropdown .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    color: var(--text-color);
+    text-decoration: none;
+    width: 100%;
+}
+
+.user-icon img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Main Content Area */
+.main-container {
+    margin-left: 280px;
+    width: calc(100% - 280px);
+    min-height: 100vh;
+    background: var(--main-bg);
+}
+
+.pd-ltr-20 {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.xs-pd-20-10 {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    margin: 0 0 30px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.menu-icon {
+    font-size: 18px;
+    margin-right: 20px;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-header .title h4 {
+    color: var(--heading-color);
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.breadcrumb {
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: '/';
+    color: #6c7293;
+    margin: 0 8px;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #6c7293;
+}
+
+/* Card Box */
+.card-box {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f1f1;
+    transition: all 0.3s ease;
+}
+
+.card-box:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.pd-20 {
+    padding: 20px;
+}
+
+.height-100-p {
+    height: 100%;
+}
+
+.mb-30 {
+    margin-bottom: 30px;
+}
+
+.min-height-200px {
+    min-height: 200px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .left-side-bar {
+        transform: translateX(-100%);
+    }
+    
+    .main-container {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .close-sidebar {
+        display: block;
+    }
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+/* Custom Scrollbar */
+.customscroll {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* DeskApp Icon Font Overrides */
+.dw-speedometer::before { content: '\f3fd'; font-family: 'Font Awesome 6 Free'; }
+.dw-analytics-1::before { content: '\f201'; font-family: 'Font Awesome 6 Free'; }
+.dw-flask::before { content: '\f0c3'; font-family: 'Font Awesome 6 Free'; }
+.dw-test-tube::before { content: '\f493'; font-family: 'Font Awesome 6 Free'; }
+.dw-balance::before { content: '\f24e'; font-family: 'Font Awesome 6 Free'; }
+.dw-tools::before { content: '\f7d9'; font-family: 'Font Awesome 6 Free'; }
+.dw-settings2::before { content: '\f085'; font-family: 'Font Awesome 6 Free'; }
+.dw-user-13::before { content: '\f0c0'; font-family: 'Font Awesome 6 Free'; }
+.dw-user1::before { content: '\f007'; font-family: 'Font Awesome 6 Free'; }
+.dw-logout::before { content: '\f2f5'; font-family: 'Font Awesome 6 Free'; }
+.dw-menu::before { content: '\f0c9'; font-family: 'Font Awesome 6 Free'; }
+.dw-search2::before { content: '\f002'; font-family: 'Font Awesome 6 Free'; }
+
+.icon-copy {
+    font-style: normal;
+    font-weight: 900;
+}
