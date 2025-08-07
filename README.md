@@ -122,6 +122,15 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - Parts and consumables tracking
 - Cost analysis and scheduling
 
+### Analytics Dashboard
+- Professional enterprise-style interface with 2-chart layout
+- Customizable data visualization with multiple graph types
+- Real-time data analysis from all laboratory systems
+- Export capabilities and preset management
+- Integrated reminders and department notes
+
+![Analytics Dashboard](https://github.com/user-attachments/assets/4dd2d1d8-3419-4592-97fb-37f746358ca2)
+
 ## API Documentation
 
 When running the development server, API documentation is available at:

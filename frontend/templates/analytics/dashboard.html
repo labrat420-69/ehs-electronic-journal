@@ -6,26 +6,27 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.plot.ly/plotly-2.26.0.min.css">
 <style>
-/* Analytics Dashboard Styles */
+/* Analytics Dashboard Styles - Enterprise Professional Theme */
 .analytics-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
+    background-color: #f0f2f5;
 }
 
 .dashboard-controls {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid #e8eaed;
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 2px solid #d1d5db;
 }
 
 .controls-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 18px;
     margin-bottom: 20px;
 }
 
@@ -35,27 +36,32 @@
 }
 
 .control-group label {
-    font-weight: 600;
-    color: #202124;
-    margin-bottom: 8px;
-    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .control-group select,
 .control-group input {
-    padding: 12px;
-    border: 2px solid #dadce0;
-    border-radius: 8px;
+    padding: 10px 14px;
+    border: 2px solid #9ca3af;
+    border-radius: 2px;
     font-size: 14px;
-    transition: all 0.2s;
-    background: white;
+    transition: all 0.15s;
+    background: #ffffff;
+    color: #1f2937;
+    font-weight: 500;
 }
 
 .control-group select:focus,
 .control-group input:focus {
     outline: none;
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+    background: #f8fafc;
 }
 
 .action-buttons {
@@ -67,122 +73,131 @@
 }
 
 .btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    background: #1d4ed8;
     color: white;
+    border-color: #1d4ed8;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #1557b0, #3367d6);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+    background: #1e40af;
+    border-color: #1e40af;
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
 }
 
 .btn-secondary {
-    background: #f8f9fa;
-    color: #5f6368;
-    border: 2px solid #dadce0;
+    background-color: #f8f9fa;
+    color: #374151;
+    border-color: #6b7280;
 }
 
 .btn-secondary:hover {
-    background: #e8eaed;
-    border-color: #1a73e8;
-    color: #1a73e8;
+    background-color: #e5e7eb;
+    border-color: #374151;
+    color: #1f2937;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #34a853, #66bb6a);
+    background-color: #059669;
     color: white;
+    border-color: #059669;
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #2d5a2d, #5a9f5a);
-    transform: translateY(-1px);
+    background-color: #047857;
+    border-color: #047857;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #fbbc04, #ffc107);
-    color: #333;
+    background-color: #d97706;
+    color: white;
+    border-color: #d97706;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ea4335, #f44336);
+    background-color: #dc2626;
     color: white;
+    border-color: #dc2626;
 }
 
 /* Graph Container */
 .graphs-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 25px;
     margin-bottom: 30px;
 }
 
 .graph-card {
-    background: white;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 4px;
     padding: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid #e8eaed;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 2px solid #d1d5db;
     overflow: hidden;
     min-height: 500px;
     position: relative;
 }
 
 .graph-header {
-    padding: 20px 25px;
-    background: linear-gradient(135deg, #f8f9fa, #ffffff);
-    border-bottom: 1px solid #e8eaed;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-bottom: 2px solid #d1d5db;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .graph-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #202124;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .graph-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .graph-btn {
-    padding: 6px 12px;
-    border: 1px solid #dadce0;
-    background: white;
-    border-radius: 6px;
+    padding: 6px 10px;
+    border: 2px solid #6b7280;
+    background: #ffffff;
+    border-radius: 2px;
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
+    font-weight: 600;
 }
 
 .graph-btn:hover {
-    background: #f8f9fa;
-    border-color: #1a73e8;
-    color: #1a73e8;
+    background: #f3f4f6;
+    border-color: #374151;
+    color: #1f2937;
 }
 
 .graph-content {
     padding: 0;
     min-height: 400px;
-    background: #1a1a1a; /* Dark background for crypto-style graphs */
+    background: #374151; /* Darker background for professional contrast */
     position: relative;
 }
 
@@ -192,33 +207,41 @@
     align-items: center;
     justify-content: center;
     height: 400px;
-    color: #9aa0a6;
+    color: #9ca3af;
     text-align: center;
 }
 
 .graph-placeholder i {
     font-size: 48px;
     margin-bottom: 15px;
-    color: #dadce0;
+    color: #6b7280;
+}
+
+.graph-placeholder p {
+    font-weight: 500;
+    font-size: 14px;
+    color: #9ca3af;
 }
 
 /* Side Panel */
 .side-panel {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid #e8eaed;
-    margin-bottom: 25px;
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 2px solid #d1d5db;
+    margin-bottom: 24px;
 }
 
 .side-panel-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #202124;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e8eaed;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #d1d5db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Loading States */
@@ -231,8 +254,8 @@
 .spinner {
     width: 16px;
     height: 16px;
-    border: 2px solid #e8eaed;
-    border-top: 2px solid #1a73e8;
+    border: 2px solid #d1d5db;
+    border-top: 2px solid #1d4ed8;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -332,7 +355,7 @@
             <div class="graphs-container" id="graphs-container">
                 <div class="graph-card" id="graph-1">
                     <div class="graph-header">
-                        <h3 class="graph-title">Graph 1</h3>
+                        <h3 class="graph-title">Primary Analysis</h3>
                         <div class="graph-actions">
                             <button class="graph-btn" onclick="removeGraph(1)" title="Remove Graph">
                                 <i class="fas fa-times"></i>
@@ -349,7 +372,7 @@
                 
                 <div class="graph-card" id="graph-2">
                     <div class="graph-header">
-                        <h3 class="graph-title">Graph 2</h3>
+                        <h3 class="graph-title">Secondary Analysis</h3>
                         <div class="graph-actions">
                             <button class="graph-btn" onclick="removeGraph(2)" title="Remove Graph">
                                 <i class="fas fa-times"></i>
@@ -359,24 +382,7 @@
                     <div class="graph-content">
                         <div class="graph-placeholder">
                             <i class="fas fa-chart-bar"></i>
-                            <p>Additional graph slot available</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="graph-card" id="graph-3">
-                    <div class="graph-header">
-                        <h3 class="graph-title">Graph 3</h3>
-                        <div class="graph-actions">
-                            <button class="graph-btn" onclick="removeGraph(3)" title="Remove Graph">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="graph-content">
-                        <div class="graph-placeholder">
-                            <i class="fas fa-chart-area"></i>
-                            <p>Third graph slot available</p>
+                            <p>Additional analysis slot available</p>
                         </div>
                     </div>
                 </div>
@@ -534,7 +540,7 @@ async function generateGraph() {
     
     // Find next available graph slot
     let targetSlot = null;
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
         if (!activeGraphs[i]) {
             targetSlot = i;
             break;
@@ -542,7 +548,7 @@ async function generateGraph() {
     }
     
     if (!targetSlot) {
-        alert('Maximum of 3 graphs allowed. Please remove a graph first.');
+        alert('Maximum of 2 graphs allowed. Please remove a graph first.');
         return;
     }
     
@@ -613,7 +619,7 @@ function removeGraph(slot) {
 }
 
 function clearGraphs() {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
         removeGraph(i);
     }
 }
