@@ -33,6 +33,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
+    full_name = Column(String, nullable=False)
     hashed_password = Column(String)
     role = Column(String, default="Technician")
     is_active = Column(Boolean, default=True)
@@ -42,6 +43,7 @@ class User(Base):
 class UserCreate(BaseModel):
     username: str
     email: str
+    full_name: str = "Admin User"
     password: str
     role: str = "Technician"
 
@@ -271,7 +273,8 @@ async def dashboard():
     <body style="font-family: Arial; padding: 20px; background: #f5f5f5;">
         <h1 style="color: #1a73e8;">🔬 EHS Electronic Journal Dashboard</h1>
         <p>✅ System is running successfully!</p>
-        <p>📊 Access the API documentation: <a href="/docs">/docs</a></p>
+        <p>📊 <a href="/analytics" style="color: #1a73e8; text-decoration: none;">Analytics Dashboard</a></p>
+        <p>📋 Access the API documentation: <a href="/docs">/docs</a></p>
         <p>🧪 Chemical Inventory: <a href="/chemicals">/chemicals</a></p>
         <p>⚗️ Reagents Management: <a href="/reagents">/reagents</a></p>
         <p>🔧 Equipment Calibration: <a href="/equipment">/equipment</a></p>
@@ -279,9 +282,532 @@ async def dashboard():
     </html>
     """
 
+@app.get("/analytics", response_class=HTMLResponse)
+async def analytics_dashboard():
+    # Mock data sources for now
+    data_sources = {
+        "chemical_inventory": {
+            "name": "Chemical Inventory",
+            "fields": {
+                "created_at": "Date Created",
+                "current_quantity": "Current Quantity",
+                "expiration_date": "Expiration Date",
+                "chemical_name": "Chemical Name",
+                "manufacturer": "Manufacturer"
+            }
+        },
+        "equipment": {
+            "name": "Equipment",
+            "fields": {
+                "calibration_date": "Calibration Date",
+                "next_calibration_due": "Next Calibration Due",
+                "equipment_name": "Equipment Name"
+            }
+        }
+    }
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>📊 Analytics Dashboard - EHS Electronic Journal</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; }}
+            .container {{ max-width: 1400px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }}
+            .logo {{ font-size: 32px; font-weight: bold; color: #1a73e8; margin-bottom: 10px; }}
+            .subtitle {{ color: #666; font-size: 18px; }}
+            .controls {{ background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+            .controls-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }}
+            .control-group {{ display: flex; flex-direction: column; }}
+            .control-group label {{ font-weight: 600; color: #202124; margin-bottom: 8px; font-size: 14px; }}
+            .control-group select {{ padding: 12px; border: 2px solid #dadce0; border-radius: 8px; font-size: 14px; background: white; }}
+            .action-buttons {{ display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }}
+            .btn {{ padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }}
+            .btn-primary {{ background: linear-gradient(135deg, #1a73e8, #4285f4); color: white; }}
+            .btn-primary:hover {{ background: linear-gradient(135deg, #1557b0, #3367d6); transform: translateY(-1px); }}
+            .btn-secondary {{ background: #f8f9fa; color: #5f6368; border: 2px solid #dadce0; }}
+            .btn-success {{ background: linear-gradient(135deg, #34a853, #66bb6a); color: white; }}
+            .graphs-container {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 25px; }}
+            .graph-card {{ background: white; border-radius: 12px; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; min-height: 500px; }}
+            .graph-header {{ padding: 20px 25px; background: linear-gradient(135deg, #f8f9fa, #ffffff); border-bottom: 1px solid #e8eaed; display: flex; justify-content: space-between; align-items: center; }}
+            .graph-title {{ font-size: 18px; font-weight: 600; color: #202124; margin: 0; }}
+            .graph-content {{ padding: 0; min-height: 400px; background: #1a1a1a; position: relative; }}
+            .graph-placeholder {{ display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: #9aa0a6; text-align: center; }}
+            .graph-placeholder i {{ font-size: 48px; margin-bottom: 15px; color: #dadce0; }}
+            .quick-actions {{ background: white; border-radius: 12px; padding: 25px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+            .quick-actions h3 {{ margin-bottom: 20px; color: #202124; }}
+            .quick-actions-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }}
+            .quick-action {{ background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 8px; padding: 15px; text-align: center; text-decoration: none; color: #5f6368; transition: all 0.2s; }}
+            .quick-action:hover {{ border-color: #1a73e8; color: #1a73e8; transform: translateY(-2px); }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📊 Analytics Dashboard</div>
+                <div class="subtitle">Customizable Chemical Inventory & Lab Analytics</div>
+                <p style="margin-top: 15px;"><a href="/dashboard" style="color: #1a73e8;">← Back to Main Dashboard</a></p>
+            </div>
+            
+            <div class="controls">
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label for="data-source">Data Source</label>
+                        <select id="data-source">
+                            <option value="">Select Data Source...</option>
+                            <option value="chemical_inventory">Chemical Inventory</option>
+                            <option value="equipment">Equipment</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="x-axis">X-Axis Field</label>
+                        <select id="x-axis" disabled>
+                            <option value="">Select X-Axis...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="y-axis">Y-Axis Field</label>
+                        <select id="y-axis" disabled>
+                            <option value="">Select Y-Axis...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="graph-type">Graph Type</label>
+                        <select id="graph-type">
+                            <option value="line">Line Chart</option>
+                            <option value="bar">Bar Chart</option>
+                            <option value="area">Area Chart</option>
+                            <option value="scatter">Scatter Plot</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateGraph()" disabled id="generate-btn">
+                        <i class="fas fa-chart-line"></i> Generate Graph
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveAsPreset()" disabled id="save-preset-btn">
+                        <i class="fas fa-save"></i> Save as Preset
+                    </button>
+                    <button class="btn btn-success" onclick="exportToExcel()" disabled id="export-btn">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="graphs-container" id="graphs-container">
+                <div class="graph-card" id="graph-1">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 1</h3>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Select data source and fields to generate a graph</p>
+                            <small>Crypto-style visualization with red/green trendlines</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="graph-card" id="graph-2">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 2</h3>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>Additional graph slot available</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="graph-card" id="graph-3">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 3</h3>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-area"></i>
+                            <p>Third graph slot available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h3><i class="fas fa-bolt"></i> Quick Actions & Features</h3>
+                <div class="quick-actions-grid">
+                    <div class="quick-action" onclick="window.location.href='/analytics'">
+                        <i class="fas fa-download"></i><br>
+                        <strong>CSV Templates</strong><br>
+                        <small>Download import templates</small>
+                    </div>
+                    <div class="quick-action" onclick="window.location.href='/reminders'">
+                        <i class="fas fa-bell"></i><br>
+                        <strong>Reminders</strong><br>
+                        <small>Set dashboard reminders</small>
+                    </div>
+                    <div class="quick-action" onclick="window.location.href='/notes'">
+                        <i class="fas fa-sticky-note"></i><br>
+                        <strong>Notes</strong><br>
+                        <small>Department-wide notes</small>
+                    </div>
+                    <div class="quick-action" onclick="window.location.href='/waste'">
+                        <i class="fas fa-trash"></i><br>
+                        <strong>Waste Tracking</strong><br>
+                        <small>COC & disposal module</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        const dataSources = {data_sources};
+        let activeGraphs = {{}};
+
+        document.getElementById('data-source').addEventListener('change', function() {{
+            const selectedSource = this.value;
+            const xAxisSelect = document.getElementById('x-axis');
+            const yAxisSelect = document.getElementById('y-axis');
+            
+            xAxisSelect.innerHTML = '<option value="">Select X-Axis...</option>';
+            yAxisSelect.innerHTML = '<option value="">Select Y-Axis...</option>';
+            
+            if (selectedSource && dataSources[selectedSource]) {{
+                const fields = dataSources[selectedSource].fields;
+                
+                for (const [key, label] of Object.entries(fields)) {{
+                    xAxisSelect.innerHTML += `<option value="${{key}}">${{label}}</option>`;
+                    yAxisSelect.innerHTML += `<option value="${{key}}">${{label}}</option>`;
+                }}
+                
+                xAxisSelect.disabled = false;
+                yAxisSelect.disabled = false;
+            }} else {{
+                xAxisSelect.disabled = true;
+                yAxisSelect.disabled = true;
+            }}
+            
+            checkGenerateButton();
+        }});
+
+        function checkGenerateButton() {{
+            const dataSource = document.getElementById('data-source').value;
+            const xAxis = document.getElementById('x-axis').value;
+            const yAxis = document.getElementById('y-axis').value;
+            
+            const generateBtn = document.getElementById('generate-btn');
+            const saveBtn = document.getElementById('save-preset-btn');
+            const exportBtn = document.getElementById('export-btn');
+            
+            const isValid = dataSource && xAxis && yAxis;
+            
+            generateBtn.disabled = !isValid;
+            saveBtn.disabled = !isValid;
+            exportBtn.disabled = !isValid;
+        }}
+
+        document.getElementById('x-axis').addEventListener('change', checkGenerateButton);
+        document.getElementById('y-axis').addEventListener('change', checkGenerateButton);
+
+        function generateGraph() {{
+            // Find next available graph slot
+            let targetSlot = null;
+            for (let i = 1; i <= 3; i++) {{
+                if (!activeGraphs[i]) {{
+                    targetSlot = i;
+                    break;
+                }}
+            }}
+            
+            if (!targetSlot) {{
+                alert('Maximum of 3 graphs allowed. Please remove a graph first.');
+                return;
+            }}
+            
+            const dataSource = document.getElementById('data-source').value;
+            const xAxis = document.getElementById('x-axis').value;
+            const yAxis = document.getElementById('y-axis').value;
+            const graphType = document.getElementById('graph-type').value;
+            
+            const graphContent = document.querySelector(`#graph-${{targetSlot}} .graph-content`);
+            const graphTitle = document.querySelector(`#graph-${{targetSlot}} .graph-title`);
+            
+            graphTitle.textContent = `${{dataSources[dataSource].name}}: ${{yAxis}} vs ${{xAxis}}`;
+            
+            // Generate sample data for demo
+            const sampleData = generateSampleData(dataSource, xAxis, yAxis);
+            
+            // Create Plotly graph
+            const trace = {{
+                x: sampleData.x,
+                y: sampleData.y,
+                type: graphType === 'scatter' ? 'scatter' : graphType,
+                mode: graphType === 'line' ? 'lines+markers' : undefined,
+                line: {{ color: '#1a73e8', width: 2 }},
+                marker: {{ color: '#4285f4' }},
+                fill: graphType === 'area' ? 'tonexty' : undefined,
+                fillcolor: 'rgba(26,115,232,0.3)'
+            }};
+            
+            const layout = {{
+                title: `${{yAxis}} vs ${{xAxis}}`,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: '#1a1a1a',
+                font: {{ color: 'white', family: 'Arial, sans-serif' }},
+                xaxis: {{ 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    title: xAxis
+                }},
+                yaxis: {{ 
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    title: yAxis
+                }},
+                margin: {{ t: 50, r: 50, b: 50, l: 50 }}
+            }};
+            
+            Plotly.newPlot(graphContent, [trace], layout, {{responsive: true}});
+            
+            activeGraphs[targetSlot] = {{ dataSource, xAxis, yAxis, graphType }};
+        }}
+
+        function generateSampleData(dataSource, xField, yField) {{
+            const data = {{ x: [], y: [] }};
+            
+            // Generate 20 sample data points
+            for (let i = 0; i < 20; i++) {{
+                if (xField.includes('date')) {{
+                    data.x.push(new Date(2024, 0, i + 1).toISOString().split('T')[0]);
+                }} else if (xField.includes('name')) {{
+                    data.x.push(`Item ${{i + 1}}`);
+                }} else {{
+                    data.x.push(i + 1);
+                }}
+                
+                if (yField.includes('quantity')) {{
+                    data.y.push(Math.random() * 100 + 50);
+                }} else if (yField.includes('date')) {{
+                    data.y.push(new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0]);
+                }} else {{
+                    data.y.push(Math.random() * 1000 + 100);
+                }}
+            }}
+            
+            return data;
+        }}
+
+        function saveAsPreset() {{
+            const name = prompt('Enter preset name:');
+            if (name) {{
+                alert(`Preset "${{name}}" saved! (Demo - full functionality coming soon)`);
+            }}
+        }}
+
+        function exportToExcel() {{
+            alert('Excel export functionality - coming soon!');
+        }}
+        </script>
+    </body>
+    </html>
+    """
+    return html_content
+
+@app.get("/waste", response_class=HTMLResponse)
+async def waste_management():
+    return """
+    <html>
+    <head>
+        <title>🗑️ Waste Management - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #ea4335; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🗑️ Waste Disposal Management</div>
+                <div class="subtitle">COC Tracking, Waste Box Labels & Sample Disposal</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-boxes" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Waste Box Tracking</h3>
+                        <p>Create and manage waste boxes with COC job IDs</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-print" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Label Printing</h3>
+                        <p>Generate printable labels with QR codes</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-clock" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Storage Timer</h3>
+                        <p>Track extra sample storage periods</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-exchange-alt" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Item Movement</h3>
+                        <p>Move samples between boxes seamlessly</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full waste management functionality will be available soon with database integration.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/reminders", response_class=HTMLResponse)
+async def reminders_page():
+    return """
+    <html>
+    <head>
+        <title>🔔 Reminders - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #fbbc04; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🔔 Reminders & Events</div>
+                <div class="subtitle">Stay on top of important lab tasks and deadlines</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-bell" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Task Reminders</h3>
+                        <p>Set and track important lab tasks</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-calendar" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Event Calendar</h3>
+                        <p>Schedule upcoming events and deadlines</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Priority Alerts</h3>
+                        <p>High-priority notifications for critical tasks</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Team Assignment</h3>
+                        <p>Assign reminders to team members</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full reminder system will be integrated with user authentication soon.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/notes", response_class=HTMLResponse)
+async def notes_page():
+    return """
+    <html>
+    <head>
+        <title>📝 Department Notes - EHS</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8f9fa, #e9ecef); min-height: 100vh; padding: 20px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+            .logo { font-size: 32px; font-weight: bold; color: #34a853; margin-bottom: 10px; }
+            .subtitle { color: #666; font-size: 18px; }
+            .features { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+            .feature-card { background: #f8f9fa; border: 2px solid #e8eaed; border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+            .feature-card:hover { border-color: #1a73e8; transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📝 Department Notes</div>
+                <div class="subtitle">Shared announcements, procedures, and important information</div>
+                <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
+            </div>
+            
+            <div class="features">
+                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-thumbtack" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
+                        <h3>Pinned Notes</h3>
+                        <p>Important announcements at the top</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-users" style="font-size: 32px; color: #34a853; margin-bottom: 15px;"></i>
+                        <h3>Department-wide</h3>
+                        <p>Visible to all department members</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-calendar" style="font-size: 32px; color: #fbbc04; margin-bottom: 15px;"></i>
+                        <h3>Dated Entries</h3>
+                        <p>Automatic timestamping and organization</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-filter" style="font-size: 32px; color: #ea4335; margin-bottom: 15px;"></i>
+                        <h3>Categorized</h3>
+                        <p>Filter by type: procedures, announcements, etc.</p>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; text-align: center; color: #666;">
+                    Full notes system with database integration coming soon.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
 # Initialize default admin user
 @app.on_event("startup")
 async def startup_event():
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     admin_user = db.query(User).filter(User.username == "admin").first()
     if not admin_user:
@@ -289,6 +815,7 @@ async def startup_event():
         admin = User(
             username="admin",
             email="admin@ehslabs.com",
+            full_name="Admin User",
             hashed_password=hashed_password,
             role="Admin"
         )

@@ -1,0 +1,698 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - EHS Electronic Journal{% endblock %}
+{% block page_title %}📊 Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.plot.ly/plotly-2.26.0.min.css">
+<style>
+/* Analytics Dashboard Styles */
+.analytics-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-controls {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e8eaed;
+}
+
+.controls-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group label {
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.control-group select,
+.control-group input {
+    padding: 12px;
+    border: 2px solid #dadce0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: white;
+}
+
+.control-group select:focus,
+.control-group input:focus {
+    outline: none;
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1557b0, #3367d6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #5f6368;
+    border: 2px solid #dadce0;
+}
+
+.btn-secondary:hover {
+    background: #e8eaed;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #34a853, #66bb6a);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #2d5a2d, #5a9f5a);
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #fbbc04, #ffc107);
+    color: #333;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ea4335, #f44336);
+    color: white;
+}
+
+/* Graph Container */
+.graphs-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.graph-card {
+    background: white;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e8eaed;
+    overflow: hidden;
+    min-height: 500px;
+    position: relative;
+}
+
+.graph-header {
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border-bottom: 1px solid #e8eaed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.graph-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #202124;
+    margin: 0;
+}
+
+.graph-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.graph-btn {
+    padding: 6px 12px;
+    border: 1px solid #dadce0;
+    background: white;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.graph-btn:hover {
+    background: #f8f9fa;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+.graph-content {
+    padding: 0;
+    min-height: 400px;
+    background: #1a1a1a; /* Dark background for crypto-style graphs */
+    position: relative;
+}
+
+.graph-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: #9aa0a6;
+    text-align: center;
+}
+
+.graph-placeholder i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #dadce0;
+}
+
+/* Side Panel */
+.side-panel {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e8eaed;
+    margin-bottom: 25px;
+}
+
+.side-panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e8eaed;
+}
+
+/* Loading States */
+.loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e8eaed;
+    border-top: 2px solid #1a73e8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .analytics-container {
+        padding: 10px;
+    }
+    
+    .graphs-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        justify-content: stretch;
+    }
+    
+    .action-buttons .btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <!-- Dashboard Controls -->
+    <div class="dashboard-controls">
+        <div class="controls-row">
+            <div class="control-group">
+                <label for="data-source">Data Source</label>
+                <select id="data-source">
+                    <option value="">Select Data Source...</option>
+                    {% for key, source in data_sources.items() %}
+                    <option value="{{ key }}">{{ source.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="x-axis">X-Axis Field</label>
+                <select id="x-axis" disabled>
+                    <option value="">Select X-Axis...</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="y-axis">Y-Axis Field</label>
+                <select id="y-axis" disabled>
+                    <option value="">Select Y-Axis...</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="graph-type">Graph Type</label>
+                <select id="graph-type">
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="area">Area Chart</option>
+                    <option value="scatter">Scatter Plot</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="generateGraph()" disabled id="generate-btn">
+                <i class="fas fa-chart-line"></i> Generate Graph
+            </button>
+            <button class="btn btn-secondary" onclick="saveAsPreset()" disabled id="save-preset-btn">
+                <i class="fas fa-save"></i> Save as Preset
+            </button>
+            <button class="btn btn-success" onclick="exportToExcel()" disabled id="export-btn">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+            <button class="btn btn-warning" onclick="clearGraphs()">
+                <i class="fas fa-trash"></i> Clear All Graphs
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 25px;">
+        <!-- Left Column: Graphs -->
+        <div>
+            <!-- Graphs Container -->
+            <div class="graphs-container" id="graphs-container">
+                <div class="graph-card" id="graph-1">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 1</h3>
+                        <div class="graph-actions">
+                            <button class="graph-btn" onclick="removeGraph(1)" title="Remove Graph">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-line"></i>
+                            <p>Select data source and fields to generate a graph</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="graph-card" id="graph-2">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 2</h3>
+                        <div class="graph-actions">
+                            <button class="graph-btn" onclick="removeGraph(2)" title="Remove Graph">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>Additional graph slot available</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="graph-card" id="graph-3">
+                    <div class="graph-header">
+                        <h3 class="graph-title">Graph 3</h3>
+                        <div class="graph-actions">
+                            <button class="graph-btn" onclick="removeGraph(3)" title="Remove Graph">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="graph-content">
+                        <div class="graph-placeholder">
+                            <i class="fas fa-chart-area"></i>
+                            <p>Third graph slot available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Side Panel -->
+        <div>
+            <!-- Quick Actions -->
+            <div class="side-panel">
+                <h3 class="side-panel-title">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for key, source in data_sources.items() %}
+                    <button class="btn btn-secondary btn-sm" onclick="downloadTemplate('{{ key }}')">
+                        <i class="fas fa-download"></i> {{ source.name }} Template
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Upcoming Reminders -->
+            <div class="side-panel">
+                <h3 class="side-panel-title">
+                    <i class="fas fa-bell"></i> Upcoming Reminders
+                    <button class="btn btn-primary btn-sm" onclick="showAddReminderModal()" style="float: right; padding: 4px 8px; font-size: 12px;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </h3>
+                <div id="reminders-container">
+                    {% if recent_reminders %}
+                        {% for reminder in recent_reminders %}
+                        <div class="reminder-item priority-{{ reminder.priority }}">
+                            <div class="reminder-title">{{ reminder.title }}</div>
+                            <div class="reminder-meta">
+                                Due: {{ reminder.due_date[:10] }} | {{ reminder.reminder_type }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #9aa0a6; text-align: center; padding: 20px;">No upcoming reminders</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Notes -->
+            <div class="side-panel">
+                <h3 class="side-panel-title">
+                    <i class="fas fa-sticky-note"></i> Department Notes
+                    <button class="btn btn-primary btn-sm" onclick="showAddNoteModal()" style="float: right; padding: 4px 8px; font-size: 12px;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </h3>
+                <div id="notes-container">
+                    {% if recent_notes %}
+                        {% for note in recent_notes %}
+                        <div class="note-item {% if note.is_pinned %}pinned{% endif %}">
+                            <div class="note-title">
+                                {% if note.is_pinned %}<i class="fas fa-thumbtack"></i> {% endif %}
+                                {{ note.title }}
+                            </div>
+                            <div class="note-content">{{ note.content[:100] }}{% if note.content|length > 100 %}...{% endif %}</div>
+                            <div class="note-meta">
+                                <span>{{ note.created_at[:10] }}</span>
+                                <span>{{ note.note_type }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #9aa0a6; text-align: center; padding: 20px;">No recent notes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.dataSourcesData = {{ data_sources | tojson }};
+window.userPresets = {{ user_presets | tojson }};
+window.publicPresets = {{ public_presets | tojson }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+<script>
+let currentGraphSlot = 1;
+let activeGraphs = {};
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDataSources();
+    checkGenerateButton();
+});
+
+function initializeDataSources() {
+    const dataSourceSelect = document.getElementById('data-source');
+    const xAxisSelect = document.getElementById('x-axis');
+    const yAxisSelect = document.getElementById('y-axis');
+    
+    dataSourceSelect.addEventListener('change', function() {
+        const selectedSource = this.value;
+        
+        // Clear and populate axis selects
+        xAxisSelect.innerHTML = '<option value="">Select X-Axis...</option>';
+        yAxisSelect.innerHTML = '<option value="">Select Y-Axis...</option>';
+        
+        if (selectedSource && window.dataSourcesData[selectedSource]) {
+            const fields = window.dataSourcesData[selectedSource].fields;
+            
+            for (const [key, label] of Object.entries(fields)) {
+                xAxisSelect.innerHTML += `<option value="${key}">${label}</option>`;
+                yAxisSelect.innerHTML += `<option value="${key}">${label}</option>`;
+            }
+            
+            xAxisSelect.disabled = false;
+            yAxisSelect.disabled = false;
+        } else {
+            xAxisSelect.disabled = true;
+            yAxisSelect.disabled = true;
+        }
+        
+        checkGenerateButton();
+    });
+    
+    // Add change listeners to other selects
+    xAxisSelect.addEventListener('change', checkGenerateButton);
+    yAxisSelect.addEventListener('change', checkGenerateButton);
+    document.getElementById('graph-type').addEventListener('change', checkGenerateButton);
+}
+
+function checkGenerateButton() {
+    const dataSource = document.getElementById('data-source').value;
+    const xAxis = document.getElementById('x-axis').value;
+    const yAxis = document.getElementById('y-axis').value;
+    
+    const generateBtn = document.getElementById('generate-btn');
+    const saveBtn = document.getElementById('save-preset-btn');
+    const exportBtn = document.getElementById('export-btn');
+    
+    const isValid = dataSource && xAxis && yAxis;
+    
+    generateBtn.disabled = !isValid;
+    saveBtn.disabled = !isValid;
+    exportBtn.disabled = !isValid;
+}
+
+async function generateGraph() {
+    const dataSource = document.getElementById('data-source').value;
+    const xAxis = document.getElementById('x-axis').value;
+    const yAxis = document.getElementById('y-axis').value;
+    const graphType = document.getElementById('graph-type').value;
+    
+    // Find next available graph slot
+    let targetSlot = null;
+    for (let i = 1; i <= 3; i++) {
+        if (!activeGraphs[i]) {
+            targetSlot = i;
+            break;
+        }
+    }
+    
+    if (!targetSlot) {
+        alert('Maximum of 3 graphs allowed. Please remove a graph first.');
+        return;
+    }
+    
+    const graphCard = document.getElementById(`graph-${targetSlot}`);
+    const graphContent = graphCard.querySelector('.graph-content');
+    const graphTitle = graphCard.querySelector('.graph-title');
+    
+    // Update title
+    graphTitle.textContent = `${window.dataSourcesData[dataSource].name}: ${yAxis} vs ${xAxis}`;
+    
+    // Show loading
+    graphContent.innerHTML = `
+        <div class="graph-placeholder">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Generating graph...</span>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/api/analytics/graph-data?data_source=${dataSource}&x_field=${xAxis}&y_field=${yAxis}&graph_type=${graphType}&limit=100`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Insert the graph HTML
+            graphContent.innerHTML = result.graph_html;
+            
+            // Mark this slot as active
+            activeGraphs[targetSlot] = {
+                dataSource,
+                xAxis,
+                yAxis,
+                graphType
+            };
+            
+        } else {
+            throw new Error(result.error || 'Failed to generate graph');
+        }
+        
+    } catch (error) {
+        console.error('Error generating graph:', error);
+        graphContent.innerHTML = `
+            <div class="graph-placeholder">
+                <i class="fas fa-exclamation-triangle" style="color: #ea4335;"></i>
+                <p>Error generating graph: ${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function removeGraph(slot) {
+    const graphCard = document.getElementById(`graph-${slot}`);
+    const graphContent = graphCard.querySelector('.graph-content');
+    const graphTitle = graphCard.querySelector('.graph-title');
+    
+    // Reset to placeholder
+    graphTitle.textContent = `Graph ${slot}`;
+    graphContent.innerHTML = `
+        <div class="graph-placeholder">
+            <i class="fas fa-chart-line"></i>
+            <p>Graph slot available</p>
+        </div>
+    `;
+    
+    // Remove from active graphs
+    delete activeGraphs[slot];
+}
+
+function clearGraphs() {
+    for (let i = 1; i <= 3; i++) {
+        removeGraph(i);
+    }
+}
+
+async function saveAsPreset() {
+    const name = prompt('Enter preset name:');
+    if (!name) return;
+    
+    const dataSource = document.getElementById('data-source').value;
+    const xAxis = document.getElementById('x-axis').value;
+    const yAxis = document.getElementById('y-axis').value;
+    const graphType = document.getElementById('graph-type').value;
+    
+    const presetData = {
+        name: name,
+        description: `${graphType} chart showing ${yAxis} vs ${xAxis}`,
+        graph_type: graphType,
+        x_axis_field: xAxis,
+        y_axis_field: yAxis,
+        data_source: dataSource,
+        is_public: false
+    };
+    
+    try {
+        const response = await fetch('/api/analytics/presets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(presetData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Preset saved successfully!');
+            location.reload(); // Refresh to show new preset
+        } else {
+            throw new Error('Failed to save preset');
+        }
+    } catch (error) {
+        console.error('Error saving preset:', error);
+        alert('Error saving preset: ' + error.message);
+    }
+}
+
+async function exportToExcel() {
+    const dataSource = document.getElementById('data-source').value;
+    const xAxis = document.getElementById('x-axis').value;
+    const yAxis = document.getElementById('y-axis').value;
+    
+    const filename = `${dataSource}_${xAxis}_vs_${yAxis}`;
+    
+    try {
+        const url = `/api/analytics/export-excel?data_source=${dataSource}&x_field=${xAxis}&y_field=${yAxis}&filename=${filename}`;
+        window.open(url, '_blank');
+    } catch (error) {
+        console.error('Error exporting to Excel:', error);
+        alert('Error exporting to Excel: ' + error.message);
+    }
+}
+
+async function downloadTemplate(dataSource) {
+    try {
+        const url = `/api/analytics/template/${dataSource}`;
+        window.open(url, '_blank');
+    } catch (error) {
+        console.error('Error downloading template:', error);
+        alert('Error downloading template: ' + error.message);
+    }
+}
+
+// Placeholder functions for modal dialogs (to be implemented)
+function showAddReminderModal() {
+    alert('Add reminder functionality - to be implemented');
+}
+
+function showAddNoteModal() {
+    alert('Add note functionality - to be implemented');
+}
+</script>
+{% endblock %}

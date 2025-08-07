@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 
 from app.auth.jwt_handler import get_current_user
-from app.routes import auth, dashboard, chemical_inventory, reagents, standards, equipment, maintenance
+from app.routes import auth, dashboard, chemical_inventory, reagents, standards, equipment, maintenance, analytics
 from app.utils.timezone_utils import get_est_time
 
 app = FastAPI()
@@ -28,6 +28,7 @@ app.include_router(reagents.router)
 app.include_router(standards.router)
 app.include_router(equipment.router)
 app.include_router(maintenance.router)
+app.include_router(analytics.router)
 
 @app.get("/health")
 def health():
