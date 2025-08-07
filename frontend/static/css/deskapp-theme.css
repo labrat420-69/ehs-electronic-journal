@@ -395,10 +395,14 @@ Modern admin dashboard styling matching DeskApp/Dropways template
     min-height: 200px;
 }
 
-/* Responsive Design */
+/* Mobile responsiveness improvements */
 @media (max-width: 1024px) {
     .left-side-bar {
         transform: translateX(-100%);
+    }
+    
+    .left-side-bar.active {
+        transform: translateX(0);
     }
     
     .main-container {
@@ -408,6 +412,18 @@ Modern admin dashboard styling matching DeskApp/Dropways template
     
     .close-sidebar {
         display: block;
+    }
+    
+    .mobile-menu-overlay {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-overlay.active {
+        opacity: 1;
+        visibility: visible;
     }
 }
 
@@ -421,6 +437,65 @@ Modern admin dashboard styling matching DeskApp/Dropways template
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     display: none;
+}
+
+/* Enhanced dropdown animations */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.submenu.active,
+.dropdown-toggle.active + .submenu {
+    max-height: 300px;
+    display: block;
+}
+
+/* Active dropdown toggle styling */
+.dropdown-toggle.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.dropdown-toggle.active .mtext {
+    color: white;
+}
+
+/* Improved card hover effects */
+.card-box {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-box:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+/* Loading state for missing resources */
+.resource-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Enhanced preloader */
+.pre-loader {
+    backdrop-filter: blur(5px);
+    transition: opacity 0.5s ease-out;
+}
+
+.pre-loader.fade-out {
+    opacity: 0;
+}
+
+/* Header search enhancements */
+.header-search {
+    position: relative;
+}
+
+.header-search .search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(27, 0, 255, 0.25);
 }
 
 /* Custom Scrollbar */

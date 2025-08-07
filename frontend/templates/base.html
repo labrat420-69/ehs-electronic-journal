@@ -278,9 +278,14 @@
     </div>
     
     <!-- JavaScript -->
-    <!-- jQuery & Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery & Bootstrap JS (fallback if CDN fails) -->
+    <script>
+        // Load jQuery with fallback
+        if (typeof jQuery === 'undefined') {
+            document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js"><\/script>');
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" onerror="console.log('Bootstrap CSS failed to load from CDN')"></script>
     
     <!-- Custom JS -->
     <script src="{{ url_for('static', path='/js/main.js') }}"></script>
@@ -311,12 +316,54 @@
                 initializeUrlMessages();
             }
             
-            // DeskApp-style dropdown toggle
-            $('.dropdown-toggle').on('click', function(e) {
-                e.preventDefault();
-                $(this).next('.submenu').slideToggle();
-                $(this).parent().toggleClass('active');
-            });
+            // DeskApp-style dropdown toggle (vanilla JS fallback)
+            function initializeDropdowns() {
+                const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+                dropdownToggles.forEach(function(toggle) {
+                    if (toggle.getAttribute('href') === 'javascript:;') {
+                        toggle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const submenu = this.nextElementSibling;
+                            if (submenu && submenu.classList.contains('submenu')) {
+                                // Toggle submenu visibility
+                                if (submenu.style.display === 'none' || submenu.style.display === '') {
+                                    submenu.style.display = 'block';
+                                    this.classList.add('active');
+                                    this.parentElement.classList.add('active');
+                                } else {
+                                    submenu.style.display = 'none';
+                                    this.classList.remove('active');
+                                    this.parentElement.classList.remove('active');
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Initialize dropdowns
+            initializeDropdowns();
+            
+            // Mobile menu toggle
+            const menuIcon = document.querySelector('.menu-icon');
+            const sidebar = document.querySelector('.left-side-bar');
+            const overlay = document.querySelector('.mobile-menu-overlay');
+            
+            if (menuIcon && sidebar) {
+                menuIcon.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    if (overlay) {
+                        overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+                    }
+                });
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    this.style.display = 'none';
+                });
+            }
             
             // Page-specific initialization
             {% block page_init %}{% endblock %}
