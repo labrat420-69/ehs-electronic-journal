@@ -738,34 +738,130 @@ function setupPreferencesUI() {
 }
 
 function setupAutoRefresh(intervalSeconds) {
-    setInterval(() => {
-        // Auto-refresh active graphs if enabled
-        if (userPreferences && userPreferences.auto_refresh) {
-            for (let slot in activeGraphs) {
-                if (activeGraphs[slot]) {
-                    // Re-generate the graph with current settings
-                    regenerateGraph(slot);
-                }
+    let refreshInterval = null;
+    
+    // Clear any existing interval
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    
+    // Set up new interval with performance optimization
+    refreshInterval = setInterval(() => {
+        // Only refresh if user is active and preferences allow it
+        if (userPreferences && userPreferences.auto_refresh && document.visibilityState === 'visible') {
+            const activeSlots = Object.keys(activeGraphs);
+            if (activeSlots.length > 0) {
+                console.log(`Auto-refreshing ${activeSlots.length} charts...`);
+                
+                // Stagger requests to prevent server overload
+                activeSlots.forEach((slot, index) => {
+                    setTimeout(() => {
+                        if (activeGraphs[slot]) {
+                            regenerateGraph(slot);
+                        }
+                    }, index * 500); // 500ms delay between requests
+                });
             }
         }
     }, intervalSeconds * 1000);
+    
+    // Pause refresh when page is not visible (performance optimization)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            console.log('Page hidden, pausing auto-refresh');
+        } else {
+            console.log('Page visible, resuming auto-refresh');
+        }
+    });
+    
+    return refreshInterval;
 }
 
 async function regenerateGraph(slot) {
     const graphConfig = activeGraphs[slot];
     if (!graphConfig) return;
     
+    const graphCard = document.getElementById(`graph-${slot}`);
+    if (!graphCard) return;
+    
+    const graphContent = graphCard.querySelector('.graph-content');
+    const lastRefreshKey = `graph_${slot}_last_refresh`;
+    const cacheKey = `graph_${slot}_data`;
+    
+    // Performance optimization: don't refresh too frequently
+    const lastRefresh = localStorage.getItem(lastRefreshKey);
+    const minRefreshInterval = 30000; // 30 seconds minimum between refreshes
+    
+    if (lastRefresh && Date.now() - parseInt(lastRefresh) < minRefreshInterval) {
+        console.log(`Skipping refresh for slot ${slot} - too recent`);
+        return;
+    }
+    
     try {
+        // Add subtle loading indicator for refresh
+        const existingChart = graphContent.querySelector('[data-plotly]');
+        if (existingChart) {
+            existingChart.style.opacity = '0.7';
+        }
+        
         const response = await fetch(`/api/analytics/graph-data?data_source=${graphConfig.dataSource}&x_field=${graphConfig.xAxis}&y_field=${graphConfig.yAxis}&graph_type=${graphConfig.graphType}&limit=100`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
         
         if (result.success) {
-            const graphCard = document.getElementById(`graph-${slot}`);
-            const graphContent = graphCard.querySelector('.graph-content');
             graphContent.innerHTML = result.graph_html;
+            
+            // Cache successful result
+            localStorage.setItem(cacheKey, JSON.stringify({
+                data: result.graph_html,
+                timestamp: Date.now()
+            }));
+            
+            localStorage.setItem(lastRefreshKey, Date.now().toString());
+            
+            console.log(`Successfully refreshed chart in slot ${slot}`);
+        } else {
+            throw new Error(result.error || 'Failed to refresh graph');
         }
+        
     } catch (error) {
-        console.error('Error refreshing graph:', error);
+        console.error(`Error refreshing graph in slot ${slot}:`, error);
+        
+        // Try to restore from cache on error
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const cachedData = JSON.parse(cached);
+                // Use cached data if it's less than 1 hour old
+                if (Date.now() - cachedData.timestamp < 3600000) {
+                    console.log(`Using cached data for slot ${slot}`);
+                    return; // Keep current chart visible
+                }
+            } catch (cacheError) {
+                console.error('Error parsing cached data:', cacheError);
+            }
+        }
+        
+        // Show error state only if no cache available
+        if (graphContent) {
+            const existingChart = graphContent.querySelector('[data-plotly]');
+            if (existingChart) {
+                existingChart.style.opacity = '1'; // Restore opacity
+                // Add error indicator
+                const errorIndicator = document.createElement('div');
+                errorIndicator.style.cssText = 'position: absolute; top: 10px; right: 10px; background: #dc2626; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 1000;';
+                errorIndicator.textContent = 'Refresh failed';
+                graphContent.style.position = 'relative';
+                graphContent.appendChild(errorIndicator);
+                
+                // Remove error indicator after 5 seconds
+                setTimeout(() => errorIndicator.remove(), 5000);
+            }
+        }
     }
 }
 
