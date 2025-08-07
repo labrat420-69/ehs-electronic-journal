@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance Dashboard - EHS Electronic Journal{% endblock %}
+{% block page_title %}Maintenance Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Maintenance Dashboard</h2>
+            <p>Comprehensive overview of equipment maintenance, service records, and scheduling</p>
+        </div>
+        <div class="page-actions">
+            <a href="/maintenance/icp-oes/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Maintenance Record
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Type Navigation -->
+<div class="nav-tabs-container">
+    <ul class="nav-tabs">
+        <li class="nav-tab active">
+            <a href="/maintenance/">All Maintenance</a>
+        </li>
+        <li class="nav-tab">
+            <a href="/maintenance/icp-oes">ICP-OES</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Quick Stats Dashboard -->
+<div class="stats-container">
+    <div class="stats-grid">
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Total Records</div>
+                <div class="stats-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ total_records }}</div>
+            <div class="stats-subtitle">This month: {{ monthly_records }}</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Preventive</div>
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ preventive_count }}</div>
+            <div class="stats-subtitle">Scheduled maintenance</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Corrective</div>
+                <div class="stats-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ corrective_count }}</div>
+            <div class="stats-subtitle">Unscheduled repairs</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Total Cost</div>
+                <div class="stats-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="stats-value">${{ "%.0f"|format(total_cost or 0) }}</div>
+            <div class="stats-subtitle">This quarter</div>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Status Overview -->
+<div class="overview-container">
+    <div class="overview-card">
+        <div class="card-header">
+            <h3>Equipment Status Overview</h3>
+        </div>
+        <div class="card-content">
+            <div class="equipment-grid">
+                <div class="equipment-item operational">
+                    <div class="equipment-count">{{ operational_count }}</div>
+                    <div class="equipment-label">Operational</div>
+                </div>
+                <div class="equipment-item maintenance">
+                    <div class="equipment-count">{{ under_maintenance_count }}</div>
+                    <div class="equipment-label">Under Maintenance</div>
+                </div>
+                <div class="equipment-item service">
+                    <div class="equipment-count">{{ needs_service_count }}</div>
+                    <div class="equipment-label">Needs Service</div>
+                </div>
+                <div class="equipment-item critical">
+                    <div class="equipment-count">{{ critical_issues_count }}</div>
+                    <div class="equipment-label">Critical Issues</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Maintenance -->
+<div class="table-container">
+    <div class="table-header">
+        <h3>Upcoming Scheduled Maintenance</h3>
+        <div class="table-actions">
+            <select id="filter-days" class="form-control">
+                <option value="7">Next 7 days</option>
+                <option value="14">Next 14 days</option>
+                <option value="30" selected>Next 30 days</option>
+                <option value="90">Next 90 days</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table" id="upcoming-table">
+            <thead>
+                <tr>
+                    <th>Equipment</th>
+                    <th>Maintenance Type</th>
+                    <th>Scheduled Date</th>
+                    <th>Days Until</th>
+                    <th>Priority</th>
+                    <th>Assigned To</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in upcoming_maintenance %}
+                <tr class="table-row">
+                    <td>
+                        <div class="equipment-cell">
+                            <strong>{{ item.equipment_name }}</strong>
+                            <br><small class="text-muted">{{ item.equipment_type }}</small>
+                        </div>
+                    </td>
+                    <td>{{ item.maintenance_type }}</td>
+                    <td>{{ item.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <span class="days-badge {% if item.days_until < 0 %}overdue{% elif item.days_until < 7 %}urgent{% elif item.days_until < 14 %}soon{% endif %}">
+                            {% if item.days_until < 0 %}
+                            {{ item.days_until|abs }} days overdue
+                            {% else %}
+                            {{ item.days_until }} days
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="priority-badge priority-{{ item.priority.lower() }}">
+                            {{ item.priority }}
+                        </span>
+                    </td>
+                    <td>{{ item.assigned_to or 'Unassigned' }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/maintenance/schedule/{{ item.id }}" class="btn btn-sm btn-outline" title="Schedule">
+                                <i class="fas fa-calendar"></i>
+                            </a>
+                            <a href="/maintenance/complete/{{ item.id }}" class="btn btn-sm btn-success" title="Mark Complete">
+                                <i class="fas fa-check"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Maintenance Records -->
+<div class="table-container">
+    <div class="table-header">
+        <h3>Recent Maintenance Records</h3>
+        <div class="table-actions">
+            <a href="/maintenance/icp-oes" class="btn btn-outline">View All Records</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Equipment</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Performed By</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in recent_records %}
+                <tr class="table-row">
+                    <td>{{ record.maintenance_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <div class="equipment-cell">
+                            <strong>{{ record.equipment_name or 'ICP-OES' }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ record.maintenance_type }}</td>
+                    <td>{{ record.description|truncate(50) }}</td>
+                    <td>{{ record.performed_by }}</td>
+                    <td>
+                        {% if record.cost %}
+                        ${{ "%.2f"|format(record.cost) }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ record.status|lower|replace(' ', '-') }}">
+                            {{ record.status or 'Completed' }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Empty State for No Records -->
+{% if not recent_records and not upcoming_maintenance %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-wrench"></i>
+    </div>
+    <h3>No Maintenance Records Found</h3>
+    <p>Get started by adding your first maintenance record or scheduling upcoming maintenance.</p>
+    <a href="/maintenance/icp-oes/add" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Maintenance Record
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter upcoming maintenance by days
+    const filterDays = document.getElementById('filter-days');
+    if (filterDays) {
+        filterDays.addEventListener('change', function() {
+            const days = parseInt(this.value);
+            const rows = document.querySelectorAll('#upcoming-table tbody tr');
+            
+            rows.forEach(row => {
+                const daysCell = row.cells[3];
+                const daysText = daysCell.textContent;
+                const daysUntil = parseInt(daysText.match(/(\d+) days/)[1]) || 0;
+                
+                if (daysUntil <= days) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Export functionality
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            const exportUrl = '/maintenance/export';
+            window.open(exportUrl, '_blank');
+        });
+    }
+    
+    // Auto-refresh every 5 minutes
+    setTimeout(() => {
+        location.reload();
+    }, 5 * 60 * 1000);
+});
+</script>
+
+<style>
+/* Additional styles for maintenance dashboard */
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.equipment-item {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid;
+}
+
+.equipment-item.operational {
+    background: #f0fdf4;
+    border-color: #10b981;
+    color: #047857;
+}
+
+.equipment-item.maintenance {
+    background: #fffbeb;
+    border-color: #f59e0b;
+    color: #d97706;
+}
+
+.equipment-item.service {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.equipment-item.critical {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+.equipment-count {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.equipment-label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.days-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.days-badge.overdue {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.days-badge.urgent {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.days-badge.soon {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.priority-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.priority-high {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.priority-medium {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.priority-low {
+    background: #f0fdf4;
+    color: #047857;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.table-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.overview-container {
+    margin-bottom: 30px;
+}
+
+.overview-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .equipment-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}

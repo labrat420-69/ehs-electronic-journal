@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}{{ standard.standard_name }} - Standards - EHS Electronic Journal{% endblock %}
+{% block page_title %}Standard Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>{{ standard.standard_name }}</h2>
+            <p>{{ standard.standard_type }} - Batch: {{ standard.batch_number }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="/standards/{{ standard_type }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Standards
+            </a>
+            <a href="/standards/{{ standard_type }}/edit/{{ standard.id }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <button class="btn btn-outline" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="detail-container">
+    <div class="detail-grid">
+        <!-- Status Card -->
+        <div class="detail-card status-card">
+            <div class="card-header">
+                <h3>Status</h3>
+                {% if standard.expiration_date and standard.expiration_date < current_date %}
+                <span class="status-badge status-expired">Expired</span>
+                {% elif standard.certified %}
+                <span class="status-badge status-certified">Certified</span>
+                {% else %}
+                <span class="status-badge status-active">Active</span>
+                {% endif %}
+            </div>
+            <div class="card-content">
+                <div class="status-info">
+                    {% if standard.expiration_date %}
+                    <div class="status-item">
+                        <span class="label">Expiration:</span>
+                        <span class="value {% if standard.expiration_date < current_date %}expired{% elif (standard.expiration_date - current_date).days < 30 %}warning{% endif %}">
+                            {{ standard.expiration_date.strftime('%Y-%m-%d') }}
+                            {% if standard.expiration_date < current_date %}
+                            (Expired {{ (current_date - standard.expiration_date).days }} days ago)
+                            {% elif (standard.expiration_date - current_date).days < 30 %}
+                            (Expires in {{ (standard.expiration_date - current_date).days }} days)
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="status-item">
+                        <span class="label">Age:</span>
+                        <span class="value">{{ (current_date - standard.preparation_date).days }} days old</span>
+                    </div>
+                    
+                    {% if standard.certified %}
+                    <div class="status-item">
+                        <span class="label">Certificate:</span>
+                        <span class="value">{{ standard.certificate_number or 'Not specified' }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Basic Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Basic Information</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    <div class="detail-item">
+                        <span class="label">Standard Name:</span>
+                        <span class="value">{{ standard.standard_name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Batch Number:</span>
+                        <span class="value">{{ standard.batch_number }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Standard Type:</span>
+                        <span class="value">{{ standard.standard_type }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Preparation Date:</span>
+                        <span class="value">{{ standard.preparation_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% if standard.source_material %}
+                    <div class="detail-item">
+                        <span class="label">Source Material:</span>
+                        <span class="value">{{ standard.source_material }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="label">Total Volume:</span>
+                        <span class="value">{{ standard.total_volume }} mL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Concentration & Composition -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Concentration & Composition</h3>
+            </div>
+            <div class="card-content">
+                <div class="concentration-info">
+                    <div class="concentration-main">
+                        <div class="detail-item large">
+                            <span class="label">Target Concentration:</span>
+                            <span class="value highlight">{{ standard.target_concentration }} ppm</span>
+                        </div>
+                        
+                        {% if standard.actual_concentration %}
+                        <div class="detail-item large">
+                            <span class="label">Actual Concentration:</span>
+                            <span class="value highlight">{{ standard.actual_concentration }} ppm</span>
+                            {% if standard.actual_concentration != standard.target_concentration %}
+                            <span class="deviation">
+                                ({{ "%.2f"|format((standard.actual_concentration - standard.target_concentration) / standard.target_concentration * 100) }}% deviation)
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="composition-details">
+                        {% if standard_type == 'mm' %}
+                        {% if standard.elements %}
+                        <div class="detail-item">
+                            <span class="label">Elements:</span>
+                            <span class="value elements-list">{{ standard.elements|replace(',', ', ') }}</span>
+                        </div>
+                        {% endif %}
+                        {% if standard.matrix %}
+                        <div class="detail-item">
+                            <span class="label">Matrix:</span>
+                            <span class="value">{{ standard.matrix }}</span>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <!-- FlameAA specific fields -->
+                        {% if standard.element %}
+                        <div class="detail-item">
+                            <span class="label">Element:</span>
+                            <span class="value">{{ standard.element }}</span>
+                        </div>
+                        {% endif %}
+                        {% if standard.curve_type %}
+                        <div class="detail-item">
+                            <span class="label">Curve Type:</span>
+                            <span class="value">{{ standard.curve_type }}</span>
+                        </div>
+                        {% endif %}
+                        {% if standard.wavelength %}
+                        <div class="detail-item">
+                            <span class="label">Wavelength:</span>
+                            <span class="value">{{ standard.wavelength }} nm</span>
+                        </div>
+                        {% endif %}
+                        {% if standard.flame_conditions %}
+                        <div class="detail-item">
+                            <span class="label">Flame Conditions:</span>
+                            <span class="value">{{ standard.flame_conditions }}</span>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        
+                        {% if standard.dilution_factor %}
+                        <div class="detail-item">
+                            <span class="label">Dilution Factor:</span>
+                            <span class="value">{{ standard.dilution_factor }}x</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Verification Information -->
+        {% if standard.verification_method or standard.certified %}
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Verification</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    {% if standard.verification_method %}
+                    <div class="detail-item">
+                        <span class="label">Verification Method:</span>
+                        <span class="value">{{ standard.verification_method }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="label">Certified Standard:</span>
+                        <span class="value">{{ 'Yes' if standard.certified else 'No' }}</span>
+                    </div>
+                    {% if standard.certificate_number %}
+                    <div class="detail-item">
+                        <span class="label">Certificate Number:</span>
+                        <span class="value">{{ standard.certificate_number }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Notes -->
+        {% if standard.notes %}
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Notes</h3>
+            </div>
+            <div class="card-content">
+                <div class="notes-content">
+                    {{ standard.notes|replace('\n', '<br>')|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- History -->
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>History</h3>
+            </div>
+            <div class="card-content">
+                <div class="history-timeline">
+                    <div class="history-item">
+                        <div class="history-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">Standard Created</div>
+                            <div class="history-date">{{ standard.created_at.strftime('%Y-%m-%d %H:%M:%S EST') if standard.created_at else standard.preparation_date.strftime('%Y-%m-%d') }}</div>
+                            <div class="history-details">Initial standard preparation</div>
+                        </div>
+                    </div>
+                    
+                    {% if standard.actual_concentration and standard.actual_concentration != standard.target_concentration %}
+                    <div class="history-item">
+                        <div class="history-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">Concentration Verified</div>
+                            <div class="history-date">{{ standard.updated_at.strftime('%Y-%m-%d %H:%M:%S EST') if standard.updated_at else 'Unknown date' }}</div>
+                            <div class="history-details">Actual concentration: {{ standard.actual_concentration }} ppm</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% for history in history_records %}
+                    <div class="history-item">
+                        <div class="history-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="history-content">
+                            <div class="history-title">{{ history.action }}</div>
+                            <div class="history-date">{{ history.timestamp.strftime('%Y-%m-%d %H:%M:%S EST') }}</div>
+                            <div class="history-details">{{ history.details }}</div>
+                            {% if history.user %}
+                            <div class="history-user">by {{ history.user.full_name }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add print styles
+    const printStyles = document.createElement('style');
+    printStyles.textContent = `
+        @media print {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .page-actions { display: none; }
+            .detail-card { break-inside: avoid; }
+        }
+    `;
+    document.head.appendChild(printStyles);
+});
+</script>
+{% endblock %}

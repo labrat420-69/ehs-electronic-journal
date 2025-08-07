@@ -294,7 +294,7 @@ async def pipette_log_list(
     """Pipette calibration logs"""
     pipette_logs = db.query(PipetteLog).filter(
         PipetteLog.is_active == True
-    ).order_by(PipetteLog.test_date.desc()).all()
+    ).order_by(PipetteLog.calibration_date.desc()).all()
     
     context = {
         "request": request,
@@ -353,7 +353,7 @@ async def list_pipette_logs(
     if pipette_id:
         query = query.filter(PipetteLog.pipette_id == pipette_id)
     
-    logs = query.order_by(PipetteLog.test_date.desc()).all()
+    logs = query.order_by(PipetteLog.calibration_date.desc()).all()
     return [log.to_dict() for log in logs]
 
 # Water Conductivity Routes

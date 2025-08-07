@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Add ICP-OES Maintenance - EHS Electronic Journal{% endblock %}
+{% block page_title %}Add ICP-OES Maintenance Record{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Add ICP-OES Maintenance Record</h2>
+            <p>Record detailed maintenance activities, parts used, and performance verification</p>
+        </div>
+        <div class="page-actions">
+            <a href="/maintenance/icp-oes" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to ICP-OES Records
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="maintenance-form" class="modern-form" method="POST" action="/maintenance/icp-oes/add">
+        <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="section-title">Basic Information</h3>
+                
+                <div class="form-group">
+                    <label for="maintenance_date" class="required">Maintenance Date</label>
+                    <input type="datetime-local" id="maintenance_date" name="maintenance_date" class="form-control" required>
+                    <div class="form-help">Date and time when maintenance was performed</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="maintenance_type" class="required">Maintenance Type</label>
+                    <select id="maintenance_type" name="maintenance_type" class="form-control" required>
+                        <option value="">Select type...</option>
+                        <option value="Preventive">Preventive Maintenance</option>
+                        <option value="Corrective">Corrective Maintenance</option>
+                        <option value="Calibration">Calibration</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Parts Replacement">Parts Replacement</option>
+                        <option value="Software Update">Software Update</option>
+                        <option value="Performance Verification">Performance Verification</option>
+                        <option value="Emergency Repair">Emergency Repair</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="performed_by" class="required">Performed By</label>
+                    <input type="text" id="performed_by" name="performed_by" class="form-control" required
+                           placeholder="Name of technician or service engineer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="service_provider">Service Provider</label>
+                    <select id="service_provider" name="service_provider" class="form-control">
+                        <option value="">Internal maintenance</option>
+                        <option value="Agilent Technologies">Agilent Technologies</option>
+                        <option value="PerkinElmer">PerkinElmer</option>
+                        <option value="Thermo Fisher">Thermo Fisher Scientific</option>
+                        <option value="Shimadzu">Shimadzu</option>
+                        <option value="Other">Other Service Provider</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Maintenance Details -->
+            <div class="form-section">
+                <h3 class="section-title">Maintenance Details</h3>
+                
+                <div class="form-group">
+                    <label for="description" class="required">Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" required
+                              placeholder="Brief description of maintenance activities..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="issues_found">Issues Found</label>
+                    <textarea id="issues_found" name="issues_found" class="form-control" rows="3"
+                              placeholder="Any issues, problems, or abnormalities discovered..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="corrective_actions">Corrective Actions</label>
+                    <textarea id="corrective_actions" name="corrective_actions" class="form-control" rows="3"
+                              placeholder="Actions taken to resolve issues..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration_hours">Duration (hours)</label>
+                    <input type="number" id="duration_hours" name="duration_hours" class="form-control"
+                           step="0.1" min="0" placeholder="e.g., 2.5">
+                    <div class="form-help">Total time spent on maintenance activities</div>
+                </div>
+            </div>
+            
+            <!-- Parts and Materials -->
+            <div class="form-section">
+                <h3 class="section-title">Parts & Materials Used</h3>
+                
+                <div class="form-group">
+                    <label for="parts_used">Parts Used</label>
+                    <textarea id="parts_used" name="parts_used" class="form-control" rows="4"
+                              placeholder="List parts, part numbers, quantities, and suppliers...&#10;Example:&#10;- Torch assembly, P/N: 123456, Qty: 1, Agilent&#10;- Nebulizer, P/N: 789012, Qty: 1, Glass Expansion"></textarea>
+                    <div class="form-help">One part per line with part number and supplier</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="consumables_used">Consumables Used</label>
+                    <textarea id="consumables_used" name="consumables_used" class="form-control" rows="3"
+                              placeholder="Cleaning solutions, gases, standards, etc..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cost">Total Cost ($)</label>
+                    <input type="number" id="cost" name="cost" class="form-control"
+                           step="0.01" min="0" placeholder="e.g., 1250.00">
+                    <div class="form-help">Include parts, labor, and other expenses</div>
+                </div>
+            </div>
+            
+            <!-- Performance Verification -->
+            <div class="form-section">
+                <h3 class="section-title">Performance Verification</h3>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="performance_verification" name="performance_verification" value="true">
+                        <span class="checkmark"></span>
+                        Performance verification completed
+                    </label>
+                </div>
+                
+                <div class="form-group" id="verification-details" style="display: none;">
+                    <label for="verification_standard">Verification Standard</label>
+                    <input type="text" id="verification_standard" name="verification_standard" class="form-control"
+                           placeholder="Standard or method used for verification">
+                </div>
+                
+                <div class="form-group" id="verification-results" style="display: none;">
+                    <label for="verification_results">Verification Results</label>
+                    <textarea id="verification_results" name="verification_results" class="form-control" rows="3"
+                              placeholder="Performance test results, precision, accuracy data..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="system_status_after">System Status After Maintenance</label>
+                    <select id="system_status_after" name="system_status_after" class="form-control">
+                        <option value="Operational">Operational</option>
+                        <option value="Limited Operation">Limited Operation</option>
+                        <option value="Out of Service">Out of Service</option>
+                        <option value="Under Test">Under Test</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Follow-up and Documentation -->
+            <div class="form-section">
+                <h3 class="section-title">Follow-up & Documentation</h3>
+                
+                <div class="form-group">
+                    <label for="next_maintenance_due">Next Maintenance Due</label>
+                    <input type="date" id="next_maintenance_due" name="next_maintenance_due" class="form-control">
+                    <div class="form-help">Recommended date for next maintenance</div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="follow_up_required" name="follow_up_required" value="true">
+                        <span class="checkmark"></span>
+                        Follow-up required
+                    </label>
+                </div>
+                
+                <div class="form-group" id="follow-up-details" style="display: none;">
+                    <label for="follow_up_date">Follow-up Date</label>
+                    <input type="date" id="follow_up_date" name="follow_up_date" class="form-control">
+                </div>
+                
+                <div class="form-group" id="follow-up-notes" style="display: none;">
+                    <label for="follow_up_notes">Follow-up Notes</label>
+                    <textarea id="follow_up_notes" name="follow_up_notes" class="form-control" rows="2"
+                              placeholder="What needs to be checked or completed..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="documentation_updated">Documentation Updated</label>
+                    <select id="documentation_updated" name="documentation_updated" class="form-control">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="4"
+                              placeholder="Additional observations, recommendations, or notes..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Maintenance Record
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('maintenance-form');
+    const performanceVerification = document.getElementById('performance_verification');
+    const verificationDetails = document.getElementById('verification-details');
+    const verificationResults = document.getElementById('verification-results');
+    const followUpRequired = document.getElementById('follow_up_required');
+    const followUpDetails = document.getElementById('follow-up-details');
+    const followUpNotes = document.getElementById('follow-up-notes');
+    
+    // Show/hide performance verification fields
+    performanceVerification.addEventListener('change', function() {
+        if (this.checked) {
+            verificationDetails.style.display = 'block';
+            verificationResults.style.display = 'block';
+        } else {
+            verificationDetails.style.display = 'none';
+            verificationResults.style.display = 'none';
+        }
+    });
+    
+    // Show/hide follow-up fields
+    followUpRequired.addEventListener('change', function() {
+        if (this.checked) {
+            followUpDetails.style.display = 'block';
+            followUpNotes.style.display = 'block';
+            document.getElementById('follow_up_date').required = true;
+        } else {
+            followUpDetails.style.display = 'none';
+            followUpNotes.style.display = 'none';
+            document.getElementById('follow_up_date').required = false;
+        }
+    });
+    
+    // Form validation and submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert checkboxes to boolean
+        data.performance_verification = performanceVerification.checked;
+        data.follow_up_required = followUpRequired.checked;
+        data.documentation_updated = data.documentation_updated === 'true';
+        
+        // Client-side validation
+        const errors = [];
+        
+        if (!data.maintenance_date) errors.push('Maintenance date is required');
+        if (!data.maintenance_type) errors.push('Maintenance type is required');
+        if (!data.performed_by.trim()) errors.push('Performed by is required');
+        if (!data.description.trim()) errors.push('Description is required');
+        
+        // Validate performance verification fields
+        if (data.performance_verification) {
+            if (!data.verification_standard?.trim()) {
+                errors.push('Verification standard is required when performance verification is checked');
+            }
+        }
+        
+        // Validate follow-up fields
+        if (data.follow_up_required) {
+            if (!data.follow_up_date) {
+                errors.push('Follow-up date is required when follow-up is required');
+            }
+        }
+        
+        // Validate cost is non-negative
+        if (data.cost && parseFloat(data.cost) < 0) {
+            errors.push('Cost cannot be negative');
+        }
+        
+        if (errors.length > 0) {
+            alert('Please correct the following errors:\n\n' + errors.join('\n'));
+            return;
+        }
+        
+        // Submit the form
+        fetch('/maintenance/icp-oes/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(result => {
+            if (result.success) {
+                alert('Maintenance record saved successfully!');
+                window.location.href = '/maintenance/icp-oes';
+            } else {
+                alert('Error saving record: ' + (result.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving maintenance record. Please try again.');
+        });
+    });
+    
+    // Set current datetime as default
+    const now = new Date();
+    const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('maintenance_date').value = localISOTime;
+});
+</script>
+{% endblock %}

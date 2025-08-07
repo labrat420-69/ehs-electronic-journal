@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Add Standard - EHS Electronic Journal{% endblock %}
+{% block page_title %}Add {{ standard_type|upper }} Standard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Add New {{ 'MM' if standard_type == 'mm' else 'FlameAA' }} Standard</h2>
+            <p>Create a new standard with concentration tracking and verification details</p>
+        </div>
+        <div class="page-actions">
+            <a href="/standards/{{ standard_type }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Standards
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="standard-form" class="modern-form" method="POST" action="/standards/{{ standard_type }}/add">
+        <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="section-title">Basic Information</h3>
+                
+                <div class="form-group">
+                    <label for="standard_name" class="required">Standard Name</label>
+                    <input type="text" id="standard_name" name="standard_name" class="form-control" required
+                           placeholder="Enter standard name (e.g., QC-MM-001)">
+                    <div class="form-help">Unique identifier for this standard batch</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="batch_number" class="required">Batch Number</label>
+                    <input type="text" id="batch_number" name="batch_number" class="form-control" required
+                           placeholder="Enter batch number">
+                    <div class="form-help">Manufacturing or preparation batch identifier</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="standard_type" class="required">Standard Type</label>
+                    <select id="standard_type_select" name="standard_type" class="form-control" required>
+                        <option value="">Select type...</option>
+                        <option value="QC">QC Standard</option>
+                        <option value="Calibration">Calibration Standard</option>
+                        <option value="Spike">Spike Standard</option>
+                        <option value="Blank">Blank Standard</option>
+                        <option value="Reference">Reference Standard</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Preparation Details -->
+            <div class="form-section">
+                <h3 class="section-title">Preparation Details</h3>
+                
+                <div class="form-group">
+                    <label for="preparation_date" class="required">Preparation Date</label>
+                    <input type="date" id="preparation_date" name="preparation_date" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiration_date">Expiration Date</label>
+                    <input type="date" id="expiration_date" name="expiration_date" class="form-control">
+                    <div class="form-help">Leave blank if no expiration date</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="total_volume" class="required">Total Volume (mL)</label>
+                    <input type="number" id="total_volume" name="total_volume" class="form-control" 
+                           step="0.1" min="0.1" required placeholder="e.g., 100.0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="source_material">Source Material</label>
+                    <input type="text" id="source_material" name="source_material" class="form-control"
+                           placeholder="Source standard or material used">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dilution_factor">Dilution Factor</label>
+                    <input type="number" id="dilution_factor" name="dilution_factor" class="form-control"
+                           step="0.001" min="0.001" placeholder="e.g., 10.0">
+                    <div class="form-help">Factor used to calculate final concentration</div>
+                </div>
+            </div>
+            
+            <!-- Concentration & Composition -->
+            <div class="form-section">
+                <h3 class="section-title">Concentration & Composition</h3>
+                
+                <div class="form-group">
+                    <label for="target_concentration" class="required">Target Concentration (ppm)</label>
+                    <input type="number" id="target_concentration" name="target_concentration" class="form-control"
+                           step="0.001" min="0" required placeholder="e.g., 1000.0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="actual_concentration">Actual Concentration (ppm)</label>
+                    <input type="number" id="actual_concentration" name="actual_concentration" class="form-control"
+                           step="0.001" min="0" placeholder="If verified by analysis">
+                    <div class="form-help">Leave blank if not yet verified</div>
+                </div>
+                
+                {% if standard_type == 'mm' %}
+                <div class="form-group">
+                    <label for="elements">Elements</label>
+                    <input type="text" id="elements" name="elements" class="form-control"
+                           placeholder="e.g., Cu, Pb, Zn, Ni (comma-separated)">
+                    <div class="form-help">List of elements in this multi-metal standard</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="matrix">Matrix</label>
+                    <select id="matrix" name="matrix" class="form-control">
+                        <option value="">Select matrix...</option>
+                        <option value="HNO3">HNO3 (Nitric Acid)</option>
+                        <option value="HCl">HCl (Hydrochloric Acid)</option>
+                        <option value="H2SO4">H2SO4 (Sulfuric Acid)</option>
+                        <option value="DI Water">DI Water</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                {% else %}
+                <!-- FlameAA specific fields -->
+                <div class="form-group">
+                    <label for="element">Element</label>
+                    <select id="element" name="element" class="form-control">
+                        <option value="">Select element...</option>
+                        <option value="Cu">Copper (Cu)</option>
+                        <option value="Pb">Lead (Pb)</option>
+                        <option value="Zn">Zinc (Zn)</option>
+                        <option value="Ni">Nickel (Ni)</option>
+                        <option value="Fe">Iron (Fe)</option>
+                        <option value="Mn">Manganese (Mn)</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="curve_type">Curve Type</label>
+                    <select id="curve_type" name="curve_type" class="form-control">
+                        <option value="Linear">Linear</option>
+                        <option value="Quadratic">Quadratic</option>
+                        <option value="Cubic">Cubic</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wavelength">Wavelength (nm)</label>
+                    <input type="number" id="wavelength" name="wavelength" class="form-control"
+                           step="0.1" min="190" max="900" placeholder="e.g., 324.8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="flame_conditions">Flame Conditions</label>
+                    <input type="text" id="flame_conditions" name="flame_conditions" class="form-control"
+                           placeholder="e.g., Air-Acetylene, oxidizing">
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Verification & Certification -->
+            <div class="form-section">
+                <h3 class="section-title">Verification & Certification</h3>
+                
+                <div class="form-group">
+                    <label for="verification_method">Verification Method</label>
+                    <select id="verification_method" name="verification_method" class="form-control">
+                        <option value="">Not verified</option>
+                        <option value="ICP-OES">ICP-OES Analysis</option>
+                        <option value="FlameAA">Flame AA Analysis</option>
+                        <option value="GFAA">GFAA Analysis</option>
+                        <option value="Cross-reference">Cross-reference Standard</option>
+                        <option value="Other">Other Method</option>
+                    </select>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="certified" name="certified" value="true">
+                        <span class="checkmark"></span>
+                        Certified Standard
+                    </label>
+                    <div class="form-help">Check if this is a certified reference standard</div>
+                </div>
+                
+                <div class="form-group" id="certificate-group" style="display: none;">
+                    <label for="certificate_number">Certificate Number</label>
+                    <input type="text" id="certificate_number" name="certificate_number" class="form-control"
+                           placeholder="Enter certificate number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="4"
+                              placeholder="Additional notes, preparation details, or observations..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Create Standard
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('standard-form');
+    const certifiedCheck = document.getElementById('certified');
+    const certificateGroup = document.getElementById('certificate-group');
+    
+    // Show/hide certificate number field
+    certifiedCheck.addEventListener('change', function() {
+        if (this.checked) {
+            certificateGroup.style.display = 'block';
+            document.getElementById('certificate_number').required = true;
+        } else {
+            certificateGroup.style.display = 'none';
+            document.getElementById('certificate_number').required = false;
+        }
+    });
+    
+    // Form validation and submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert checkbox to boolean
+        data.certified = certifiedCheck.checked;
+        
+        // Client-side validation
+        const errors = [];
+        
+        if (!data.standard_name.trim()) errors.push('Standard name is required');
+        if (!data.batch_number.trim()) errors.push('Batch number is required');
+        if (!data.standard_type) errors.push('Standard type is required');
+        if (!data.preparation_date) errors.push('Preparation date is required');
+        if (!data.total_volume || parseFloat(data.total_volume) <= 0) errors.push('Total volume must be greater than 0');
+        if (!data.target_concentration || parseFloat(data.target_concentration) < 0) errors.push('Target concentration must be 0 or greater');
+        
+        // Check expiration date is after preparation date
+        if (data.expiration_date && data.preparation_date && new Date(data.expiration_date) <= new Date(data.preparation_date)) {
+            errors.push('Expiration date must be after preparation date');
+        }
+        
+        if (errors.length > 0) {
+            alert('Please correct the following errors:\n\n' + errors.join('\n'));
+            return;
+        }
+        
+        // Submit the form
+        fetch(`/standards/{{ standard_type }}/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(result => {
+            if (result.success) {
+                alert('Standard created successfully!');
+                window.location.href = '/standards/{{ standard_type }}';
+            } else {
+                alert('Error creating standard: ' + (result.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating standard. Please try again.');
+        });
+    });
+    
+    // Set today as default preparation date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('preparation_date').value = today;
+});
+</script>
+{% endblock %}

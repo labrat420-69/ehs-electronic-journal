@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}ICP-OES Maintenance Detail - EHS Electronic Journal{% endblock %}
+{% block page_title %}ICP-OES Maintenance Record{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>{{ maintenance.maintenance_type }} - {{ maintenance.maintenance_date.strftime('%Y-%m-%d') }}</h2>
+            <p>Performed by {{ maintenance.performed_by }}</p>
+        </div>
+        <div class="page-actions">
+            <a href="/maintenance/icp-oes" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Records
+            </a>
+            <a href="/maintenance/icp-oes/edit/{{ maintenance.id }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <button class="btn btn-outline" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="detail-container">
+    <div class="detail-grid">
+        <!-- Status Card -->
+        <div class="detail-card status-card">
+            <div class="card-header">
+                <h3>Status</h3>
+                <span class="status-badge status-{{ maintenance.status|lower|replace(' ', '-') }}">
+                    {{ maintenance.status or 'Completed' }}
+                </span>
+            </div>
+            <div class="card-content">
+                <div class="status-info">
+                    <div class="status-item">
+                        <span class="label">Maintenance Type:</span>
+                        <span class="value">{{ maintenance.maintenance_type }}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Duration:</span>
+                        <span class="value">
+                            {% if maintenance.duration_hours %}
+                            {{ maintenance.duration_hours }} hours
+                            {% else %}
+                            Not recorded
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">System Status After:</span>
+                        <span class="value">{{ maintenance.system_status_after or 'Not specified' }}</span>
+                    </div>
+                    {% if maintenance.cost %}
+                    <div class="status-item">
+                        <span class="label">Total Cost:</span>
+                        <span class="value">${{ "%.2f"|format(maintenance.cost) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Basic Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Basic Information</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    <div class="detail-item">
+                        <span class="label">Date & Time:</span>
+                        <span class="value">{{ maintenance.maintenance_date.strftime('%Y-%m-%d %H:%M EST') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Performed By:</span>
+                        <span class="value">{{ maintenance.performed_by }}</span>
+                    </div>
+                    {% if maintenance.service_provider %}
+                    <div class="detail-item">
+                        <span class="label">Service Provider:</span>
+                        <span class="value">{{ maintenance.service_provider }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="label">Documentation Updated:</span>
+                        <span class="value">{{ 'Yes' if maintenance.documentation_updated else 'No' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Maintenance Details -->
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Maintenance Details</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-section">
+                    <h4>Description</h4>
+                    <p>{{ maintenance.description|replace('\n', '<br>')|safe }}</p>
+                </div>
+                
+                {% if maintenance.issues_found %}
+                <div class="detail-section">
+                    <h4>Issues Found</h4>
+                    <div class="issues-content">
+                        {{ maintenance.issues_found|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if maintenance.corrective_actions %}
+                <div class="detail-section">
+                    <h4>Corrective Actions</h4>
+                    <div class="actions-content">
+                        {{ maintenance.corrective_actions|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Parts and Materials -->
+        {% if maintenance.parts_used or maintenance.consumables_used %}
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Parts & Materials Used</h3>
+            </div>
+            <div class="card-content">
+                {% if maintenance.parts_used %}
+                <div class="detail-section">
+                    <h4>Parts Used</h4>
+                    <div class="parts-list">
+                        {{ maintenance.parts_used|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if maintenance.consumables_used %}
+                <div class="detail-section">
+                    <h4>Consumables Used</h4>
+                    <div class="consumables-list">
+                        {{ maintenance.consumables_used|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Performance Verification -->
+        {% if maintenance.performance_verification %}
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Performance Verification</h3>
+                <span class="status-badge status-current">Completed</span>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    {% if maintenance.verification_standard %}
+                    <div class="detail-item full-width">
+                        <span class="label">Standard Used:</span>
+                        <span class="value">{{ maintenance.verification_standard }}</span>
+                    </div>
+                    {% endif %}
+                    {% if maintenance.verification_results %}
+                    <div class="detail-item full-width">
+                        <span class="label">Results:</span>
+                        <div class="verification-results">
+                            {{ maintenance.verification_results|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Follow-up Information -->
+        {% if maintenance.follow_up_required or maintenance.next_maintenance_due %}
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Follow-up</h3>
+                {% if maintenance.follow_up_required %}
+                <span class="status-badge status-warning">Required</span>
+                {% endif %}
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    {% if maintenance.next_maintenance_due %}
+                    <div class="detail-item">
+                        <span class="label">Next Maintenance Due:</span>
+                        <span class="value">{{ maintenance.next_maintenance_due.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% endif %}
+                    {% if maintenance.follow_up_required %}
+                    <div class="detail-item">
+                        <span class="label">Follow-up Required:</span>
+                        <span class="value">Yes</span>
+                    </div>
+                    {% if maintenance.follow_up_date %}
+                    <div class="detail-item">
+                        <span class="label">Follow-up Date:</span>
+                        <span class="value">{{ maintenance.follow_up_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% endif %}
+                    {% if maintenance.follow_up_notes %}
+                    <div class="detail-item full-width">
+                        <span class="label">Follow-up Notes:</span>
+                        <div class="follow-up-notes">
+                            {{ maintenance.follow_up_notes|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Additional Notes -->
+        {% if maintenance.notes %}
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Additional Notes</h3>
+            </div>
+            <div class="card-content">
+                <div class="notes-content">
+                    {{ maintenance.notes|replace('\n', '<br>')|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Record Information -->
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Record Information</h3>
+            </div>
+            <div class="card-content">
+                <div class="record-info">
+                    <div class="detail-item">
+                        <span class="label">Record Created:</span>
+                        <span class="value">{{ maintenance.created_at.strftime('%Y-%m-%d %H:%M EST') if maintenance.created_at else 'Unknown' }}</span>
+                    </div>
+                    {% if maintenance.updated_at and maintenance.updated_at != maintenance.created_at %}
+                    <div class="detail-item">
+                        <span class="label">Last Updated:</span>
+                        <span class="value">{{ maintenance.updated_at.strftime('%Y-%m-%d %H:%M EST') }}</span>
+                    </div>
+                    {% endif %}
+                    {% if maintenance.created_by %}
+                    <div class="detail-item">
+                        <span class="label">Created By:</span>
+                        <span class="value">{{ maintenance.creator.full_name if maintenance.creator else maintenance.created_by }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add print styles
+    const printStyles = document.createElement('style');
+    printStyles.textContent = `
+        @media print {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .page-actions { display: none; }
+            .detail-card { break-inside: avoid; margin-bottom: 20px; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .status-badge { color: #000 !important; background: #f0f0f0 !important; border: 1px solid #ccc; }
+            .issues-content { background: #fff8f0; padding: 15px; border-left: 4px solid #f59e0b; }
+            .actions-content { background: #f0fdf4; padding: 15px; border-left: 4px solid #10b981; }
+        }
+    `;
+    document.head.appendChild(printStyles);
+    
+    // Highlight critical information
+    const issuesContent = document.querySelector('.issues-content');
+    const actionsContent = document.querySelector('.actions-content');
+    
+    if (issuesContent) {
+        issuesContent.style.background = '#fff8f0';
+        issuesContent.style.padding = '15px';
+        issuesContent.style.borderRadius = '6px';
+        issuesContent.style.borderLeft = '4px solid #f59e0b';
+        issuesContent.style.marginTop = '10px';
+    }
+    
+    if (actionsContent) {
+        actionsContent.style.background = '#f0fdf4';
+        actionsContent.style.padding = '15px';
+        actionsContent.style.borderRadius = '6px';
+        actionsContent.style.borderLeft = '4px solid #10b981';
+        actionsContent.style.marginTop = '10px';
+    }
+});
+</script>
+
+<style>
+/* Additional styles for maintenance detail view */
+.detail-section {
+    margin-bottom: 25px;
+}
+
+.detail-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 8px;
+}
+
+.parts-list,
+.consumables-list {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+.verification-results {
+    background: #eff6ff;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #1d4ed8;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.follow-up-notes {
+    background: #fef3c7;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #f59e0b;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.record-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .record-info {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
