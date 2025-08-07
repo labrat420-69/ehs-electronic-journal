@@ -146,39 +146,39 @@ async def read_root():
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">🔬 EHS Electronic Journal</div>
+                <div class="logo"><i class="fas fa-microscope"></i> EHS Electronic Journal</div>
                 <div class="subtitle">Professional Laboratory Management System</div>
             </div>
             
             <div class="clock" id="clock"></div>
             
             <div class="status">
-                ✅ System Status: Online | Database: Connected | Server: Running on Port 8000
+                <i class="fas fa-check-circle"></i> System Status: Online | Database: Connected | Server: Running on Port 8000
             </div>
             
             <div class="grid">
                 <div class="card">
-                    <div class="card-title">🧪 Chemical Inventory</div>
+                    <div class="card-title"><i class="fas fa-flask"></i> Chemical Inventory</div>
                     <div class="card-content">Track and manage all laboratory chemicals, reagents, and materials with expiry dates and locations.</div>
                 </div>
                 <div class="card">
-                    <div class="card-title">⚗️ Reagent Preparation</div>
+                    <div class="card-title"><i class="fas fa-vial"></i> Reagent Preparation</div>
                     <div class="card-content">Document mercury/metals, lead, and TCLP reagent preparations with full traceability.</div>
                 </div>
                 <div class="card">
-                    <div class="card-title">🔧 Equipment Calibration</div>
+                    <div class="card-title"><i class="fas fa-tools"></i> Equipment Calibration</div>
                     <div class="card-content">Maintain calibration schedules and records for all laboratory equipment.</div>
                 </div>
                 <div class="card">
-                    <div class="card-title">📊 Standards Management</div>
+                    <div class="card-title"><i class="fas fa-balance-scale"></i> Standards Management</div>
                     <div class="card-content">Prepare and track analytical standards for ICP-OES and Flame AA analysis.</div>
                 </div>
                 <div class="card">
-                    <div class="card-title">💧 Water Quality Testing</div>
+                    <div class="card-title"><i class="fas fa-tint"></i> Water Quality Testing</div>
                     <div class="card-content">Monitor and record water conductivity and quality parameters.</div>
                 </div>
                 <div class="card">
-                    <div class="card-title">👥 User Management</div>
+                    <div class="card-title"><i class="fas fa-users"></i> User Management</div>
                     <div class="card-content">5-tier role system: Admin, Lab Manager, Analyst, Technician, Guest.</div>
                 </div>
             </div>
@@ -194,7 +194,7 @@ async def read_root():
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" value="admin123!" required>
                     </div>
-                    <button type="submit" class="btn">🔐 Login to System</button>
+                    <button type="submit" class="btn"><i class="fas fa-sign-in-alt"></i> Login to System</button>
                 </form>
                 <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px;">
                     <strong>Default Login:</strong><br>
@@ -218,7 +218,7 @@ async def read_root():
                     hour12: true
                 };
                 document.getElementById('clock').innerHTML = 
-                    '🕒 EST Time: ' + est.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$1/$2/$3');
+                    '<i class="fas fa-clock"></i> EST Time: ' + est.toLocaleString('en-US', options).replace(/(\d+)\/(\d+)\/(\d+),/, '$1/$2/$3');
             }
             updateClock();
             setInterval(updateClock, 1000);
@@ -238,13 +238,13 @@ async def read_root():
                     if (response.ok) {
                         const data = await response.json();
                         localStorage.setItem('token', data.access_token);
-                        alert('✅ Login successful! Redirecting to dashboard...');
+                        alert('Login successful! Redirecting to dashboard...');
                         window.location.href = '/dashboard';
                     } else {
-                        alert('❌ Login failed. Please check credentials.');
+                        alert('Login failed. Please check credentials.');
                     }
                 } catch (error) {
-                    alert('❌ Connection error. Please try again.');
+                    alert('Connection error. Please try again.');
                 }
             });
         </script>
@@ -271,13 +271,13 @@ async def dashboard():
     <html>
     <head><title>EHS Dashboard</title></head>
     <body style="font-family: Arial; padding: 20px; background: #f5f5f5;">
-        <h1 style="color: #1a73e8;">🔬 EHS Electronic Journal Dashboard</h1>
-        <p>✅ System is running successfully!</p>
-        <p>📊 <a href="/analytics" style="color: #1a73e8; text-decoration: none;">Analytics Dashboard</a></p>
-        <p>📋 Access the API documentation: <a href="/docs">/docs</a></p>
-        <p>🧪 Chemical Inventory: <a href="/chemicals">/chemicals</a></p>
-        <p>⚗️ Reagents Management: <a href="/reagents">/reagents</a></p>
-        <p>🔧 Equipment Calibration: <a href="/equipment">/equipment</a></p>
+        <h1 style="color: #1a73e8;"><i class="fas fa-microscope"></i> EHS Electronic Journal Dashboard</h1>
+        <p><i class="fas fa-check-circle" style="color: green;"></i> System is running successfully!</p>
+        <p><i class="fas fa-chart-line"></i> <a href="/analytics" style="color: #1a73e8; text-decoration: none;">Analytics Dashboard</a></p>
+        <p><i class="fas fa-book"></i> Access the API documentation: <a href="/docs">/docs</a></p>
+        <p><i class="fas fa-flask"></i> Chemical Inventory: <a href="/chemicals">/chemicals</a></p>
+        <p><i class="fas fa-vial"></i> Reagents Management: <a href="/reagents">/reagents</a></p>
+        <p><i class="fas fa-tools"></i> Equipment Calibration: <a href="/equipment">/equipment</a></p>
     </body>
     </html>
     """
@@ -312,7 +312,7 @@ async def analytics_dashboard():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>📊 Analytics Dashboard - EHS Electronic Journal</title>
+        <title><i class="fas fa-chart-line"></i> Analytics Dashboard - EHS Electronic Journal</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
         <style>
@@ -350,7 +350,7 @@ async def analytics_dashboard():
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">📊 Analytics Dashboard</div>
+                <div class="logo"><i class="fas fa-chart-line"></i> Analytics Dashboard</div>
                 <div class="subtitle">Customizable Chemical Inventory & Lab Analytics</div>
                 <p style="margin-top: 15px;"><a href="/dashboard" style="color: #1a73e8;">← Back to Main Dashboard</a></p>
             </div>
@@ -626,7 +626,7 @@ async def waste_management():
     return """
     <html>
     <head>
-        <title>🗑️ Waste Management - EHS</title>
+        <title><i class="fas fa-trash"></i> Waste Management - EHS</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -644,13 +644,13 @@ async def waste_management():
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">🗑️ Waste Disposal Management</div>
+                <div class="logo"><i class="fas fa-trash"></i> Waste Disposal Management</div>
                 <div class="subtitle">COC Tracking, Waste Box Labels & Sample Disposal</div>
                 <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
             </div>
             
             <div class="features">
-                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <h2 style="margin-bottom: 20px; color: #202124;"><i class="fas fa-construction"></i> Implementation in Progress</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
                         <i class="fas fa-boxes" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
@@ -687,7 +687,7 @@ async def reminders_page():
     return """
     <html>
     <head>
-        <title>🔔 Reminders - EHS</title>
+        <title><i class="fas fa-bell"></i> Reminders - EHS</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -705,13 +705,13 @@ async def reminders_page():
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">🔔 Reminders & Events</div>
+                <div class="logo"><i class="fas fa-bell"></i> Reminders & Events</div>
                 <div class="subtitle">Stay on top of important lab tasks and deadlines</div>
                 <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
             </div>
             
             <div class="features">
-                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <h2 style="margin-bottom: 20px; color: #202124;"><i class="fas fa-construction"></i> Implementation in Progress</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
                         <i class="fas fa-bell" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
@@ -748,7 +748,7 @@ async def notes_page():
     return """
     <html>
     <head>
-        <title>📝 Department Notes - EHS</title>
+        <title><i class="fas fa-sticky-note"></i> Department Notes - EHS</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -766,13 +766,13 @@ async def notes_page():
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">📝 Department Notes</div>
+                <div class="logo"><i class="fas fa-sticky-note"></i> Department Notes</div>
                 <div class="subtitle">Shared announcements, procedures, and important information</div>
                 <p style="margin-top: 15px;"><a href="/analytics" style="color: #1a73e8;">← Back to Analytics Dashboard</a></p>
             </div>
             
             <div class="features">
-                <h2 style="margin-bottom: 20px; color: #202124;">🚧 Implementation in Progress</h2>
+                <h2 style="margin-bottom: 20px; color: #202124;"><i class="fas fa-construction"></i> Implementation in Progress</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
                         <i class="fas fa-thumbtack" style="font-size: 32px; color: #1a73e8; margin-bottom: 15px;"></i>
@@ -821,7 +821,7 @@ async def startup_event():
         )
         db.add(admin)
         db.commit()
-        print("✅ Default admin user created: admin/admin123!")
+        print("Default admin user created: admin/admin123!")
     db.close()
 
 if __name__ == "__main__":
