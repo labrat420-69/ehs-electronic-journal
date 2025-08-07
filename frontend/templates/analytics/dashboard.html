@@ -1,53 +1,257 @@
 {% extends "base.html" %}
 
 {% block title %}Analytics Dashboard - EHS Electronic Journal{% endblock %}
-{% block page_title %}📊 Analytics Dashboard{% endblock %}
+{% block page_title %}Analytics Dashboard{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.plot.ly/plotly-2.26.0.min.css">
 <style>
-/* Analytics Dashboard Styles */
+/* Enhanced Analytics Dashboard Styles */
 .analytics-container {
-    max-width: 1400px;
+    max-width: var(--max-width-full);
     margin: 0 auto;
-    padding: 20px;
+    padding: 0;
 }
 
 .dashboard-controls {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 1px solid #e8eaed;
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.controls-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-4);
+}
+
+.controls-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
 }
 
 .controls-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
 }
 
 .control-group {
     display: flex;
     flex-direction: column;
+    gap: var(--spacing-2);
 }
 
 .control-group label {
-    font-weight: 600;
-    color: #202124;
-    margin-bottom: 8px;
-    font-size: 14px;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .control-group select,
 .control-group input {
-    padding: 12px;
-    border: 2px solid #dadce0;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s;
+    padding: var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    background: var(--bg-primary);
+    transition: all var(--transition-fast);
+    font-family: var(--font-family-sans);
+}
+
+.control-group select:focus,
+.control-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-lighter);
+}
+
+.chart-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+}
+
+.btn-chart {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    background: var(--primary-gradient);
+    color: var(--text-inverse);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+}
+
+.btn-chart:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-chart.secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-chart.secondary:hover {
+    background: var(--border-medium);
+    color: var(--text-primary);
+}
+
+/* Chart Grid Layout */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.chart-card {
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.chart-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.chart-header {
+    padding: var(--spacing-4) var(--spacing-6);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chart-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.chart-options {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.chart-option-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-option-btn:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.chart-body {
+    padding: var(--spacing-4);
+    min-height: 400px;
+}
+
+/* No Data State */
+.no-data-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.no-data-state .icon {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--spacing-4);
+    opacity: 0.5;
+}
+
+.no-data-state h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2);
+}
+
+.no-data-state p {
+    font-size: var(--font-size-base);
+    color: var(--text-tertiary);
+    margin-bottom: var(--spacing-4);
+}
+
+/* Chart Management Panel */
+.chart-management {
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-6);
+}
+
+.presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.preset-card {
+    padding: var(--spacing-4);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.preset-card:hover {
+    background: var(--primary-lighter);
+    border-color: var(--primary-color);
+}
+
+.preset-card.active {
+    background: var(--primary-lighter);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+</style>
     background: white;
 }
 
@@ -272,48 +476,147 @@
 <div class="analytics-container">
     <!-- Dashboard Controls -->
     <div class="dashboard-controls">
+        <div class="controls-header">
+            <h2 class="controls-title">
+                <i class="fas fa-chart-line"></i>
+                Chart Builder
+            </h2>
+            <div class="chart-actions">
+                <button class="btn-chart" onclick="generateDefaultCharts()" id="default-charts-btn">
+                    <i class="fas fa-magic"></i> Default Charts
+                </button>
+                <button class="btn-chart secondary" onclick="togglePresetPanel()" id="presets-btn">
+                    <i class="fas fa-bookmark"></i> Saved Charts
+                </button>
+            </div>
+        </div>
+        
         <div class="controls-row">
             <div class="control-group">
                 <label for="data-source">Data Source</label>
-                <select id="data-source">
+                <select id="data-source" onchange="updateAxisFields()">
                     <option value="">Select Data Source...</option>
-                    {% for key, source in data_sources.items() %}
-                    <option value="{{ key }}">{{ source.name }}</option>
+                    {% for key, fields in data_sources.items() %}
+                    <option value="{{ key }}">{{ key.replace('_', ' ').title() }}</option>
                     {% endfor %}
                 </select>
             </div>
             
             <div class="control-group">
                 <label for="x-axis">X-Axis Field</label>
-                <select id="x-axis" disabled>
+                <select id="x-axis" disabled onchange="validateChart()">
                     <option value="">Select X-Axis...</option>
                 </select>
             </div>
             
             <div class="control-group">
                 <label for="y-axis">Y-Axis Field</label>
-                <select id="y-axis" disabled>
+                <select id="y-axis" disabled onchange="validateChart()">
                     <option value="">Select Y-Axis...</option>
                 </select>
             </div>
             
             <div class="control-group">
-                <label for="graph-type">Graph Type</label>
-                <select id="graph-type">
+                <label for="chart-type">Chart Type</label>
+                <select id="chart-type" onchange="validateChart()">
                     <option value="line">Line Chart</option>
                     <option value="bar">Bar Chart</option>
-                    <option value="area">Area Chart</option>
                     <option value="scatter">Scatter Plot</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="area">Area Chart</option>
+                    <option value="histogram">Histogram</option>
                 </select>
             </div>
         </div>
         
-        <div class="action-buttons">
-            <button class="btn btn-primary" onclick="generateGraph()" disabled id="generate-btn">
-                <i class="fas fa-chart-line"></i> Generate Graph
+        <div class="chart-actions">
+            <button class="btn-chart" onclick="generateChart()" disabled id="generate-btn">
+                <i class="fas fa-chart-line"></i> Generate Chart
             </button>
-            <button class="btn btn-secondary" onclick="saveAsPreset()" disabled id="save-preset-btn">
-                <i class="fas fa-save"></i> Save as Preset
+            <button class="btn-chart secondary" onclick="saveChart()" disabled id="save-btn">
+                <i class="fas fa-save"></i> Save Chart
+            </button>
+            <button class="btn-chart secondary" onclick="exportChart()" disabled id="export-btn">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Chart Management Panel (Hidden by default) -->
+    <div class="chart-management" id="preset-panel" style="display: none;">
+        <h3>Saved Chart Configurations</h3>
+        <div class="presets-grid" id="presets-grid">
+            <!-- User presets will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Default Charts Section -->
+    <div class="charts-grid" id="default-charts">
+        <!-- Default Line Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Activity Timeline
+                </h3>
+                <div class="chart-options">
+                    <button class="chart-option-btn" onclick="refreshChart('activity-timeline')" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="chart-option-btn" onclick="fullscreenChart('activity-timeline')" title="Fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div id="activity-timeline-chart"></div>
+            </div>
+        </div>
+
+        <!-- Default Pie Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Inventory Distribution
+                </h3>
+                <div class="chart-options">
+                    <button class="chart-option-btn" onclick="refreshChart('inventory-distribution')" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="chart-option-btn" onclick="fullscreenChart('inventory-distribution')" title="Fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-body">
+                <div id="inventory-distribution-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Charts Grid -->
+    <div class="charts-grid" id="custom-charts">
+        <!-- Custom charts will be added here dynamically -->
+    </div>
+
+    <!-- No Data State (Hidden by default) -->
+    <div class="chart-card" id="no-data-placeholder" style="display: none;">
+        <div class="chart-body">
+            <div class="no-data-state">
+                <div class="icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>No Data Available</h3>
+                <p>There isn't enough data to generate meaningful charts.<br>
+                   Add some data to your system first, then return to view analytics.</p>
+                <button class="btn-chart" onclick="window.location.href='/chemical_inventory/add'">
+                    <i class="fas fa-plus"></i> Add Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
             </button>
             <button class="btn btn-success" onclick="exportToExcel()" disabled id="export-btn">
                 <i class="fas fa-file-excel"></i> Export to Excel
@@ -465,36 +768,299 @@ window.publicPresets = {{ public_presets | tojson }};
 {% block extra_js %}
 <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
 <script>
-let currentGraphSlot = 1;
-let activeGraphs = {};
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    initializeDataSources();
-    checkGenerateButton();
-});
-
-function initializeDataSources() {
-    const dataSourceSelect = document.getElementById('data-source');
-    const xAxisSelect = document.getElementById('x-axis');
-    const yAxisSelect = document.getElementById('y-axis');
+// Analytics Dashboard JavaScript - Enhanced with Modern Features
+const AnalyticsDashboard = {
+    currentCharts: {},
+    dataCache: {},
     
-    dataSourceSelect.addEventListener('change', function() {
-        const selectedSource = this.value;
+    // Data sources configuration
+    dataSources: {{ data_sources | tojson }},
+    
+    // Initialize dashboard
+    init() {
+        this.bindEvents();
+        this.generateDefaultCharts();
+        this.loadUserPreferences();
+    },
+    
+    // Bind event listeners
+    bindEvents() {
+        // Control events
+        document.getElementById('data-source').addEventListener('change', this.updateAxisFields.bind(this));
+        document.getElementById('x-axis').addEventListener('change', this.validateChart.bind(this));
+        document.getElementById('y-axis').addEventListener('change', this.validateChart.bind(this));
+        document.getElementById('chart-type').addEventListener('change', this.validateChart.bind(this));
+    },
+    
+    // Update axis field options based on selected data source
+    updateAxisFields() {
+        const dataSource = document.getElementById('data-source').value;
+        const xAxisSelect = document.getElementById('x-axis');
+        const yAxisSelect = document.getElementById('y-axis');
         
-        // Clear and populate axis selects
+        // Clear existing options
         xAxisSelect.innerHTML = '<option value="">Select X-Axis...</option>';
         yAxisSelect.innerHTML = '<option value="">Select Y-Axis...</option>';
         
-        if (selectedSource && window.dataSourcesData[selectedSource]) {
-            const fields = window.dataSourcesData[selectedSource].fields;
+        if (dataSource && this.dataSources[dataSource]) {
+            const fields = this.dataSources[dataSource];
             
-            for (const [key, label] of Object.entries(fields)) {
-                xAxisSelect.innerHTML += `<option value="${key}">${label}</option>`;
-                yAxisSelect.innerHTML += `<option value="${key}">${label}</option>`;
-            }
+            fields.forEach(field => {
+                const option = new Option(field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()), field);
+                xAxisSelect.add(option.cloneNode(true));
+                yAxisSelect.add(option);
+            });
             
             xAxisSelect.disabled = false;
+            yAxisSelect.disabled = false;
+        } else {
+            xAxisSelect.disabled = true;
+            yAxisSelect.disabled = true;
+        }
+        
+        this.validateChart();
+    },
+    
+    // Validate chart configuration and enable/disable buttons
+    validateChart() {
+        const dataSource = document.getElementById('data-source').value;
+        const xAxis = document.getElementById('x-axis').value;
+        const yAxis = document.getElementById('y-axis').value;
+        const chartType = document.getElementById('chart-type').value;
+        
+        const isValid = dataSource && ((chartType === 'pie' && xAxis) || (chartType !== 'pie' && xAxis && yAxis));
+        
+        document.getElementById('generate-btn').disabled = !isValid;
+        document.getElementById('save-btn').disabled = !isValid;
+        document.getElementById('export-btn').disabled = !isValid;
+    },
+    
+    // Generate default charts if data is available
+    async generateDefaultCharts() {
+        try {
+            // Check if we have sufficient data
+            const hasData = await this.checkDataAvailability();
+            
+            if (!hasData) {
+                this.showNoDataState();
+                return;
+            }
+            
+            // Generate activity timeline (line chart)
+            await this.generateActivityTimeline();
+            
+            // Generate inventory distribution (pie chart)
+            await this.generateInventoryDistribution();
+            
+        } catch (error) {
+            console.error('Error generating default charts:', error);
+            this.showNoDataState();
+        }
+    },
+    
+    // Check if sufficient data is available for charts
+    async checkDataAvailability() {
+        try {
+            const response = await fetch('/api/analytics/data-availability');
+            const data = await response.json();
+            return data.sufficient_data;
+        } catch (error) {
+            console.error('Error checking data availability:', error);
+            return false;
+        }
+    },
+    
+    // Generate activity timeline chart
+    async generateActivityTimeline() {
+        try {
+            const response = await fetch('/api/analytics/activity-timeline');
+            const data = await response.json();
+            
+            const trace = {
+                x: data.dates,
+                y: data.activities,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Activities',
+                line: {
+                    color: 'rgb(37, 99, 235)',
+                    width: 3
+                },
+                marker: {
+                    color: 'rgb(37, 99, 235)',
+                    size: 8
+                }
+            };
+            
+            const layout = {
+                title: '',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Number of Activities' },
+                font: { family: 'Inter, sans-serif' },
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                margin: { t: 20, r: 20, b: 60, l: 60 }
+            };
+            
+            const config = {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'],
+                responsive: true
+            };
+            
+            Plotly.newPlot('activity-timeline-chart', [trace], layout, config);
+            this.currentCharts['activity-timeline'] = true;
+            
+        } catch (error) {
+            console.error('Error generating activity timeline:', error);
+            this.showChartError('activity-timeline-chart', 'Error loading activity data');
+        }
+    },
+    
+    // Generate inventory distribution chart  
+    async generateInventoryDistribution() {
+        try {
+            const response = await fetch('/api/analytics/inventory-distribution');
+            const data = await response.json();
+            
+            const trace = {
+                values: data.values,
+                labels: data.labels,
+                type: 'pie',
+                textinfo: 'label+percent',
+                textposition: 'outside',
+                marker: {
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+                }
+            };
+            
+            const layout = {
+                title: '',
+                font: { family: 'Inter, sans-serif' },
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                showlegend: true,
+                legend: {
+                    orientation: 'v',
+                    x: 1,
+                    y: 0.5
+                }
+            };
+            
+            const config = {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'],
+                responsive: true
+            };
+            
+            Plotly.newPlot('inventory-distribution-chart', [trace], layout, config);
+            this.currentCharts['inventory-distribution'] = true;
+            
+        } catch (error) {
+            console.error('Error generating inventory distribution:', error);
+            this.showChartError('inventory-distribution-chart', 'Error loading inventory data');
+        }
+    },
+    
+    // Show no data state
+    showNoDataState() {
+        document.getElementById('default-charts').style.display = 'none';
+        document.getElementById('no-data-placeholder').style.display = 'block';
+    },
+    
+    // Show chart error
+    showChartError(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = `
+            <div class="no-data-state">
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Chart Error</h3>
+                <p>${message}</p>
+            </div>
+        `;
+    },
+    
+    // Load user preferences
+    loadUserPreferences() {
+        const savedPrefs = localStorage.getItem('ehs-analytics-prefs');
+        if (savedPrefs) {
+            try {
+                const prefs = JSON.parse(savedPrefs);
+                // Apply user preferences
+                console.log('Loaded user preferences:', prefs);
+            } catch (error) {
+                console.error('Error loading user preferences:', error);
+            }
+        }
+    },
+    
+    // Save user preferences
+    saveUserPreferences() {
+        const prefs = {
+            charts: Object.keys(this.currentCharts),
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('ehs-analytics-prefs', JSON.stringify(prefs));
+    }
+};
+
+// Global functions for template compatibility
+function generateDefaultCharts() {
+    AnalyticsDashboard.generateDefaultCharts();
+}
+
+function updateAxisFields() {
+    AnalyticsDashboard.updateAxisFields();
+}
+
+function validateChart() {
+    AnalyticsDashboard.validateChart();
+}
+
+function generateChart() {
+    // Custom chart generation logic here
+    console.log('Generating custom chart...');
+}
+
+function saveChart() {
+    AnalyticsDashboard.saveUserPreferences();
+    console.log('Chart configuration saved');
+}
+
+function exportChart() {
+    console.log('Exporting chart...');
+}
+
+function togglePresetPanel() {
+    const panel = document.getElementById('preset-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function refreshChart(chartId) {
+    if (chartId === 'activity-timeline') {
+        AnalyticsDashboard.generateActivityTimeline();
+    } else if (chartId === 'inventory-distribution') {
+        AnalyticsDashboard.generateInventoryDistribution();
+    }
+}
+
+function fullscreenChart(chartId) {
+    const element = document.getElementById(chartId + '-chart');
+    if (element.requestFullscreen) {
+        element.requestFullscreen();
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    AnalyticsDashboard.init();
+});
+</script>
             yAxisSelect.disabled = false;
         } else {
             xAxisSelect.disabled = true;

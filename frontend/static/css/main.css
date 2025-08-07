@@ -3,56 +3,81 @@ EHS Electronic Journal - Main Stylesheet
 Professional blue color scheme with responsive design
 */
 
-/* CSS Variables for consistent theming */
+/* CSS Variables for consistent theming - Enhanced Sleek Desktop Theme */
 :root {
-    /* Primary blue color scheme */
-    --primary-color: #1a73e8;
-    --primary-dark: #1557b0;
-    --primary-light: #4285f4;
-    --primary-lighter: #e8f0fe;
+    /* Enhanced color palette for modern desktop UI */
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #3b82f6;
+    --primary-lighter: #dbeafe;
+    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
     
-    /* Secondary colors */
-    --secondary-color: #5f6368;
-    --secondary-light: #dadce0;
-    --secondary-lighter: #f8f9fa;
+    /* Sophisticated secondary colors */
+    --secondary-color: #64748b;
+    --secondary-light: #cbd5e1;
+    --secondary-lighter: #f1f5f9;
+    --accent-color: #8b5cf6;
+    --accent-light: #a78bfa;
     
-    /* Status colors */
-    --success-color: #34a853;
-    --warning-color: #fbbc04;
-    --error-color: #ea4335;
-    --info-color: #4285f4;
+    /* Status colors with improved accessibility */
+    --success-color: #10b981;
+    --success-light: #d1fae5;
+    --warning-color: #f59e0b;
+    --warning-light: #fef3c7;
+    --error-color: #ef4444;
+    --error-light: #fee2e2;
+    --info-color: #06b6d4;
+    --info-light: #cffafe;
     
-    /* Text colors */
-    --text-primary: #202124;
-    --text-secondary: #5f6368;
-    --text-disabled: #9aa0a6;
+    /* Modern text colors */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --text-disabled: #cbd5e1;
     --text-inverse: #ffffff;
+    --text-muted: #64748b;
     
-    /* Background colors */
+    /* Enhanced background system */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-tertiary: #e8eaed;
-    --bg-overlay: rgba(0, 0, 0, 0.5);
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-overlay: rgba(15, 23, 42, 0.75);
+    --bg-glass: rgba(255, 255, 255, 0.85);
     
-    /* Border colors */
-    --border-color: #dadce0;
-    --border-light: #e8eaed;
-    --border-dark: #5f6368;
+    /* Modern border system */
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --border-medium: #cbd5e1;
+    --border-dark: #64748b;
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
     
-    /* Sidebar */
-    --sidebar-width: 280px;
-    --sidebar-collapsed-width: 60px;
-    --sidebar-bg: #1a73e8;
-    --sidebar-text: #ffffff;
-    --sidebar-hover: rgba(255, 255, 255, 0.1);
+    /* Enhanced sidebar design */
+    --sidebar-width: 300px;
+    --sidebar-collapsed-width: 72px;
+    --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    --sidebar-text: #f8fafc;
+    --sidebar-text-muted: #cbd5e1;
+    --sidebar-hover: rgba(148, 163, 184, 0.1);
+    --sidebar-active: rgba(37, 99, 235, 0.2);
+    --sidebar-border: rgba(148, 163, 184, 0.1);
     
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3);
-    --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
-    --shadow-lg: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 8px 24px 4px rgba(60, 64, 67, 0.15);
+    /* Enhanced shadow system */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
     
-    /* Typography */
-    --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Modern typography system */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, ui-sans-serif, sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -60,19 +85,49 @@ Professional blue color scheme with responsive design
     --font-size-xl: 1.25rem;
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
     
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
+    /* Enhanced spacing system */
+    --spacing-px: 1px;
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-10: 2.5rem;
+    --spacing-12: 3rem;
+    --spacing-16: 4rem;
+    --spacing-20: 5rem;
     
-    /* Transitions */
-    --transition-fast: 0.15s ease-in-out;
-    --transition-normal: 0.3s ease-in-out;
-    --transition-slow: 0.5s ease-in-out;
+    /* Smooth animations */
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Layout optimization for desktop */
+    --max-width-content: 1200px;
+    --max-width-full: 1400px;
+    --header-height: 64px;
+    --content-padding: var(--spacing-8);
+    
+    /* Chart colors */
+    --chart-color-1: #2563eb;
+    --chart-color-2: #10b981;
+    --chart-color-3: #f59e0b;
+    --chart-color-4: #ef4444;
+    --chart-color-5: #8b5cf6;
+    --chart-color-6: #06b6d4;
 }
 
 /* Reset and base styles */
@@ -88,116 +143,400 @@ html {
 }
 
 body {
-    font-family: var(--font-family);
+    font-family: var(--font-family-sans);
     font-size: var(--font-size-base);
-    line-height: 1.5;
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 /* Layout components */
 
-/* Sidebar styles */
+/* Enhanced Sidebar Design for Desktop */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--primary-dark) 100%);
+    background: var(--sidebar-bg);
     color: var(--sidebar-text);
-    transition: transform var(--transition-normal);
+    transition: all var(--transition-normal);
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid var(--sidebar-border);
 }
 
 .sidebar.collapsed {
-    transform: translateX(calc(-1 * (var(--sidebar-width) - var(--sidebar-collapsed-width))));
+    width: var(--sidebar-collapsed-width);
 }
 
 .sidebar-header {
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--spacing-6) var(--spacing-4);
+    border-bottom: 1px solid var(--sidebar-border);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
 }
 
 .logo-container {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-3);
+    transition: all var(--transition-normal);
+}
+
+.sidebar.collapsed .logo-container {
+    justify-content: center;
 }
 
 .logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-md);
     object-fit: contain;
+    background: var(--bg-primary);
+    padding: var(--spacing-1);
+}
+
+.company-info {
+    transition: all var(--transition-normal);
+    overflow: hidden;
+}
+
+.sidebar.collapsed .company-info {
+    opacity: 0;
+    width: 0;
+    margin: 0;
 }
 
 .company-info h3 {
     font-size: var(--font-size-lg);
-    font-weight: 600;
-    margin-bottom: var(--spacing-xs);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-1);
+    color: var(--text-inverse);
 }
 
 .company-info p {
     font-size: var(--font-size-sm);
-    opacity: 0.8;
+    color: var(--sidebar-text-muted);
+    font-weight: var(--font-weight-normal);
 }
 
-/* Clock container */
+/* Enhanced Clock Design */
 .clock-container {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-4);
     text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--sidebar-border);
+    background: rgba(37, 99, 235, 0.1);
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.clock-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .current-time {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    font-family: 'Courier New', monospace;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-mono);
+    color: var(--text-inverse);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
 }
 
 .timezone {
     font-size: var(--font-size-sm);
-    opacity: 0.8;
-    margin-top: var(--spacing-xs);
+    color: var(--sidebar-text-muted);
+    margin-top: var(--spacing-1);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    z-index: 1;
 }
 
-/* Navigation styles */
+/* Enhanced Navigation Design */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-md) 0;
+    padding: var(--spacing-2) 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-text-muted) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--sidebar-text-muted);
+    border-radius: 2px;
 }
 
 .sidebar-nav ul {
     list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav > ul > li {
+    margin-bottom: var(--spacing-1);
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
     color: var(--sidebar-text);
     text-decoration: none;
-    transition: background-color var(--transition-fast);
+    transition: all var(--transition-fast);
+    border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+    margin-right: var(--spacing-2);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-light);
+    transform: scaleY(0);
+    transition: transform var(--transition-fast);
+    transform-origin: bottom;
 }
 
 .nav-link:hover {
     background-color: var(--sidebar-hover);
+    color: var(--text-inverse);
+    transform: translateX(4px);
+}
+
+.nav-link:hover::before {
+    transform: scaleY(1);
 }
 
 .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-right: 3px solid var(--text-inverse);
+    background: var(--sidebar-active);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+}
+
+.nav-link.active::before {
+    transform: scaleY(1);
+    background: var(--accent-color);
 }
 
 .nav-link i {
+    font-size: var(--font-size-lg);
+    width: 24px;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+
+.nav-link span {
+    transition: all var(--transition-normal);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-link span {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: var(--spacing-3) var(--spacing-4);
+    margin-right: 0;
+    border-radius: var(--border-radius-md);
+}
+
+.sidebar.collapsed .nav-link::before {
+    display: none;
+}
+
+/* Dropdown menu styles */
+.nav-dropdown {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius-md);
+    margin: var(--spacing-1) var(--spacing-4) var(--spacing-2) var(--spacing-8);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.sidebar.collapsed .nav-dropdown {
+    display: none;
+}
+
+.nav-dropdown .nav-link {
+    padding: var(--spacing-2) var(--spacing-4);
+    margin: 0;
+    border-radius: 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    background: transparent;
+}
+
+.nav-dropdown .nav-link:hover {
+    background: var(--sidebar-hover);
+    transform: translateX(8px);
+}
+
+.nav-dropdown .nav-link::before {
+    display: none;
+}
+
+/* Login button at bottom */
+.sidebar-footer {
+    padding: var(--spacing-4);
+    border-top: 1px solid var(--sidebar-border);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--primary-gradient);
+    color: var(--text-inverse);
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.login-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.sidebar.collapsed .login-btn span {
+    display: none;
+}
+
+/* Main Content Area - Desktop Optimized */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    background: var(--bg-secondary);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+.content-header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 var(--content-padding);
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-lg);
+}
+
+.sidebar-toggle:hover {
+    background: var(--primary-color);
+    color: var(--text-inverse);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.page-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.content-body {
+    padding: var(--content-padding);
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Enhanced Grid System for Desktop */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+@media (max-width: 1200px) {
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+}
     width: 20px;
     text-align: center;
 }

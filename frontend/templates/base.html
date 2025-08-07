@@ -6,12 +6,16 @@
     <title>{% block title %}EHS Electronic Journal{% endblock %}</title>
     
     <!-- CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/components.css') }}">
     {% block extra_css %}{% endblock %}
     
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <!-- Sidebar -->
@@ -169,24 +173,29 @@
     
     <!-- Main Content Area -->
     <div id="main-content" class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <button id="sidebar-toggle" class="sidebar-toggle">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div class="content-header-left">
+                <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
             </div>
             
-            <div class="top-bar-right">
+            <div class="content-header-right">
                 {% if current_user %}
-                <span class="welcome-text">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
+                <div class="user-profile">
+                    <div class="user-avatar-sm">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="user-name">{{ current_user.full_name.split(' ')[0] }}</span>
+                </div>
                 {% endif %}
             </div>
-        </div>
+        </header>
         
-        <!-- Page Content -->
-        <div class="page-content">
+        <!-- Content Body -->
+        <main class="content-body">
             <!-- Flash Messages -->
             {% if get_flashed_messages %}
             <div class="flash-messages">
@@ -194,19 +203,16 @@
                 <div class="alert alert-{{ category }}">
                     <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
                     {{ message }}
-                    <button class="alert-close">&times;</button>
+                    <button class="alert-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 {% endfor %}
             </div>
             {% endif %}
             
-            <!-- URL Parameter Messages -->
-            <div id="url-messages"></div>
-            
-            {% block content %}
-            <!-- Page content goes here -->
-            {% endblock %}
-        </div>
+            {% block content %}{% endblock %}
+        </main>
     </div>
     
     <!-- JavaScript -->
@@ -227,7 +233,25 @@
             // Initialize flash message handlers
             initializeFlashMessages();
             
-            // Initialize URL parameter messages
+            // Toggle sidebar function
+            window.toggleSidebar = function() {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('main-content');
+                sidebar.classList.toggle('collapsed');
+                
+                // Save state to localStorage
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            };
+            
+            // Restore sidebar state
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (sidebarCollapsed) {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+        });
+    </script>
+</body>
+</html>
             initializeUrlMessages();
             
             // Page-specific initialization
