@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}{{ equipment.equipment_name }} - Equipment - EHS Electronic Journal{% endblock %}
+{% block page_title %}Equipment Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>{{ equipment.equipment_name }}</h2>
+            <p>{{ equipment.equipment_type }}{% if equipment.model %} - {{ equipment.model }}{% endif %}</p>
+        </div>
+        <div class="page-actions">
+            <a href="/equipment/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Equipment
+            </a>
+            <a href="/equipment/edit/{{ equipment.id }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="/equipment/calibrate/{{ equipment.id }}" class="btn btn-success">
+                <i class="fas fa-tools"></i> Record Calibration
+            </a>
+            <button class="btn btn-outline" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="detail-container">
+    <div class="detail-grid">
+        <!-- Status Card -->
+        <div class="detail-card status-card">
+            <div class="card-header">
+                <h3>Calibration Status</h3>
+                {% if equipment.next_calibration_date and equipment.next_calibration_date < current_date %}
+                <span class="status-badge status-overdue">Overdue</span>
+                {% elif equipment.next_calibration_date and (equipment.next_calibration_date - current_date).days < 7 %}
+                <span class="status-badge status-due">Due Soon</span>
+                {% elif equipment.status == 'Out of Service' %}
+                <span class="status-badge status-out-of-service">Out of Service</span>
+                {% else %}
+                <span class="status-badge status-current">Current</span>
+                {% endif %}
+            </div>
+            <div class="card-content">
+                <div class="status-info">
+                    {% if equipment.last_calibration_date %}
+                    <div class="status-item">
+                        <span class="label">Last Calibration:</span>
+                        <span class="value">{{ equipment.last_calibration_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if equipment.next_calibration_date %}
+                    <div class="status-item">
+                        <span class="label">Next Calibration:</span>
+                        <span class="value {% if equipment.next_calibration_date < current_date %}expired{% elif (equipment.next_calibration_date - current_date).days < 7 %}warning{% endif %}">
+                            {{ equipment.next_calibration_date.strftime('%Y-%m-%d') }}
+                            {% if equipment.next_calibration_date < current_date %}
+                            ({{ (current_date - equipment.next_calibration_date).days }} days overdue)
+                            {% elif (equipment.next_calibration_date - current_date).days < 30 %}
+                            ({{ (equipment.next_calibration_date - current_date).days }} days remaining)
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if equipment.calibration_frequency %}
+                    <div class="status-item">
+                        <span class="label">Frequency:</span>
+                        <span class="value">Every {{ equipment.calibration_frequency }} days</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="status-item">
+                        <span class="label">Equipment Status:</span>
+                        <span class="value">{{ equipment.status or 'Active' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Basic Information -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Basic Information</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    <div class="detail-item">
+                        <span class="label">Equipment Name:</span>
+                        <span class="value">{{ equipment.equipment_name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Type:</span>
+                        <span class="value">{{ equipment.equipment_type }}</span>
+                    </div>
+                    {% if equipment.manufacturer %}
+                    <div class="detail-item">
+                        <span class="label">Manufacturer:</span>
+                        <span class="value">{{ equipment.manufacturer }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.model %}
+                    <div class="detail-item">
+                        <span class="label">Model:</span>
+                        <span class="value">{{ equipment.model }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.serial_number %}
+                    <div class="detail-item">
+                        <span class="label">Serial Number:</span>
+                        <span class="value">{{ equipment.serial_number }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.asset_tag %}
+                    <div class="detail-item">
+                        <span class="label">Asset Tag:</span>
+                        <span class="value">{{ equipment.asset_tag }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Location & Installation -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Location & Installation</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    {% if equipment.location %}
+                    <div class="detail-item">
+                        <span class="label">Location:</span>
+                        <span class="value">{{ equipment.location }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.installation_date %}
+                    <div class="detail-item">
+                        <span class="label">Installation Date:</span>
+                        <span class="value">{{ equipment.installation_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.purchase_date %}
+                    <div class="detail-item">
+                        <span class="label">Purchase Date:</span>
+                        <span class="value">{{ equipment.purchase_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.warranty_expiry %}
+                    <div class="detail-item">
+                        <span class="label">Warranty Expiry:</span>
+                        <span class="value {% if equipment.warranty_expiry < current_date %}expired{% endif %}">
+                            {{ equipment.warranty_expiry.strftime('%Y-%m-%d') }}
+                            {% if equipment.warranty_expiry < current_date %}
+                            (Expired)
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.responsible_person %}
+                    <div class="detail-item">
+                        <span class="label">Responsible Person:</span>
+                        <span class="value">{{ equipment.responsible_person }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technical Specifications -->
+        <div class="detail-card">
+            <div class="card-header">
+                <h3>Technical Specifications</h3>
+            </div>
+            <div class="card-content">
+                <div class="detail-grid-2">
+                    {% if equipment.measurement_range %}
+                    <div class="detail-item">
+                        <span class="label">Measurement Range:</span>
+                        <span class="value">{{ equipment.measurement_range }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.tolerance %}
+                    <div class="detail-item">
+                        <span class="label">Tolerance/Accuracy:</span>
+                        <span class="value">{{ equipment.tolerance }}</span>
+                    </div>
+                    {% endif %}
+                    {% if equipment.calibration_standard %}
+                    <div class="detail-item">
+                        <span class="label">Calibration Standard:</span>
+                        <span class="value">{{ equipment.calibration_standard }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="label">Requires Training:</span>
+                        <span class="value">{{ 'Yes' if equipment.requires_training else 'No' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Critical Equipment:</span>
+                        <span class="value">{{ 'Yes' if equipment.critical_equipment else 'No' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notes -->
+        {% if equipment.notes %}
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Notes</h3>
+            </div>
+            <div class="card-content">
+                <div class="notes-content">
+                    {{ equipment.notes|replace('\n', '<br>')|safe }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Calibrations -->
+        <div class="detail-card full-width">
+            <div class="card-header">
+                <h3>Calibration History</h3>
+            </div>
+            <div class="card-content">
+                {% if calibration_history %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Performed By</th>
+                                <th>Standard Used</th>
+                                <th>Result</th>
+                                <th>Next Due</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cal in calibration_history %}
+                            <tr>
+                                <td>{{ cal.calibration_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ cal.performed_by or 'Unknown' }}</td>
+                                <td>{{ cal.standard_used or 'N/A' }}</td>
+                                <td>
+                                    <span class="status-badge {% if cal.result == 'Pass' %}status-current{% else %}status-overdue{% endif %}">
+                                        {{ cal.result or 'Pass' }}
+                                    </span>
+                                </td>
+                                <td>{{ cal.next_due_date.strftime('%Y-%m-%d') if cal.next_due_date else 'N/A' }}</td>
+                                <td>{{ cal.notes or 'None' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state-small">
+                    <p>No calibration records found.</p>
+                    <a href="/equipment/calibrate/{{ equipment.id }}" class="btn btn-primary">
+                        <i class="fas fa-tools"></i> Record First Calibration
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add print styles
+    const printStyles = document.createElement('style');
+    printStyles.textContent = `
+        @media print {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .page-actions { display: none; }
+            .detail-card { break-inside: avoid; margin-bottom: 20px; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    `;
+    document.head.appendChild(printStyles);
+});
+</script>
+{% endblock %}
