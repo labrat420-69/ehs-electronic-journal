@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
+from fastapi.responses import RedirectResponse
 import os
 from datetime import datetime
 import pytz
@@ -12,7 +13,7 @@ from backend.routes import auth, dashboard, chemical_inventory, reagents, standa
 from backend.utils.timezone_utils import get_est_time
 
 # --- Add this import for table creation ---
-from backend.database import create_tables
+from backend.database import create_tables, init_default_user
 
 app = FastAPI()
 
@@ -20,6 +21,23 @@ app = FastAPI()
 @app.on_event("startup")
 def on_startup():
     create_tables()
+    init_default_user()
+
+# --- Add exception handler for authentication redirects ---
+@app.exception_handler(HTTPException)
+async def auth_exception_handler(request: Request, exc: HTTPException):
+    """Handle authentication exceptions by redirecting to login"""
+    if exc.status_code == 401 and request.url.path != "/login":
+        # If it's a web request (not API), redirect to login
+        if request.headers.get("accept", "").startswith("text/html"):
+            return RedirectResponse(url="/login?next=" + str(request.url), status_code=302)
+    
+    # For API requests or non-auth errors, return the original exception
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 app.add_middleware(
     CORSMiddleware,

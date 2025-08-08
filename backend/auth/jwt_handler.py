@@ -152,11 +152,22 @@ async def get_optional_user(
 ) -> Optional[User]:
     """Get current user if authenticated, otherwise return None"""
     try:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
+        token = None
         
-        token = auth_header.split(" ")[1]
+        # First try to get token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        
+        # If no header token, try to get from cookie
+        if not token:
+            cookie_token = request.cookies.get("access_token")
+            if cookie_token and cookie_token.startswith("Bearer "):
+                token = cookie_token.split(" ")[1]
+        
+        if not token:
+            return None
+            
         payload = verify_token(token)
         
         if payload is None:
@@ -216,6 +227,45 @@ async def get_current_user(
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
+
+async def get_current_user_web(
+    request: Request,
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Get current authenticated user from cookie or return None"""
+    try:
+        token = None
+        
+        # First try to get token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        
+        # If no header token, try to get from cookie
+        if not token:
+            cookie_token = request.cookies.get("access_token")
+            if cookie_token and cookie_token.startswith("Bearer "):
+                token = cookie_token.split(" ")[1]
+        
+        if not token:
+            return None
+            
+        payload = verify_token(token)
+        if payload is None:
+            return None
+        
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        
+        user = db.query(User).filter(User.username == username).first()
+        if user and user.is_active:
+            return user
+        
+        return None
+        
+    except Exception as e:
+        return None
 
 def require_permissions(required_permissions: list):
     """

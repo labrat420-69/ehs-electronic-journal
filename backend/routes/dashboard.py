@@ -2,14 +2,16 @@
 Dashboard routes
 """
 
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 from backend.database import get_db
-from backend.auth.jwt_handler import get_optional_user
+from backend.auth.jwt_handler import get_optional_user, get_current_user_web
+from backend.models.user import User
 from backend.models.chemical_inventory import ChemicalInventoryLog, ChemicalInventoryHistory
 from backend.models.reagents import MMReagents, PbReagents, TCLPReagents
 from backend.models.standards import MMStandards, FlameAAStandards  
@@ -24,12 +26,16 @@ templates = Jinja2Templates(directory="frontend/templates")
 router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
-async def dashboard(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    """Main dashboard page with comprehensive overview"""
-    current_user = await get_optional_user(request, db)
+@router.get("/dashboard", response_class=HTMLResponse) 
+async def dashboard(request: Request, db: Session = Depends(get_db)):
+    """Main dashboard page with comprehensive overview - requires authentication"""
+    
+    # Check authentication and redirect if not authenticated
+    current_user = await get_current_user_web(request, db)
+    if not current_user:
+        from urllib.parse import quote
+        next_url = quote(str(request.url))
+        return RedirectResponse(url=f"/login?next={next_url}", status_code=302)
     
     # Get dashboard statistics
     stats = await get_dashboard_statistics(db)
@@ -49,24 +55,30 @@ async def dashboard(
     return templates.TemplateResponse("dashboard/overview.html", context)
 
 @router.get("/api/stats", response_model=dict)
-async def dashboard_api_stats(
-    db: Session = Depends(get_db)
-):
-    """API endpoint for dashboard statistics"""
+async def dashboard_api_stats(request: Request, db: Session = Depends(get_db)):
+    """API endpoint for dashboard statistics - requires authentication"""
+    current_user = await get_current_user_web(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
     return await get_dashboard_statistics(db)
 
 @router.get("/api/activity", response_model=dict) 
-async def dashboard_api_activity(
-    db: Session = Depends(get_db)
-):
-    """API endpoint for recent activity"""
+async def dashboard_api_activity(request: Request, db: Session = Depends(get_db)):
+    """API endpoint for recent activity - requires authentication"""
+    current_user = await get_current_user_web(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
     return await get_recent_activity(db)
 
 @router.get("/api/alerts", response_model=dict)
-async def dashboard_api_alerts(
-    db: Session = Depends(get_db)
-):
-    """API endpoint for system alerts"""
+async def dashboard_api_alerts(request: Request, db: Session = Depends(get_db)):
+    """API endpoint for system alerts - requires authentication"""
+    current_user = await get_current_user_web(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
     return await get_system_alerts(db)
 
 async def get_dashboard_statistics(db: Session) -> dict:
