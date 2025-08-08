@@ -31,13 +31,41 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
    # Edit .env with your database credentials and settings
    ```
 
-4. **Set up PostgreSQL database:**
+4. **Database Setup:**
+   
+   **Option A: SQLite (Simplest - No external database required)**
    ```bash
+   # Set in .env file:
+   DATABASE_TYPE=sqlite
+   # No additional setup required
+   ```
+   
+   **Option B: PostgreSQL**
+   ```bash
+   # Set in .env file:
+   DATABASE_TYPE=postgresql
+   POSTGRES_SERVER=localhost
+   POSTGRES_USER=ehs_user
+   POSTGRES_PASSWORD=ehs_password
+   
    # Create database
    createdb ehs_electronic_journal
    
    # Run schema
    psql -d ehs_electronic_journal -f database/postgresql/schema.sql
+   ```
+   
+   **Option C: MS SQL Server**
+   ```bash
+   # Set in .env file:
+   DATABASE_TYPE=mssql
+   MSSQL_SERVER=localhost
+   MSSQL_USER=ehs_user
+   MSSQL_PASSWORD=EhsPassword123!
+   
+   # Create database (using SQL Server Management Studio or sqlcmd)
+   sqlcmd -S localhost -E -Q "CREATE DATABASE ehs_electronic_journal"
+   sqlcmd -S localhost -d ehs_electronic_journal -i database/sqlserver/schema.sql
    ```
 
 5. **Run the application:**
@@ -60,12 +88,40 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
 docker compose up -d
 ```
 
-### Windows Deployment
-For Windows users, we provide a PowerShell script for easy deployment:
+### Database Options
+The system now supports three database backends:
 
+1. **SQLite** (default for development)
+   ```bash
+   # No additional setup required - works out of the box
+   python -m backend.main
+   ```
+
+2. **PostgreSQL** (recommended for production)
+   ```bash
+   # Using Docker Compose
+   docker compose up -d
+   
+   # Or Windows-optimized
+   docker compose -f docker-compose.windows.yml up -d
+   ```
+
+3. **MS SQL Server** (Windows enterprise environments)
+   ```bash
+   # Using SQL Server Docker Compose
+   docker compose -f docker-compose.mssql.yml up -d
+   ```
+
+### Windows Deployment
+For Windows users, we provide multiple deployment options optimized for Windows environments:
+
+#### Option 1: PowerShell Script (Recommended)
 ```powershell
-# Start in production mode (recommended)
+# Start in production mode with PostgreSQL (recommended)
 .\start-ehs.ps1
+
+# Start with MS SQL Server
+.\start-ehs.ps1 -Database mssql
 
 # Start in development mode
 .\start-ehs.ps1 -Mode development
@@ -80,21 +136,39 @@ For Windows users, we provide a PowerShell script for easy deployment:
 .\start-ehs.ps1 -Stop
 ```
 
-See [WINDOWS_DEPLOYMENT.md](WINDOWS_DEPLOYMENT.md) for detailed Windows-specific instructions.
+#### Option 2: Direct Docker Compose
+```powershell
+# PostgreSQL (Windows-optimized)
+docker compose -f docker-compose.windows.yml up -d
 
-### Development with Docker
-```bash
+# MS SQL Server
+docker compose -f docker-compose.mssql.yml up -d
+
+# Simple development setup
 docker compose -f docker-compose-simple.yml up -d
 ```
 
-### Production Deployment
-```bash
-# Standard production
-docker compose up -d
+#### Option 3: Native Windows Installation
+```powershell
+# 1. Install dependencies
+python -m pip install -r requirements.txt
 
-# Windows-optimized production
-docker compose -f docker-compose.windows.yml up -d
+# 2. Configure environment
+copy .env.example .env
+# Edit .env file with your preferred database settings
+
+# 3. Run the application
+python -m backend.main
 ```
+
+**Windows-Specific Features:**
+- Proper volume mount handling for Windows Docker
+- Support for Windows file paths and line endings
+- MS SQL Server integration with Windows authentication
+- PowerShell deployment scripts
+- Optimized Docker configurations for Windows containers
+
+See [WINDOWS_DEPLOYMENT.md](WINDOWS_DEPLOYMENT.md) for detailed Windows-specific instructions and troubleshooting.
 
 ## Project Structure
 
@@ -251,6 +325,91 @@ Key differences handled:
 - VARCHAR → NVARCHAR
 - TEXT → NTEXT
 - BOOLEAN → BIT
+
+### Database Configuration Environment Variables
+```bash
+# Database Type Selection
+DATABASE_TYPE=sqlite|postgresql|mssql
+
+# PostgreSQL Settings
+POSTGRES_SERVER=localhost
+POSTGRES_PORT=5432
+POSTGRES_DATABASE=ehs_electronic_journal
+POSTGRES_USER=ehs_user
+POSTGRES_PASSWORD=ehs_password
+
+# MS SQL Server Settings
+MSSQL_SERVER=localhost
+MSSQL_PORT=1433
+MSSQL_DATABASE=ehs_electronic_journal
+MSSQL_USER=ehs_user
+MSSQL_PASSWORD=EhsPassword123!
+MSSQL_DRIVER=ODBC Driver 18 for SQL Server
+```
+
+## Troubleshooting
+
+### Windows-Specific Issues
+
+**1. Requirements Installation Errors**
+```powershell
+# If you encounter UTF-16 encoding errors:
+# The requirements.txt has been fixed for cross-platform compatibility
+pip install -r requirements.txt
+```
+
+**2. Docker Volume Mount Issues on Windows**
+```powershell
+# Use the Windows-optimized Docker Compose file:
+docker compose -f docker-compose.windows.yml up -d
+
+# Or specify bind mount explicitly:
+# Volumes are configured with proper Windows path handling
+```
+
+**3. MS SQL Server Connection Issues**
+```powershell
+# Ensure SQL Server is running and accepts connections
+# Check MSSQL_DRIVER in .env matches your installed ODBC driver
+# Common drivers: "ODBC Driver 18 for SQL Server", "ODBC Driver 17 for SQL Server"
+
+# Test connection:
+python -c "import pyodbc; print('PyODBC available')"
+```
+
+**4. Line Ending Issues (CRLF vs LF)**
+```bash
+# All project files use LF endings for cross-platform compatibility
+# Git should handle this automatically with proper .gitattributes configuration
+```
+
+### General Issues
+
+**1. Import Errors**
+```bash
+# Run from project root using module syntax:
+python -m backend.main
+
+# Ensure all dependencies are installed:
+pip install -r requirements.txt
+```
+
+**2. Database Connection Errors**
+```bash
+# Check .env configuration
+# Verify database server is running
+# Test connection manually
+```
+
+**3. Port Already in Use**
+```bash
+# Find process using port 8000:
+# Windows: netstat -ano | findstr :8000
+# Linux: lsof -i :8000
+
+# Change port in .env:
+PORT=8001
+```
 
 ## Security Considerations
 
