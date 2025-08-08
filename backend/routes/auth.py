@@ -57,52 +57,68 @@ class PasswordChange(BaseModel):
     new_password: str
 
 @router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def login_page(request: Request, error: str = None, success: str = None):
     """Display login page"""
     context = {
         "request": request,
-        "title": "Login - EHS Electronic Journal"
+        "title": "Login - EHS Electronic Journal",
+        "error": error,
+        "success": success
     }
     return templates.TemplateResponse("auth/login.html", context)
 
 @router.post("/login")
 async def login(
+    request: Request,
     username: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return access token"""
     
-    user = authenticate_user(db, username, password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        user = authenticate_user(db, username, password)
+        if not user:
+            # Redirect back to login with error
+            from urllib.parse import quote
+            return RedirectResponse(
+                url="/login?error=" + quote("Incorrect username or password"),
+                status_code=302
+            )
+        
+        if not user.is_active:
+            from urllib.parse import quote
+            return RedirectResponse(
+                url="/login?error=" + quote("Account is inactive. Please contact administrator"),
+                status_code=302
+            )
+        
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.username, "user_id": user.id, "role": user.role.value},
+            expires_delta=access_token_expires
         )
-    
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account is inactive"
+        
+        # For web interface, redirect to dashboard
+        response = RedirectResponse(url="/", status_code=302)
+        response.set_cookie(
+            key="access_token",
+            value=f"Bearer {access_token}",
+            httponly=True,
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            samesite="lax"
         )
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username, "user_id": user.id, "role": user.role.value},
-        expires_delta=access_token_expires
-    )
-    
-    # For web interface, redirect to dashboard
-    response = RedirectResponse(url="/dashboard", status_code=302)
-    response.set_cookie(
-        key="access_token",
-        value=f"Bearer {access_token}",
-        httponly=True,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax"
-    )
-    return response
+        return response
+        
+    except Exception as e:
+        # Log the error and redirect with generic error message
+        import logging
+        from urllib.parse import quote
+        logging.error(f"Login error: {str(e)}")
+        return RedirectResponse(
+            url="/login?error=" + quote("Login failed. Please try again"),
+            status_code=302
+        )
 
 @router.post("/api/login")
 async def api_login(
@@ -141,7 +157,11 @@ async def api_login(
 @router.post("/logout")
 async def logout():
     """Logout user by clearing the cookie"""
-    response = RedirectResponse(url="/auth/login", status_code=302)
+    from urllib.parse import quote
+    response = RedirectResponse(
+        url="/login?success=" + quote("You have been logged out successfully"), 
+        status_code=302
+    )
     response.delete_cookie(key="access_token")
     return response
 

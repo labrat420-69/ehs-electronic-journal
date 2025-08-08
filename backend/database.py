@@ -90,3 +90,34 @@ def get_db():
 def create_tables():
     """Create all tables"""
     Base.metadata.create_all(bind=engine)
+
+def init_default_user():
+    """Create default admin user if no users exist"""
+    from backend.models.user import User, UserRole
+    from backend.auth.jwt_handler import get_password_hash
+    
+    db = SessionLocal()
+    try:
+        # Check if any users exist
+        user_count = db.query(User).count()
+        if user_count == 0:
+            # Create default admin user
+            default_user = User(
+                username="admin",
+                email="admin@ehslabs.com",
+                full_name="Administrator",
+                hashed_password=get_password_hash("admin123"),
+                role=UserRole.ADMIN,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(default_user)
+            db.commit()
+            print("✅ Default admin user created: username='admin', password='admin123'")
+        else:
+            print(f"✅ Database already has {user_count} users")
+    except Exception as e:
+        print(f"❌ Error creating default user: {e}")
+        db.rollback()
+    finally:
+        db.close()

@@ -107,7 +107,23 @@
             <p class="auth-subtitle">Sign in to EHS Electronic Journal</p>
         </div>
         
-        <form class="auth-form" method="POST" action="/auth/login" id="loginForm">
+        <form class="auth-form" method="POST" action="/login" id="loginForm">
+            <!-- Error message display -->
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <!-- Success message display -->
+            {% if success %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle"></i>
+                {{ success }}
+            </div>
+            {% endif %}
+            
             <div class="form-group">
                 <label for="username" class="form-label required">Username</label>
                 <input 
@@ -118,6 +134,7 @@
                     required 
                     autocomplete="username"
                     placeholder="Enter your username"
+                    value="{{ username if username else '' }}"
                 >
             </div>
             
