@@ -187,7 +187,7 @@ async def logout():
     return response
 
 @router.get("/profile", response_class=HTMLResponse)
-@router.get("/auth/profile", response_class=HTMLResponse)  # Keep old route for compatibility
+@router.get("/profile", response_class=HTMLResponse)  # Keep old route for compatibility
 async def profile_page(
     request: Request,
     current_user: User = Depends(get_current_user)

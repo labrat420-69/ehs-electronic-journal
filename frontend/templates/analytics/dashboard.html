@@ -138,7 +138,7 @@
 /* Graph Container */
 .graphs-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     gap: 25px;
     margin-bottom: 30px;
 }
@@ -344,6 +344,9 @@
             <button class="btn btn-warning" onclick="clearGraphs()">
                 <i class="fas fa-trash"></i> Clear All Graphs
             </button>
+            <button class="btn btn-info" onclick="addGraph()">
+                <i class="fas fa-plus"></i> Add Graph
+            </button>
         </div>
     </div>
 
@@ -473,6 +476,7 @@ window.publicPresets = {{ public_presets | tojson }};
 <script>
 let currentGraphSlot = 1;
 let activeGraphs = {};
+let nextGraphId = 3; // Start from 3 since we have graph-1 and graph-2 initially
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -602,26 +606,90 @@ async function generateGraph() {
 
 function removeGraph(slot) {
     const graphCard = document.getElementById(`graph-${slot}`);
-    const graphContent = graphCard.querySelector('.graph-content');
-    const graphTitle = graphCard.querySelector('.graph-title');
+    if (!graphCard) return;
     
-    // Reset to placeholder
-    graphTitle.textContent = `Graph ${slot}`;
-    graphContent.innerHTML = `
-        <div class="graph-placeholder">
-            <i class="fas fa-chart-line"></i>
-            <p>Graph slot available</p>
-        </div>
-    `;
+    // If it's one of the first two graphs, reset to placeholder
+    if (slot <= 2) {
+        const graphContent = graphCard.querySelector('.graph-content');
+        const graphTitle = graphCard.querySelector('.graph-title');
+        
+        // Reset to placeholder
+        graphTitle.textContent = slot === 1 ? 'Primary Analysis' : 'Secondary Analysis';
+        graphContent.innerHTML = `
+            <div class="graph-placeholder">
+                <i class="fas fa-chart-line"></i>
+                <p>${slot === 1 ? 'Select data source and fields to generate a graph' : 'Additional analysis slot available'}</p>
+            </div>
+        `;
+    } else {
+        // Remove the entire graph card for graphs beyond the first two
+        graphCard.remove();
+    }
     
     // Remove from active graphs
     delete activeGraphs[slot];
+    
+    // Update layout
+    updateGraphsLayout();
+}
+
+function addGraph() {
+    const graphsContainer = document.getElementById('graphs-container');
+    const graphId = nextGraphId++;
+    
+    // Create new graph card
+    const graphCard = document.createElement('div');
+    graphCard.className = 'graph-card';
+    graphCard.id = `graph-${graphId}`;
+    
+    graphCard.innerHTML = `
+        <div class="graph-header">
+            <h3 class="graph-title">Analysis ${graphId}</h3>
+            <div class="graph-actions">
+                <button class="graph-btn" onclick="removeGraph(${graphId})" title="Remove Graph">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="graph-content">
+            <div class="graph-placeholder">
+                <i class="fas fa-chart-line"></i>
+                <p>Select data source and fields to generate a graph</p>
+            </div>
+        </div>
+    `;
+    
+    // Add to container
+    graphsContainer.appendChild(graphCard);
+    
+    // Update grid layout to accommodate new graphs
+    updateGraphsLayout();
+    
+    return graphId;
+}
+
+function updateGraphsLayout() {
+    const graphsContainer = document.getElementById('graphs-container');
+    const graphCount = graphsContainer.children.length;
+    
+    // Adjust grid columns based on number of graphs
+    if (graphCount <= 2) {
+        graphsContainer.style.gridTemplateColumns = `repeat(${graphCount}, 1fr)`;
+    } else if (graphCount <= 4) {
+        graphsContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    } else {
+        graphsContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    }
 }
 
 function clearGraphs() {
-    for (let i = 1; i <= 2; i++) {
-        removeGraph(i);
-    }
+    const graphsContainer = document.getElementById('graphs-container');
+    const allGraphs = graphsContainer.querySelectorAll('.graph-card');
+    
+    allGraphs.forEach(graphCard => {
+        const graphId = parseInt(graphCard.id.replace('graph-', ''));
+        removeGraph(graphId);
+    });
 }
 
 async function saveAsPreset() {

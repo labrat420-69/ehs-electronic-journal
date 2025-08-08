@@ -332,7 +332,7 @@ class TCLPReagentsHistory(Base):
     changed_at = Column(DateTime, server_default=func.now(), nullable=False)
     
     # Relationships
-    standard = relationship("FlameAAStandards", back_populates="history_entries")
+    reagent = relationship("TCLPReagents", back_populates="history_entries")
 
 # Mercury Standards Models (similar to MM Standards)
 class MercuryStandards(Base):
