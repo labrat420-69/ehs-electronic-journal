@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for ehs-electronic-journal-on3ekq on 2025-08-08T13:24:25Z
+# fly.toml app configuration file generated for ehs-electronic-journal on 2025-08-08T14:25:46Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'ehs-electronic-journal-on3ekq'
+app = 'ehs-electronic-journal'
 primary_region = 'iad'
 
 [build]
