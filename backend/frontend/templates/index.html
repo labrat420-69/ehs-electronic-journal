@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EHS Electronic Journal{% endblock %}
+{% block page_title %}Laboratory Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-between items-center">
+                    <div>
+                        <h2 class="text-primary mb-2">
+                            {% if current_user %}
+                                Welcome back, {{ current_user.full_name.split(' ')[0] }}!
+                            {% else %}
+                                Welcome to EHS Electronic Journal
+                            {% endif %}
+                        </h2>
+                        <p class="text-muted">
+                            Current time: <span class="live-time font-weight-bold">{{ current_time_est }}</span>
+                        </p>
+                    </div>
+                    <div class="dashboard-actions">
+                        {% if current_user %}
+                        <a href="/chemical-inventory/add" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Chemical
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="stats-grid mb-4">
+        <div class="stat-card">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="stat-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <h3 class="stat-number">247</h3>
+                    <p class="stat-label">Active Chemicals</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="stat-number">12</h3>
+                    <p class="stat-label">Expiring Soon</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="stat-icon success">
+                        <i class="fas fa-vial"></i>
+                    </div>
+                    <h3 class="stat-number">89</h3>
+                    <p class="stat-label">Reagents Available</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="stat-icon error">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 class="stat-number">3</h3>
+                    <p class="stat-label">Maintenance Due</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="actions-grid">
+                    <a href="/chemical-inventory" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Chemical Inventory</h4>
+                            <p>Manage chemical stock and usage</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/reagents/mm" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>MM Reagents</h4>
+                            <p>Track reagent preparation</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/standards/mm" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Standards</h4>
+                            <p>Manage standard solutions</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/equipment" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Equipment</h4>
+                            <p>Equipment logs and calibration</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/maintenance/icp-oes" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-wrench"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Maintenance</h4>
+                            <p>Equipment maintenance logs</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/equipment/water-conductivity" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="action-content">
+                            <h4>Water Tests</h4>
+                            <p>Conductivity test results</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon success">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>New chemical added:</strong> Hydrochloric Acid 37%</p>
+                            <small class="text-muted">2 hours ago by {{ current_user.full_name if current_user else 'System' }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>Chemical expiring:</strong> Sodium Chloride expires in 5 days</p>
+                            <small class="text-muted">4 hours ago</small>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon primary">
+                            <i class="fas fa-wrench"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>Maintenance completed:</strong> ICP-OES daily maintenance</p>
+                            <small class="text-muted">1 day ago by Lab Tech</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+    }
+    
+    .stat-card .card-body {
+        padding: var(--spacing-lg);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto var(--spacing-md);
+    }
+    
+    .stat-icon.warning {
+        background: var(--warning-color);
+    }
+    
+    .stat-icon.success {
+        background: var(--success-color);
+    }
+    
+    .stat-icon.error {
+        background: var(--error-color);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: var(--font-size-sm);
+    }
+    
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-lg);
+    }
+    
+    .action-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all var(--transition-fast);
+    }
+    
+    .action-item:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-lighter);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .action-content h4 {
+        margin: 0 0 var(--spacing-xs) 0;
+        font-weight: 600;
+    }
+    
+    .action-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: var(--font-size-sm);
+    }
+    
+    .activity-list {
+        space-y: var(--spacing-md);
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md) 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .activity-icon.primary {
+        background: var(--primary-color);
+    }
+    
+    .activity-icon.success {
+        background: var(--success-color);
+    }
+    
+    .activity-icon.warning {
+        background: var(--warning-color);
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-content p {
+        margin: 0 0 var(--spacing-xs) 0;
+    }
+    
+    @media (max-width: 768px) {
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-item {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

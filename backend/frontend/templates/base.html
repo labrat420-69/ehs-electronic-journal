@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EHS Electronic Journal{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/components.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <!-- EHS Labs Branding -->
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{{ url_for('static', path='/images/ehs-logo.png') }}" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
+                <div class="company-info">
+                    <h3>EHS Labs</h3>
+                    <p>Environmental Hazards Services</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Real-time EST Clock -->
+        <div class="clock-container">
+            <div class="current-time" id="current-time">
+                {{ current_time_est }}
+            </div>
+            <div class="timezone">EST</div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Chemical Inventory Section -->
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-flask"></i>
+                        <span>Chemical Inventory</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/chemical-inventory" class="nav-link">Inventory Log</a></li>
+                        <li><a href="/chemical-inventory/add" class="nav-link">Add Chemical</a></li>
+                        <li><a href="/chemical-inventory/history" class="nav-link">History</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Reagents Section -->
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-vial"></i>
+                        <span>Reagents</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/reagents/mm" class="nav-link">MM Reagents</a></li>
+                        <li><a href="/reagents/pb" class="nav-link">Pb Reagents</a></li>
+                        <li><a href="/reagents/tclp" class="nav-link">TCLP Reagents</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Standards Section -->
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Standards</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/standards/mm" class="nav-link">MM Standards</a></li>
+                        <li><a href="/standards/flameaa" class="nav-link">FlameAA Standards</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Equipment Section -->
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-tools"></i>
+                        <span>Equipment</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/equipment" class="nav-link">Equipment Log</a></li>
+                        <li><a href="/equipment/pipettes" class="nav-link">Pipette Log</a></li>
+                        <li><a href="/equipment/water-conductivity" class="nav-link">Water Conductivity</a></li>
+                    </ul>
+                </li>
+                
+                <!-- Maintenance Section -->
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-wrench"></i>
+                        <span>Maintenance</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/maintenance/icp-oes" class="nav-link">ICP-OES Maintenance</a></li>
+                    </ul>
+                </li>
+                
+                <!-- User Management (Admin only) -->
+                {% if current_user and current_user.role == 'admin' %}
+                <li class="nav-section">
+                    <div class="nav-section-header">
+                        <i class="fas fa-users"></i>
+                        <span>Administration</span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="nav-subsection">
+                        <li><a href="/auth/users" class="nav-link">User Management</a></li>
+                        <li><a href="/admin/departments" class="nav-link">Departments</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <!-- User Info & Logout -->
+        <div class="sidebar-footer">
+            {% if current_user %}
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">{{ current_user.full_name }}</div>
+                    <div class="user-role">{{ current_user.role.value.title() }}</div>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="/auth/profile" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-cog"></i> Profile
+                </a>
+                <a href="/auth/logout" class="btn btn-outline btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+            {% else %}
+            <div class="auth-actions">
+                <a href="/auth/login" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div id="main-content" class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
+            </div>
+            
+            <div class="top-bar-right">
+                {% if current_user %}
+                <span class="welcome-text">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Flash Messages -->
+            {% if get_flashed_messages %}
+            <div class="flash-messages">
+                {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="alert alert-{{ category }}">
+                    <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button class="alert-close">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- URL Parameter Messages -->
+            <div id="url-messages"></div>
+            
+            {% block content %}
+            <!-- Page content goes here -->
+            {% endblock %}
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/clock.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Initialize components -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize sidebar
+            initializeSidebar();
+            
+            // Initialize real-time clock
+            initializeClock();
+            
+            // Initialize flash message handlers
+            initializeFlashMessages();
+            
+            // Initialize URL parameter messages
+            initializeUrlMessages();
+            
+            // Page-specific initialization
+            {% block page_init %}{% endblock %}
+        });
+    </script>
+</body>
+</html>
