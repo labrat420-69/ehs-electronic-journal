@@ -1,0 +1,3 @@
+"""
+EHS Electronic Journal Package
+"""

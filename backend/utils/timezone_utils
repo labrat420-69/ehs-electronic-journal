@@ -1,0 +1,6 @@
+from datetime import datetime
+import pytz
+
+def get_est_time():
+    est = pytz.timezone('US/Eastern')
+    return datetime.now(est)

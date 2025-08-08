@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Add Equipment - EHS Electronic Journal{% endblock %}
+{% block page_title %}Add Equipment{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Add New Equipment</h2>
+            <p>Register new laboratory equipment for tracking and calibration management</p>
+        </div>
+        <div class="page-actions">
+            <a href="/equipment/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Equipment
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="equipment-form" class="modern-form" method="POST" action="/equipment/add">
+        <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="section-title">Basic Information</h3>
+                
+                <div class="form-group">
+                    <label for="equipment_name" class="required">Equipment Name</label>
+                    <input type="text" id="equipment_name" name="equipment_name" class="form-control" required
+                           placeholder="Enter equipment name">
+                    <div class="form-help">Descriptive name for this equipment</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="equipment_type" class="required">Equipment Type</label>
+                    <select id="equipment_type" name="equipment_type" class="form-control" required>
+                        <option value="">Select type...</option>
+                        <option value="Balance">Balance</option>
+                        <option value="Pipette">Pipette</option>
+                        <option value="pH Meter">pH Meter</option>
+                        <option value="Conductivity Meter">Conductivity Meter</option>
+                        <option value="Spectrophotometer">Spectrophotometer</option>
+                        <option value="ICP-OES">ICP-OES</option>
+                        <option value="Microscope">Microscope</option>
+                        <option value="Centrifuge">Centrifuge</option>
+                        <option value="Autoclave">Autoclave</option>
+                        <option value="Oven">Oven</option>
+                        <option value="Fume Hood">Fume Hood</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manufacturer">Manufacturer</label>
+                    <input type="text" id="manufacturer" name="manufacturer" class="form-control"
+                           placeholder="Equipment manufacturer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="model">Model</label>
+                    <input type="text" id="model" name="model" class="form-control"
+                           placeholder="Model number or name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="serial_number">Serial Number</label>
+                    <input type="text" id="serial_number" name="serial_number" class="form-control"
+                           placeholder="Serial number">
+                    <div class="form-help">Unique manufacturer serial number</div>
+                </div>
+            </div>
+            
+            <!-- Location & Installation -->
+            <div class="form-section">
+                <h3 class="section-title">Location & Installation</h3>
+                
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" class="form-control"
+                           placeholder="e.g., Main Lab, Room 101, Bench 3">
+                    <div class="form-help">Physical location of the equipment</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="installation_date">Installation Date</label>
+                    <input type="date" id="installation_date" name="installation_date" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="purchase_date">Purchase Date</label>
+                    <input type="date" id="purchase_date" name="purchase_date" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="warranty_expiry">Warranty Expiry</label>
+                    <input type="date" id="warranty_expiry" name="warranty_expiry" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="asset_tag">Asset Tag</label>
+                    <input type="text" id="asset_tag" name="asset_tag" class="form-control"
+                           placeholder="Company asset tag number">
+                </div>
+            </div>
+            
+            <!-- Calibration Settings -->
+            <div class="form-section">
+                <h3 class="section-title">Calibration Settings</h3>
+                
+                <div class="form-group">
+                    <label for="calibration_frequency">Calibration Frequency (days)</label>
+                    <input type="number" id="calibration_frequency" name="calibration_frequency" class="form-control"
+                           min="1" max="3650" placeholder="e.g., 365">
+                    <div class="form-help">How often this equipment needs calibration (in days)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="last_calibration_date">Last Calibration Date</label>
+                    <input type="date" id="last_calibration_date" name="last_calibration_date" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="calibration_standard">Calibration Standard</label>
+                    <input type="text" id="calibration_standard" name="calibration_standard" class="form-control"
+                           placeholder="Standard or method used for calibration">
+                </div>
+                
+                <div class="form-group">
+                    <label for="tolerance">Tolerance/Accuracy</label>
+                    <input type="text" id="tolerance" name="tolerance" class="form-control"
+                           placeholder="e.g., ±0.1 mg, ±0.01 pH units">
+                    <div class="form-help">Acceptable accuracy or tolerance specification</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="measurement_range">Measurement Range</label>
+                    <input type="text" id="measurement_range" name="measurement_range" class="form-control"
+                           placeholder="e.g., 0-220g, pH 0-14">
+                    <div class="form-help">Operating range of the equipment</div>
+                </div>
+            </div>
+            
+            <!-- Status & Notes -->
+            <div class="form-section">
+                <h3 class="section-title">Status & Notes</h3>
+                
+                <div class="form-group">
+                    <label for="status">Current Status</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="Active">Active</option>
+                        <option value="Out of Service">Out of Service</option>
+                        <option value="Under Maintenance">Under Maintenance</option>
+                        <option value="Retired">Retired</option>
+                    </select>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="requires_training" name="requires_training" value="true">
+                        <span class="checkmark"></span>
+                        Requires special training to operate
+                    </label>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="critical_equipment" name="critical_equipment" value="true">
+                        <span class="checkmark"></span>
+                        Critical equipment (high priority for calibration)
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="responsible_person">Responsible Person</label>
+                    <input type="text" id="responsible_person" name="responsible_person" class="form-control"
+                           placeholder="Name of person responsible for this equipment">
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="4"
+                              placeholder="Additional notes, special instructions, or observations..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Add Equipment
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('equipment-form');
+    const calibrationFrequency = document.getElementById('calibration_frequency');
+    const lastCalibrationDate = document.getElementById('last_calibration_date');
+    
+    // Auto-calculate next calibration date
+    function updateNextCalibrationDate() {
+        const frequency = parseInt(calibrationFrequency.value);
+        const lastDate = new Date(lastCalibrationDate.value);
+        
+        if (frequency && lastDate && !isNaN(lastDate.getTime())) {
+            const nextDate = new Date(lastDate);
+            nextDate.setDate(nextDate.getDate() + frequency);
+            
+            // Display calculated date (read-only info)
+            let infoDiv = document.getElementById('next-cal-info');
+            if (!infoDiv) {
+                infoDiv = document.createElement('div');
+                infoDiv.id = 'next-cal-info';
+                infoDiv.className = 'form-help';
+                lastCalibrationDate.parentNode.appendChild(infoDiv);
+            }
+            infoDiv.textContent = `Next calibration due: ${nextDate.toISOString().split('T')[0]}`;
+        }
+    }
+    
+    calibrationFrequency.addEventListener('input', updateNextCalibrationDate);
+    lastCalibrationDate.addEventListener('change', updateNextCalibrationDate);
+    
+    // Form validation and submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert checkboxes to boolean
+        data.requires_training = document.getElementById('requires_training').checked;
+        data.critical_equipment = document.getElementById('critical_equipment').checked;
+        
+        // Client-side validation
+        const errors = [];
+        
+        if (!data.equipment_name.trim()) errors.push('Equipment name is required');
+        if (!data.equipment_type) errors.push('Equipment type is required');
+        
+        // Validate date logic
+        if (data.purchase_date && data.installation_date) {
+            const purchaseDate = new Date(data.purchase_date);
+            const installDate = new Date(data.installation_date);
+            if (installDate < purchaseDate) {
+                errors.push('Installation date cannot be before purchase date');
+            }
+        }
+        
+        if (data.last_calibration_date && data.installation_date) {
+            const calibDate = new Date(data.last_calibration_date);
+            const installDate = new Date(data.installation_date);
+            if (calibDate < installDate) {
+                errors.push('Last calibration date cannot be before installation date');
+            }
+        }
+        
+        if (errors.length > 0) {
+            alert('Please correct the following errors:\n\n' + errors.join('\n'));
+            return;
+        }
+        
+        // Submit the form
+        fetch('/equipment/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(result => {
+            if (result.success) {
+                alert('Equipment added successfully!');
+                window.location.href = '/equipment/';
+            } else {
+                alert('Error adding equipment: ' + (result.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding equipment. Please try again.');
+        });
+    });
+    
+    // Set today as default for installation date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('installation_date').value = today;
+});
+</script>
+{% endblock %}

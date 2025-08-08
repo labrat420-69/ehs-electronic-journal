@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment - EHS Electronic Journal{% endblock %}
+{% block page_title %}Equipment Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Equipment Management</h2>
+            <p>Track laboratory equipment calibration, maintenance, and usage records</p>
+        </div>
+        <div class="page-actions">
+            <a href="/equipment/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Equipment
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Type Navigation -->
+<div class="nav-tabs-container">
+    <ul class="nav-tabs">
+        <li class="nav-tab active">
+            <a href="/equipment/">All Equipment</a>
+        </li>
+        <li class="nav-tab">
+            <a href="/equipment/pipettes">Pipettes</a>
+        </li>
+        <li class="nav-tab">
+            <a href="/equipment/water-conductivity">Water Conductivity</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Search and Filter Controls -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="search-input">Search Equipment</label>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by name, serial number, or manufacturer...">
+                    <button class="btn btn-outline" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="type-filter">Equipment Type</label>
+                <select id="type-filter" class="form-control">
+                    <option value="">All Types</option>
+                    <option value="Balance">Balance</option>
+                    <option value="Pipette">Pipette</option>
+                    <option value="pH Meter">pH Meter</option>
+                    <option value="Conductivity Meter">Conductivity Meter</option>
+                    <option value="Spectrophotometer">Spectrophotometer</option>
+                    <option value="ICP-OES">ICP-OES</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="status-filter">Calibration Status</label>
+                <select id="status-filter" class="form-control">
+                    <option value="">All</option>
+                    <option value="current">Current</option>
+                    <option value="due">Due Soon</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="out-of-service">Out of Service</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Table -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="data-table" id="equipment-table">
+            <thead>
+                <tr>
+                    <th>Equipment Name</th>
+                    <th>Serial Number</th>
+                    <th>Type</th>
+                    <th>Manufacturer</th>
+                    <th>Location</th>
+                    <th>Last Calibration</th>
+                    <th>Next Calibration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipment in equipment_list %}
+                <tr class="table-row" data-id="{{ equipment.id }}">
+                    <td>
+                        <div class="cell-content">
+                            <strong>{{ equipment.equipment_name }}</strong>
+                            {% if equipment.model %}
+                            <br><small class="text-muted">{{ equipment.model }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ equipment.serial_number or 'N/A' }}</td>
+                    <td>{{ equipment.equipment_type }}</td>
+                    <td>{{ equipment.manufacturer or 'N/A' }}</td>
+                    <td>{{ equipment.location or 'N/A' }}</td>
+                    <td>
+                        {% if equipment.last_calibration_date %}
+                        {{ equipment.last_calibration_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                        <span class="text-muted">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if equipment.next_calibration_date %}
+                        <span class="calibration-date {% if equipment.next_calibration_date < current_date %}overdue{% elif (equipment.next_calibration_date - current_date).days < 7 %}warning{% endif %}">
+                            {{ equipment.next_calibration_date.strftime('%Y-%m-%d') }}
+                        </span>
+                        {% else %}
+                        <span class="text-muted">Not scheduled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if equipment.next_calibration_date and equipment.next_calibration_date < current_date %}
+                        <span class="status-badge status-overdue">Overdue</span>
+                        {% elif equipment.next_calibration_date and (equipment.next_calibration_date - current_date).days < 7 %}
+                        <span class="status-badge status-due">Due Soon</span>
+                        {% elif equipment.status == 'Out of Service' %}
+                        <span class="status-badge status-out-of-service">Out of Service</span>
+                        {% else %}
+                        <span class="status-badge status-current">Current</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/equipment/{{ equipment.id }}" class="btn btn-sm btn-outline" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="/equipment/edit/{{ equipment.id }}" class="btn btn-sm btn-outline" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="/equipment/calibrate/{{ equipment.id }}" class="btn btn-sm btn-outline" title="Record Calibration">
+                                <i class="fas fa-tools"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline text-danger delete-btn" data-id="{{ equipment.id }}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Empty State -->
+{% if not equipment_list %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-tools"></i>
+    </div>
+    <h3>No Equipment Found</h3>
+    <p>Get started by adding your first piece of laboratory equipment.</p>
+    <a href="/equipment/add" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Equipment
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    const typeFilter = document.getElementById('type-filter');
+    const statusFilter = document.getElementById('status-filter');
+    
+    // Table filtering
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const typeValue = typeFilter.value.toLowerCase();
+        const statusValue = statusFilter.value.toLowerCase();
+        const rows = document.querySelectorAll('#equipment-table tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const type = row.cells[2].textContent.toLowerCase();
+            const status = row.querySelector('.status-badge').textContent.toLowerCase();
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesType = !typeValue || type.includes(typeValue);
+            const matchesStatus = !statusValue || status.includes(statusValue);
+            
+            row.style.display = (matchesSearch && matchesType && matchesStatus) ? '' : 'none';
+        });
+    }
+    
+    searchInput.addEventListener('input', filterTable);
+    typeFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        filterTable();
+    });
+    
+    // Delete functionality
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (confirm('Are you sure you want to delete this equipment record? This action cannot be undone.')) {
+                fetch(`/equipment/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting equipment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting equipment. Please try again.');
+                });
+            }
+        });
+    });
+    
+    // Export functionality
+    document.getElementById('export-btn').addEventListener('click', function() {
+        const exportUrl = '/equipment/export';
+        window.open(exportUrl, '_blank');
+    });
+});
+</script>
+{% endblock %}

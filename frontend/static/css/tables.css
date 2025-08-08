@@ -1,0 +1,247 @@
+/* Table Styles for EHS Electronic Journal */
+
+.table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.data-table thead th {
+    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    color: white;
+    font-weight: 600;
+    padding: 12px 8px;
+    text-align: left;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid #e8eaed;
+    transition: background-color 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.data-table tbody tr.inactive {
+    opacity: 0.6;
+    background-color: #f5f5f5;
+}
+
+.data-table td {
+    padding: 12px 8px;
+    vertical-align: middle;
+    border: none;
+}
+
+.data-table td code {
+    background: #f1f3f4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #5f6368;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    margin-left: 5px;
+}
+
+.badge-success {
+    background-color: #34a853;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #fbbc04;
+    color: #1a1a1a;
+}
+
+.badge-danger {
+    background-color: #ea4335;
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #9aa0a6;
+    color: white;
+}
+
+.badge-info {
+    background-color: #1a73e8;
+    color: white;
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 6px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #dadce0;
+    color: #5f6368;
+}
+
+.btn-outline:hover {
+    background: #f8f9fa;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+/* Info displays */
+.quantity-info, .volume-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.quantity-value, .volume-value {
+    font-weight: 600;
+    color: #202124;
+}
+
+.expiry-date {
+    font-weight: 500;
+}
+
+.chemical-info, .reagent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chemical-info small, .reagent-info small {
+    color: #5f6368;
+    font-size: 11px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #5f6368;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #dadce0;
+}
+
+.empty-state h3 {
+    color: #202124;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .data-table {
+        font-size: 12px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px 4px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-active {
+    background-color: #34a853;
+}
+
+.status-inactive {
+    background-color: #9aa0a6;
+}
+
+.status-warning {
+    background-color: #fbbc04;
+}
+
+.status-danger {
+    background-color: #ea4335;
+}
+
+/* Sorting indicators */
+.data-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.data-table th.sortable:hover {
+    background: linear-gradient(135deg, #1557b0, #3367d6);
+}
+
+.data-table th.sortable::after {
+    content: '\2195';
+    position: absolute;
+    right: 8px;
+    opacity: 0.5;
+    font-size: 12px;
+}
+
+.data-table th.sort-asc::after {
+    content: '\2191';
+    opacity: 1;
+}
+
+.data-table th.sort-desc::after {
+    content: '\2193';
+    opacity: 1;
+}

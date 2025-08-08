@@ -1,0 +1,112 @@
+# EHS Electronic Journal - Windows Docker Compose Configuration
+# Optimized for Windows deployment with proper volume handling
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ehs_postgres
+    environment:
+      POSTGRES_DB: ehs_electronic_journal
+      POSTGRES_USER: ehs_user
+      POSTGRES_PASSWORD: ehs_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Windows-compatible path mounting for init script
+      - type: bind
+        source: ./database/postgresql/schema.sql
+        target: /docker-entrypoint-initdb.d/01-schema.sql
+        read_only: true
+    networks:
+      - ehs_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ehs_user -d ehs_electronic_journal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      target: production
+    container_name: ehs_backend
+    environment:
+      - DATABASE_URL=postgresql://ehs_user:ehs_password@postgres:5432/ehs_electronic_journal
+      - SECRET_KEY=${SECRET_KEY:-your-production-secret-key-change-this}
+      - DEBUG=${DEBUG:-false}
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    # Windows-compatible volume mounts with explicit bind types
+    volumes:
+      - type: bind
+        source: ./backend
+        target: /app/backend
+        read_only: true
+      - type: bind
+        source: ./frontend
+        target: /app/frontend
+        read_only: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ehs_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ehs_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - type: bind
+        source: ./docker/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+      - type: bind
+        source: ./docker/ssl
+        target: /etc/nginx/ssl
+        read_only: true
+    depends_on:
+      - backend
+    networks:
+      - ehs_network
+    restart: unless-stopped
+
+  # Redis for Session Management
+  redis:
+    image: redis:7-alpine
+    container_name: ehs_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ehs_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ehs_network:
+    driver: bridge

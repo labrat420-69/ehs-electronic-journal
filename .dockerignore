@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+audit.md
+AUDIT_FINDINGS.md
+SELF_AUDIT_CHECKLIST.md
+
+# Environment files
+.env
+.env.*
+
+# Database files
+*.db
+*.sqlite
+ehs_journal.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Docker
+docker-compose.override.yml

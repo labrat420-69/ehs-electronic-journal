@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Pipettes - Equipment - EHS Electronic Journal{% endblock %}
+{% block page_title %}Pipette Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Pipette Management</h2>
+            <p>Track pipette accuracy, precision testing, and calibration records</p>
+        </div>
+        <div class="page-actions">
+            <a href="/equipment/pipettes/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Pipette Test
+            </a>
+            <button id="export-btn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Equipment Type Navigation -->
+<div class="nav-tabs-container">
+    <ul class="nav-tabs">
+        <li class="nav-tab">
+            <a href="/equipment/">All Equipment</a>
+        </li>
+        <li class="nav-tab active">
+            <a href="/equipment/pipettes">Pipettes</a>
+        </li>
+        <li class="nav-tab">
+            <a href="/equipment/water-conductivity">Water Conductivity</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Search and Filter Controls -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="search-input">Search Pipettes</label>
+                <div class="input-group">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by pipette ID, volume, or model...">
+                    <button class="btn btn-outline" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="volume-filter">Volume Range</label>
+                <select id="volume-filter" class="form-control">
+                    <option value="">All Volumes</option>
+                    <option value="0.1-10">0.1-10 μL</option>
+                    <option value="2-20">2-20 μL</option>
+                    <option value="10-100">10-100 μL</option>
+                    <option value="20-200">20-200 μL</option>
+                    <option value="100-1000">100-1000 μL</option>
+                    <option value="1000+">1000+ μL</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="status-filter">Test Status</label>
+                <select id="status-filter" class="form-control">
+                    <option value="">All</option>
+                    <option value="pass">Pass</option>
+                    <option value="fail">Fail</option>
+                    <option value="needs-calibration">Needs Calibration</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pipettes Table -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="data-table" id="pipettes-table">
+            <thead>
+                <tr>
+                    <th>Pipette ID</th>
+                    <th>Volume Range</th>
+                    <th>Manufacturer</th>
+                    <th>Test Date</th>
+                    <th>Test Volume</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in pipette_tests %}
+                <tr class="table-row" data-id="{{ test.id }}">
+                    <td>
+                        <div class="cell-content">
+                            <strong>{{ test.pipette_id }}</strong>
+                            {% if test.model %}
+                            <br><small class="text-muted">{{ test.model }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ test.volume_min }}-{{ test.volume_max }} μL</td>
+                    <td>{{ test.manufacturer or 'N/A' }}</td>
+                    <td>{{ test.test_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ test.test_volume }} μL</td>
+                    <td>
+                        <div class="accuracy-cell">
+                            <strong>{{ "%.2f"|format(test.accuracy_percent) }}%</strong>
+                            <span class="{% if test.accuracy_percent|abs > 2.0 %}text-danger{% elif test.accuracy_percent|abs > 1.0 %}text-warning{% else %}text-success{% endif %}">
+                                ({{ "%.3f"|format(test.mean_volume) }} μL)
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="precision-cell">
+                            <strong>{{ "%.2f"|format(test.precision_cv) }}%</strong>
+                            <span class="{% if test.precision_cv > 1.0 %}text-danger{% elif test.precision_cv > 0.5 %}text-warning{% else %}text-success{% endif %}">
+                                CV
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if test.accuracy_percent|abs <= 2.0 and test.precision_cv <= 1.0 %}
+                        <span class="status-badge status-current">Pass</span>
+                        {% elif test.accuracy_percent|abs <= 5.0 and test.precision_cv <= 2.0 %}
+                        <span class="status-badge status-warning">Marginal</span>
+                        {% else %}
+                        <span class="status-badge status-overdue">Fail</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="/equipment/pipettes/{{ test.id }}" class="btn btn-sm btn-outline" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="/equipment/pipettes/edit/{{ test.id }}" class="btn btn-sm btn-outline" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline text-danger delete-btn" data-id="{{ test.id }}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Empty State -->
+{% if not pipette_tests %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-tint"></i>
+    </div>
+    <h3>No Pipette Tests Found</h3>
+    <p>Get started by recording your first pipette accuracy and precision test.</p>
+    <a href="/equipment/pipettes/add" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Pipette Test
+    </a>
+</div>
+{% endif %}
+
+<!-- Quick Stats -->
+{% if pipette_tests %}
+<div class="stats-container">
+    <div class="stats-grid">
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Total Tests</div>
+                <div class="stats-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ pipette_tests|length }}</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Pass Rate</div>
+                <div class="stats-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ "%.1f"|format(pass_rate) }}%</div>
+        </div>
+        <div class="stats-card">
+            <div class="stats-header">
+                <div class="stats-title">Need Attention</div>
+                <div class="stats-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+            <div class="stats-value">{{ needs_attention_count }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    const volumeFilter = document.getElementById('volume-filter');
+    const statusFilter = document.getElementById('status-filter');
+    
+    // Table filtering
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const volumeValue = volumeFilter.value;
+        const statusValue = statusFilter.value.toLowerCase();
+        const rows = document.querySelectorAll('#pipettes-table tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const volumeRange = row.cells[1].textContent;
+            const status = row.querySelector('.status-badge').textContent.toLowerCase();
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesVolume = !volumeValue || volumeRange.includes(volumeValue.split('-')[0]);
+            const matchesStatus = !statusValue || status.includes(statusValue);
+            
+            row.style.display = (matchesSearch && matchesVolume && matchesStatus) ? '' : 'none';
+        });
+    }
+    
+    searchInput.addEventListener('input', filterTable);
+    volumeFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        filterTable();
+    });
+    
+    // Delete functionality
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (confirm('Are you sure you want to delete this pipette test record? This action cannot be undone.')) {
+                fetch(`/equipment/pipettes/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting test record. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting test record. Please try again.');
+                });
+            }
+        });
+    });
+    
+    // Export functionality
+    document.getElementById('export-btn').addEventListener('click', function() {
+        const exportUrl = '/equipment/pipettes/export';
+        window.open(exportUrl, '_blank');
+    });
+});
+</script>
+{% endblock %}
