@@ -245,6 +245,8 @@ $RECYCLE.BIN/
 *.temp
 *.swp
 *.bak
+cookies*.txt
+debug_*.txt
 
 # IDE and editor files
 .idea/

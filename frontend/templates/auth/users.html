@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - EHS Electronic Journal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .users-container {
+        padding: var(--spacing-lg);
+    }
+    
+    .users-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .users-title {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .user-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .user-info {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--spacing-md);
+        align-items: center;
+    }
+    
+    .user-details h4 {
+        margin: 0 0 var(--spacing-sm) 0;
+        color: var(--text-primary);
+    }
+    
+    .user-meta {
+        color: var(--text-secondary);
+        font-size: var(--font-size-sm);
+        display: flex;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+    
+    .user-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .user-badge.admin {
+        background: var(--danger-light);
+        color: var(--danger-dark);
+    }
+    
+    .user-badge.manager {
+        background: var(--warning-light);
+        color: var(--warning-dark);
+    }
+    
+    .user-badge.lab_tech {
+        background: var(--info-light);
+        color: var(--info-dark);
+    }
+    
+    .user-badge.user {
+        background: var(--success-light);
+        color: var(--success-dark);
+    }
+    
+    .user-badge.read_only {
+        background: var(--secondary-light);
+        color: var(--secondary-dark);
+    }
+    
+    .user-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+    
+    .add-user-form {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+    <div class="users-header">
+        <h1 class="users-title">
+            <i class="fas fa-users"></i>
+            User Management
+        </h1>
+        <button class="btn btn-primary" id="toggle-add-form">
+            <i class="fas fa-plus"></i>
+            Add User
+        </button>
+    </div>
+    
+    <!-- Success/Error Messages -->
+    {% if request.query_params.get('created') == 'true' %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        User created successfully!
+    </div>
+    {% endif %}
+    
+    <!-- Add User Form -->
+    <div class="add-user-form" id="add-user-form" style="display: none;">
+        <h3>
+            <i class="fas fa-user-plus"></i>
+            Add New User
+        </h3>
+        
+        <form method="POST" action="/users" id="userForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="username" class="form-label required">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" required 
+                           placeholder="Enter username" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required 
+                           placeholder="user@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="full_name" class="form-label required">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" class="form-control" required 
+                           placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label required">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required 
+                           placeholder="Enter password" autocomplete="new-password">
+                    <small class="form-help">Minimum 8 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role" class="form-label required">Role</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="">Select role...</option>
+                        {% for role in user_roles %}
+                        <option value="{{ role.value }}">{{ role.value.replace('_', ' ').title() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="department" class="form-label">Department</label>
+                    <input type="text" id="department" name="department" class="form-control" 
+                           placeholder="Optional">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" 
+                           placeholder="(555) 123-4567">
+                </div>
+                
+                <div class="form-group">
+                    <label for="extension" class="form-label">Extension</label>
+                    <input type="text" id="extension" name="extension" class="form-control" 
+                           placeholder="1234">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create User
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancel-add-form">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Users List -->
+    <div class="users-list">
+        <h3>
+            <i class="fas fa-list"></i>
+            Users ({{ users|length }})
+        </h3>
+        
+        {% if users %}
+            {% for user in users %}
+            <div class="user-card">
+                <div class="user-info">
+                    <div class="user-details">
+                        <h4>
+                            {{ user.full_name }}
+                            <span class="user-badge {{ user.role.value }}">{{ user.role.value.replace('_', ' ').title() }}</span>
+                            {% if not user.is_active %}
+                            <span class="user-badge" style="background: var(--danger-light); color: var(--danger-dark);">
+                                Inactive
+                            </span>
+                            {% endif %}
+                        </h4>
+                        <div class="user-meta">
+                            <span><i class="fas fa-user"></i> {{ user.username }}</span>
+                            <span><i class="fas fa-envelope"></i> {{ user.email }}</span>
+                            {% if user.department %}
+                            <span><i class="fas fa-building"></i> {{ user.department }}</span>
+                            {% endif %}
+                            {% if user.phone %}
+                            <span><i class="fas fa-phone"></i> {{ user.phone }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="user-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editUser({{ user.id }})">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                        {% if user.is_active %}
+                        <button class="btn btn-sm btn-outline-warning" onclick="deactivateUser({{ user.id }})">
+                            <i class="fas fa-user-times"></i>
+                            Deactivate
+                        </button>
+                        {% else %}
+                        <button class="btn btn-sm btn-outline-success" onclick="activateUser({{ user.id }})">
+                            <i class="fas fa-user-check"></i>
+                            Activate
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No users found</h3>
+                <p>Add your first user to get started.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleFormBtn = document.getElementById('toggle-add-form');
+    const addUserForm = document.getElementById('add-user-form');
+    const cancelFormBtn = document.getElementById('cancel-add-form');
+    const userForm = document.getElementById('userForm');
+    
+    // Toggle add user form
+    toggleFormBtn.addEventListener('click', function() {
+        if (addUserForm.style.display === 'none') {
+            addUserForm.style.display = 'block';
+            toggleFormBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+            toggleFormBtn.className = 'btn btn-secondary';
+        } else {
+            hideForm();
+        }
+    });
+    
+    cancelFormBtn.addEventListener('click', hideForm);
+    
+    function hideForm() {
+        addUserForm.style.display = 'none';
+        toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i> Add User';
+        toggleFormBtn.className = 'btn btn-primary';
+        userForm.reset();
+    }
+    
+    // Form validation
+    userForm.addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        if (password.length < 8) {
+            e.preventDefault();
+            showMessage('error', 'Password must be at least 8 characters long');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    });
+});
+
+function editUser(userId) {
+    // TODO: Implement user editing
+    showMessage('info', 'User editing feature coming soon!');
+}
+
+function deactivateUser(userId) {
+    if (confirm('Are you sure you want to deactivate this user?')) {
+        // TODO: Implement user deactivation
+        showMessage('info', 'User deactivation feature coming soon!');
+    }
+}
+
+function activateUser(userId) {
+    if (confirm('Are you sure you want to activate this user?')) {
+        // TODO: Implement user activation
+        showMessage('info', 'User activation feature coming soon!');
+    }
+}
+</script>
+{% endblock %}

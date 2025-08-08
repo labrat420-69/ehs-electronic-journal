@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - EHS Electronic Journal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--spacing-lg);
+    }
+    
+    .profile-header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+        padding-bottom: var(--spacing-lg);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--spacing-md);
+        color: white;
+        font-size: 2.5rem;
+    }
+    
+    .profile-name {
+        font-size: var(--font-size-xl);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .profile-role {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        text-transform: uppercase;
+        background: var(--primary-light);
+        color: var(--primary-dark);
+    }
+    
+    .profile-content {
+        display: grid;
+        gap: var(--spacing-xl);
+    }
+    
+    .profile-section {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-lg);
+    }
+    
+    .section-title {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-md);
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-md);
+    }
+    
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .info-label {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-size: var(--font-size-base);
+        color: var(--text-primary);
+    }
+    
+    .password-form {
+        max-width: 500px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user"></i>
+        </div>
+        <h1 class="profile-name">{{ user.full_name }}</h1>
+        <span class="profile-role">{{ user.role.value.replace('_', ' ').title() }}</span>
+    </div>
+    
+    <!-- Success Messages -->
+    {% if request.query_params.get('updated') == 'true' %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        Profile updated successfully!
+    </div>
+    {% endif %}
+    
+    {% if request.query_params.get('password_changed') == 'true' %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        Password changed successfully!
+    </div>
+    {% endif %}
+    
+    <div class="profile-content">
+        <!-- Account Information -->
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Account Information
+            </h2>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Username</span>
+                    <span class="info-value">{{ user.username }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Role</span>
+                    <span class="info-value">{{ user.role.value.replace('_', ' ').title() }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Account Status</span>
+                    <span class="info-value">
+                        {% if user.is_active %}
+                        <span style="color: var(--success-color);">
+                            <i class="fas fa-check-circle"></i> Active
+                        </span>
+                        {% else %}
+                        <span style="color: var(--danger-color);">
+                            <i class="fas fa-times-circle"></i> Inactive
+                        </span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if user.department %}
+                <div class="info-item">
+                    <span class="info-label">Department</span>
+                    <span class="info-value">{{ user.department }}</span>
+                </div>
+                {% endif %}
+                
+                {% if user.phone %}
+                <div class="info-item">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value">{{ user.phone }}</span>
+                </div>
+                {% endif %}
+                
+                {% if user.extension %}
+                <div class="info-item">
+                    <span class="info-label">Extension</span>
+                    <span class="info-value">{{ user.extension }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value">
+                        {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'Unknown' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Profile -->
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-edit"></i>
+                Edit Profile
+            </h2>
+            
+            <form method="POST" action="/profile" id="profileForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" 
+                               value="{{ user.email }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="full_name" class="form-label required">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" 
+                               value="{{ user.full_name }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" id="department" name="department" class="form-control" 
+                               value="{{ user.department or '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" 
+                               value="{{ user.phone or '' }}" placeholder="(555) 123-4567">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="extension" class="form-label">Extension</label>
+                        <input type="text" id="extension" name="extension" class="form-control" 
+                               value="{{ user.extension or '' }}" placeholder="1234">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Update Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Change Password -->
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-key"></i>
+                Change Password
+            </h2>
+            
+            <form method="POST" action="/change-password" class="password-form" id="passwordForm">
+                <div class="form-group">
+                    <label for="current_password" class="form-label required">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" 
+                           class="form-control" required autocomplete="current-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password" class="form-label required">New Password</label>
+                    <input type="password" id="new_password" name="new_password" 
+                           class="form-control" required autocomplete="new-password">
+                    <small class="form-help">Minimum 8 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label required">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" 
+                           class="form-control" required autocomplete="new-password">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-key"></i>
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.getElementById('profileForm');
+    const passwordForm = document.getElementById('passwordForm');
+    
+    // Profile form submission
+    profileForm.addEventListener('submit', function(e) {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    });
+    
+    // Password form validation and submission
+    passwordForm.addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword.length < 8) {
+            e.preventDefault();
+            showMessage('error', 'New password must be at least 8 characters long');
+            return false;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            showMessage('error', 'New passwords do not match');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+    });
+    
+    // Real-time password confirmation validation
+    const newPasswordInput = document.getElementById('new_password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    
+    function validatePasswordMatch() {
+        if (confirmPasswordInput.value && newPasswordInput.value !== confirmPasswordInput.value) {
+            confirmPasswordInput.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPasswordInput.setCustomValidity('');
+        }
+    }
+    
+    newPasswordInput.addEventListener('input', validatePasswordMatch);
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+});
+</script>
+{% endblock %}

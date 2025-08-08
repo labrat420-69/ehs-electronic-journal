@@ -23,8 +23,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# HTTP Bearer scheme
-security = HTTPBearer()
+# HTTP Bearer scheme (optional for cookie fallback)
+security = HTTPBearer(auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
@@ -71,35 +71,40 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     
     return user
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-) -> User:
-    """Get current authenticated user from JWT token"""
-    
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    
+async def get_current_user_from_token(token: str, db: Session) -> User:
+    """Helper function to get user from token string"""
     try:
-        token = credentials.credentials
         payload = verify_token(token)
         
         if payload is None:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         
         username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
             
     except JWTError:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     if not user.is_active:
         raise HTTPException(
@@ -108,6 +113,35 @@ async def get_current_user(
         )
     
     return user
+
+async def get_current_user(
+    request: Request,
+    db: Session = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+) -> User:
+    """Get current authenticated user from JWT token (header or cookie)"""
+    
+    token = None
+    
+    # Try to get token from Authorization header first (for API requests)
+    if credentials:
+        token = credentials.credentials
+    
+    # If no header token, try to get from cookie
+    if not token:
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token and cookie_token.startswith("Bearer "):
+            token = cookie_token.split(" ")[1]
+    
+    # If still no token, raise authentication error
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return await get_current_user_from_token(token, db)
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """Get current active user"""
@@ -187,46 +221,7 @@ async def get_optional_user(
     
     return None
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-) -> User:
-    """Get current authenticated user or raise HTTPException"""
-    token = credentials.credentials
-    
-    try:
-        payload = verify_token(token)
-        if payload is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-        
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-        
-        user = db.query(User).filter(User.username == username).first()
-        if user is None or not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or inactive",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-        
-        return user
-        
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+# Duplicate function removed - using unified get_current_user above
 
 async def get_current_user_web(
     request: Request,
@@ -304,9 +299,7 @@ def require_permissions(required_permissions: list):
     
     return check_permissions
 
-def require_admin():
-    """Convenience function for requiring admin role"""
-    return require_permissions(['manage_users'])
+# Duplicate function removed - using require_admin above at line 167
 
 def require_manager_or_above():
     """Convenience function for requiring manager role or above"""
