@@ -18,12 +18,10 @@ from backend.models.reagents import (
 from backend.models.user import User
 from backend.auth.jwt_handler import get_current_user, require_permissions
 
-# Import templates
-from pathlib import Path
+# Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-templates = Jinja2Templates(directory=str(PROJECT_ROOT / "frontend" / "templates"))
+templates = Jinja2Templates(directory="frontend/templates")
 
 router = APIRouter(prefix="/reagents", tags=["Reagents"])
 

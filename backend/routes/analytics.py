@@ -4,6 +4,7 @@ Analytics dashboard routes for customizable graphs and data visualization
 
 from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_, desc, asc
 from datetime import datetime, timedelta
@@ -27,13 +28,10 @@ from backend.models.standards import MMStandards, FlameAAStandards
 from backend.models.equipment import Equipment, PipetteLog, WaterConductivityTests
 from backend.models.maintenance import ICPOESMaintenanceLog
 
-# Import templates
-from pathlib import Path
+# Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-templates = Jinja2Templates(directory=str(PROJECT_ROOT / "frontend" / "templates"))
+templates = Jinja2Templates(directory="frontend/templates")
 
 router = APIRouter()
 

@@ -81,6 +81,156 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
    - Open browser to: http://localhost:8000
    - Default admin login: admin / admin123!
 
+## Fly.io Deployment
+
+### Prerequisites
+- [Fly CLI installed](https://fly.io/docs/getting-started/installing-flyctl/)
+- Fly.io account created (`fly auth signup`)
+- Docker installed locally (for testing)
+
+### Deployment Steps
+
+1. **Login to Fly.io:**
+   ```bash
+   fly auth login
+   ```
+
+2. **Deploy the application:**
+   ```bash
+   # Clone and navigate to the repository
+   git clone https://github.com/labrat420-69/ehs-electronic-journal.git
+   cd ehs-electronic-journal
+   
+   # Deploy to Fly.io (uses existing fly.toml configuration)
+   fly deploy
+   ```
+
+3. **Set up environment variables (optional):**
+   ```bash
+   # For production, you may want to set environment variables
+   fly secrets set DATABASE_TYPE=sqlite
+   fly secrets set DATABASE_PATH=/app/ehs_journal.db
+   
+   # For PostgreSQL database (recommended for production):
+   # fly secrets set DATABASE_TYPE=postgresql
+   # fly secrets set POSTGRES_SERVER=your-postgres-host
+   # fly secrets set POSTGRES_USER=your-username
+   # fly secrets set POSTGRES_PASSWORD=your-password
+   # fly secrets set POSTGRES_DATABASE=ehs_electronic_journal
+   ```
+
+4. **Open your deployed application:**
+   ```bash
+   fly open
+   ```
+
+### Fly.io Configuration
+
+The `fly.toml` file is already configured with:
+- **App name**: `ehs-electronic-journal`
+- **Region**: `iad` (US East - Northern Virginia)
+- **Port**: 8000 (FastAPI default)
+- **HTTPS**: Force HTTPS enabled
+- **Auto-scaling**: Configured to stop/start machines automatically
+- **Resources**: 1GB RAM, 1 shared CPU
+
+### Database Considerations
+
+**For Production (Recommended):**
+- Use Fly Postgres for production deployments:
+  ```bash
+  fly postgres create --name ehs-journal-db --region iad
+  fly postgres attach --app ehs-electronic-journal ehs-journal-db
+  ```
+
+**For Development/Testing:**
+- SQLite database is used by default and created automatically at startup
+- Database file is stored in `/app/ehs_journal.db` inside the container
+- **Note**: SQLite data will be lost when the container restarts unless you use Fly volumes
+
+**Using Fly Volumes for SQLite Persistence:**
+```bash
+# Create a volume for SQLite database persistence
+fly volumes create ehs_data --region iad --size 1
+
+# Update fly.toml to mount the volume (add to [mounts] section):
+# [mounts]
+# destination = "/app/data"
+# source = "ehs_data"
+
+# Then set DATABASE_PATH to use the volume:
+fly secrets set DATABASE_PATH=/app/data/ehs_journal.db
+```
+
+### Deployment Checklist
+
+Before deploying to production, ensure:
+
+- [x] All backend Python code is present and functional
+- [x] All frontend templates are included (especially `frontend/templates/dashboard/overview.html`)
+- [x] All static assets are copied to the Docker image (`frontend/static/`)
+- [x] Dockerfile installs all requirements and copies necessary files
+- [x] .dockerignore properly excludes development files but includes required assets
+- [x] Database is created at startup but not included in the image
+- [x] App starts successfully and serves templates without TemplateNotFound errors
+- [x] Health endpoint responds correctly (`/health`)
+- [ ] Environment variables configured for production
+- [ ] Database backup strategy implemented (if using Fly Postgres)
+- [ ] SSL certificates configured (handled automatically by Fly.io)
+- [ ] Monitoring and logging set up
+
+### Monitoring and Logs
+
+```bash
+# View application logs
+fly logs
+
+# Monitor resource usage
+fly status
+
+# Scale the application if needed
+fly scale count 2  # Run 2 instances
+
+# Connect to the running container for debugging
+fly ssh console
+```
+
+### Troubleshooting
+
+**Common Issues:**
+
+1. **Build fails with SSL certificates:**
+   - The Dockerfile includes `--trusted-host` flags for environments with certificate issues
+
+2. **TemplateNotFound errors:**
+   - Ensure templates are copied to the correct path in Dockerfile
+   - Check that template paths in routes match the directory structure
+
+3. **Static files not loading:**
+   - Verify `frontend/static` is copied in Dockerfile
+   - Check static file mounting in `backend/main.py`
+
+4. **Database connection errors:**
+   - For SQLite: Ensure `DATABASE_PATH` points to a writable location
+   - For Postgres: Verify connection strings and credentials
+
+5. **App won't start:**
+   ```bash
+   # Check logs for errors
+   fly logs
+   
+   # Connect to container for debugging
+   fly ssh console
+   cd /app
+   python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+   ```
+
+### Cost Optimization
+
+- Use `fly scale count 0` during development to stop machines when not needed
+- Configure `min_machines_running = 0` in fly.toml for development apps
+- Monitor resource usage and adjust memory/CPU allocation as needed
+
 ## Docker Deployment
 
 ### Quick Start (All Platforms)
