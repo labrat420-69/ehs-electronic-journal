@@ -279,4 +279,7 @@ class FlameAAStandardsHistory(Base):
     
     # Relationships
     standard = relationship("FlameAAStandards", back_populates="history_entries")
+
+# Note: Mercury standards are defined in reagents.py to keep Mercury-related models together
+# This allows Mercury to be managed as both reagents and standards as needed
     user = relationship("User", foreign_keys=[changed_by])

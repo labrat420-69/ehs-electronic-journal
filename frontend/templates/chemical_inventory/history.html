@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Chemical Inventory History - EHS Electronic Journal{% endblock %}
+{% block page_title %}Chemical Inventory History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/tables.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Chemical Inventory History</h2>
+            <p>View all changes and updates to the chemical inventory</p>
+        </div>
+        <div class="page-actions">
+            <a href="/chemical_inventory/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Inventory
+            </a>
+            <button id="export-history-btn" class="btn btn-primary">
+                <i class="fas fa-download"></i> Export History
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="chemical-filter">Filter by Chemical</label>
+                <input type="text" id="chemical-filter" class="form-control" placeholder="Search chemical name...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="action-filter">Filter by Action</label>
+                <select id="action-filter" class="form-control">
+                    <option value="">All Actions</option>
+                    <option value="created">Created</option>
+                    <option value="updated">Updated</option>
+                    <option value="quantity_changed">Quantity Changed</option>
+                    <option value="deactivated">Deactivated</option>
+                    <option value="reactivated">Reactivated</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="date-filter">Date Range</label>
+                <select id="date-filter" class="form-control">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                    <option value="quarter">Last 90 Days</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table id="history-table" class="data-table">
+        <thead>
+            <tr>
+                <th>Date/Time</th>
+                <th>Chemical</th>
+                <th>Action</th>
+                <th>Field Changed</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+                <th>Changed By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if history %}
+                {% for entry in history %}
+                <tr>
+                    <td>
+                        <div class="timestamp">
+                            {{ entry.changed_at.strftime('%Y-%m-%d') }}
+                            <small>{{ entry.changed_at.strftime('%H:%M:%S') }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="chemical-info">
+                            <strong>{{ entry.chemical.chemical_name if entry.chemical else 'Unknown' }}</strong>
+                            {% if entry.chemical and entry.chemical.cas_number %}
+                            <small>CAS: {{ entry.chemical.cas_number }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-{% if entry.action == 'created' %}success{% elif entry.action == 'updated' %}info{% elif entry.action == 'quantity_changed' %}warning{% else %}secondary{% endif %}">
+                            {{ entry.action.replace('_', ' ').title() }}
+                        </span>
+                    </td>
+                    <td>{{ entry.field_name or '-' }}</td>
+                    <td>
+                        <span class="old-value">{{ entry.old_value or '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="new-value">{{ entry.new_value or '-' }}</span>
+                    </td>
+                    <td>
+                        <div class="user-info">
+                            {{ entry.changed_by_user.username if entry.changed_by_user else 'System' }}
+                            {% if entry.changed_by_user %}
+                            <small>{{ entry.changed_by_user.full_name or '' }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" class="no-data">
+                        <div class="empty-state">
+                            <i class="fas fa-history fa-3x"></i>
+                            <h4>No History Found</h4>
+                            <p>No inventory changes have been recorded yet.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize filters
+    const chemicalFilter = document.getElementById('chemical-filter');
+    const actionFilter = document.getElementById('action-filter');
+    const dateFilter = document.getElementById('date-filter');
+    const table = document.getElementById('history-table');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    function filterTable() {
+        const chemicalText = chemicalFilter.value.toLowerCase();
+        const actionValue = actionFilter.value.toLowerCase();
+        const dateValue = dateFilter.value;
+
+        rows.forEach(row => {
+            if (row.querySelector('.no-data')) return; // Skip empty state row
+            
+            const chemical = row.querySelector('.chemical-info strong')?.textContent.toLowerCase() || '';
+            const action = row.querySelector('.badge')?.textContent.toLowerCase().replace(/\s+/g, '_') || '';
+            const timestamp = row.querySelector('.timestamp')?.textContent.trim() || '';
+            
+            let showRow = true;
+
+            // Filter by chemical name
+            if (chemicalText && !chemical.includes(chemicalText)) {
+                showRow = false;
+            }
+
+            // Filter by action
+            if (actionValue && !action.includes(actionValue)) {
+                showRow = false;
+            }
+
+            // Filter by date (simplified - could be enhanced)
+            if (dateValue) {
+                const today = new Date();
+                const rowDate = new Date(timestamp);
+                let daysDiff = (today - rowDate) / (1000 * 60 * 60 * 24);
+
+                switch(dateValue) {
+                    case 'today':
+                        if (daysDiff > 1) showRow = false;
+                        break;
+                    case 'week':
+                        if (daysDiff > 7) showRow = false;
+                        break;
+                    case 'month':
+                        if (daysDiff > 30) showRow = false;
+                        break;
+                    case 'quarter':
+                        if (daysDiff > 90) showRow = false;
+                        break;
+                }
+            }
+
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+
+    // Add event listeners
+    chemicalFilter.addEventListener('input', filterTable);
+    actionFilter.addEventListener('change', filterTable);
+    dateFilter.addEventListener('change', filterTable);
+
+    // Export functionality
+    document.getElementById('export-history-btn').addEventListener('click', function() {
+        // This would need to be implemented on the backend
+        alert('Export functionality will be implemented in the next update.');
+    });
+});
+</script>
+
+<style>
+.timestamp small {
+    display: block;
+    color: #666;
+}
+
+.chemical-info small {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+}
+
+.user-info small {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+}
+
+.old-value {
+    color: #dc3545;
+    text-decoration: line-through;
+}
+
+.new-value {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-success { background-color: #28a745; color: white; }
+.badge-info { background-color: #17a2b8; color: white; }
+.badge-warning { background-color: #ffc107; color: #212529; }
+.badge-secondary { background-color: #6c757d; color: white; }
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
