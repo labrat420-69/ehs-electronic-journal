@@ -57,13 +57,24 @@ class PasswordChange(BaseModel):
     new_password: str
 
 @router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request, error: str = None, success: str = None):
+async def login_page(
+    request: Request, 
+    error: str = None, 
+    success: str = None,
+    next: str = None
+):
     """Display login page"""
+    # Get query parameters for error/success messages
+    error_msg = request.query_params.get('error', error)
+    success_msg = request.query_params.get('success', success)
+    next_url = request.query_params.get('next', next)
+    
     context = {
         "request": request,
         "title": "Login - EHS Electronic Journal",
-        "error": error,
-        "success": success
+        "error": error_msg,
+        "success": success_msg,
+        "next_url": next_url
     }
     return templates.TemplateResponse("auth/login.html", context)
 
@@ -72,6 +83,7 @@ async def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    next: str = Form(None),
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return access token"""
@@ -79,19 +91,21 @@ async def login(
     try:
         user = authenticate_user(db, username, password)
         if not user:
-            # Redirect back to login with error
+            # Redirect back to login with error, preserving username
             from urllib.parse import quote
-            return RedirectResponse(
-                url="/login?error=" + quote("Incorrect username or password"),
-                status_code=302
-            )
+            error_msg = quote("Incorrect username or password")
+            redirect_url = f"/login?error={error_msg}&username={quote(username)}"
+            if next:
+                redirect_url += f"&next={quote(next)}"
+            return RedirectResponse(url=redirect_url, status_code=302)
         
         if not user.is_active:
             from urllib.parse import quote
-            return RedirectResponse(
-                url="/login?error=" + quote("Account is inactive. Please contact administrator"),
-                status_code=302
-            )
+            error_msg = quote("Account is inactive. Please contact administrator")
+            redirect_url = f"/login?error={error_msg}&username={quote(username)}"
+            if next:
+                redirect_url += f"&next={quote(next)}"
+            return RedirectResponse(url=redirect_url, status_code=302)
         
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -99,8 +113,9 @@ async def login(
             expires_delta=access_token_expires
         )
         
-        # For web interface, redirect to dashboard
-        response = RedirectResponse(url="/", status_code=302)
+        # Determine redirect URL - use next parameter if provided, otherwise dashboard
+        redirect_url = next if next else "/"
+        response = RedirectResponse(url=redirect_url, status_code=302)
         response.set_cookie(
             key="access_token",
             value=f"Bearer {access_token}",
@@ -115,10 +130,11 @@ async def login(
         import logging
         from urllib.parse import quote
         logging.error(f"Login error: {str(e)}")
-        return RedirectResponse(
-            url="/login?error=" + quote("Login failed. Please try again"),
-            status_code=302
-        )
+        error_msg = quote("Login failed. Please try again")
+        redirect_url = f"/login?error={error_msg}&username={quote(username)}"
+        if next:
+            redirect_url += f"&next={quote(next)}"
+        return RedirectResponse(url=redirect_url, status_code=302)
 
 @router.post("/api/login")
 async def api_login(
@@ -154,6 +170,7 @@ async def api_login(
         "user": user.to_dict()
     }
 
+@router.get("/logout")
 @router.post("/logout")
 async def logout():
     """Logout user by clearing the cookie"""
@@ -166,6 +183,7 @@ async def logout():
     return response
 
 @router.get("/profile", response_class=HTMLResponse)
+@router.get("/auth/profile", response_class=HTMLResponse)  # Keep old route for compatibility
 async def profile_page(
     request: Request,
     current_user: User = Depends(get_current_user)

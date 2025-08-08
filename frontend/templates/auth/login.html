@@ -124,6 +124,11 @@
             </div>
             {% endif %}
             
+            <!-- Hidden field to preserve redirect URL -->
+            {% if next_url %}
+            <input type="hidden" name="next" value="{{ next_url }}">
+            {% endif %}
+            
             <div class="form-group">
                 <label for="username" class="form-label required">Username</label>
                 <input 
@@ -134,7 +139,7 @@
                     required 
                     autocomplete="username"
                     placeholder="Enter your username"
-                    value="{{ username if username else '' }}"
+                    value="{{ request.query_params.get('username', '') }}"
                 >
             </div>
             

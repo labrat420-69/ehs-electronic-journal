@@ -79,7 +79,9 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
 
 6. **Access the application:**
    - Open browser to: http://localhost:8000
-   - Default admin login: admin / admin123!
+   - **Authentication Required**: The application now requires login to access the dashboard and protected features
+   - Default admin login: **Username:** `admin` / **Password:** `admin123`
+   - **Security Note**: Change the default password immediately after first login
 
 ## Fly.io Deployment
 
@@ -167,6 +169,10 @@ fly secrets set DATABASE_PATH=/app/data/ehs_journal.db
 Before deploying to production, ensure:
 
 - [x] All backend Python code is present and functional
+- [x] **Authentication system properly configured and tested**
+- [x] **Dashboard and API endpoints protected from unauthorized access**
+- [x] **Login/logout functionality working with proper error handling**
+- [x] **Default admin user auto-created on first startup**
 - [x] All frontend templates are included (especially `frontend/templates/dashboard/overview.html`)
 - [x] All static assets are copied to the Docker image (`frontend/static/`)
 - [x] Dockerfile installs all requirements and copies necessary files
