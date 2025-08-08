@@ -351,14 +351,27 @@ async def create_user(
             detail=detail
         )
     
-    # Validate role
+    # Validate role - add case-insensitive safeguard
     try:
+        # First try exact match with provided role
         user_role = UserRole(role)
     except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role"
-        )
+        # If that fails, try case-insensitive matching as a safeguard
+        role_lower = role.lower()
+        try:
+            # Check if lowercase version matches any enum value
+            for enum_role in UserRole:
+                if enum_role.value == role_lower:
+                    user_role = enum_role
+                    break
+            else:
+                # If no match found, raise the original error
+                raise ValueError(f"Invalid role: {role}")
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role: {role}. Valid roles are: {[r.value for r in UserRole]}"
+            )
     
     # Create new user
     new_user = User(

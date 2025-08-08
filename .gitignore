@@ -159,6 +159,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# Test files that shouldn't be committed to production
+test_role_consistency.py
+
 # Pyre type checker
 .pyre/
 

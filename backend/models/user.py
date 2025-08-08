@@ -8,12 +8,23 @@ from backend.database import Base
 import enum
 
 class UserRole(enum.Enum):
-    """User roles for access control"""
-    ADMIN = "admin"
-    MANAGER = "manager"
-    LAB_TECH = "lab_tech"
-    USER = "user"
-    READ_ONLY = "read_only"
+    """
+    User roles for access control
+    
+    IMPORTANT: Role values are stored as lowercase strings in the database.
+    When performing role checks, always use:
+    - UserRole enum comparisons (user.role == UserRole.ADMIN) 
+    - User.has_permission() method for hierarchy checks
+    - Template helper functions (user_is_admin, user_has_permission)
+    
+    DO NOT use hardcoded string comparisons like user.role == 'admin'
+    as this is fragile and case-sensitive.
+    """
+    ADMIN = "admin"        # Full system access, user management
+    MANAGER = "manager"    # Management functions, reports
+    LAB_TECH = "lab_tech"  # Lab operations, equipment maintenance
+    USER = "user"          # Basic data entry and viewing
+    READ_ONLY = "read_only"  # View-only access
 
 class User(Base):
     """User model for authentication and user management"""
@@ -54,7 +65,27 @@ class User(Base):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}')>"
     
     def has_permission(self, required_role: UserRole) -> bool:
-        """Check if user has required permission level"""
+        """
+        Check if user has required permission level using role hierarchy.
+        
+        This method implements a role hierarchy where higher roles inherit
+        permissions of lower roles:
+        - ADMIN (4): Full access including user management
+        - MANAGER (3): Management functions, reports  
+        - LAB_TECH (2): Lab operations, equipment
+        - USER (1): Basic data entry and viewing
+        - READ_ONLY (0): View-only access
+        
+        Args:
+            required_role: Minimum UserRole required
+            
+        Returns:
+            bool: True if user has required permission level or higher
+            
+        Example:
+            if user.has_permission(UserRole.MANAGER):
+                # User is MANAGER or ADMIN
+        """
         role_hierarchy = {
             UserRole.READ_ONLY: 0,
             UserRole.USER: 1,

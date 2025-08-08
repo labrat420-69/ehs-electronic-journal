@@ -313,7 +313,8 @@ def require_manager_or_above():
     async def check_manager_role(
         current_user: User = Depends(get_current_user)
     ) -> User:
-        if current_user.role not in [UserRole.ADMIN, UserRole.MANAGER]:
+        # Use has_permission for consistent role hierarchy checking
+        if not current_user.has_permission(UserRole.MANAGER):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Manager role or above required"
