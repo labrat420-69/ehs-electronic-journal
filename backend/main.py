@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 
 from backend.auth.jwt_handler import get_current_user
-from backend.routes import auth, dashboard, chemical_inventory, reagents, standards, equipment, maintenance, analytics
+from backend.routes import auth, dashboard, chemical_inventory, reagents, standards, equipment, maintenance, analytics, reminders, waste
 from backend.utils.timezone_utils import get_est_time
 
 app = FastAPI()
@@ -29,6 +29,8 @@ app.include_router(standards.router)
 app.include_router(equipment.router)
 app.include_router(maintenance.router)
 app.include_router(analytics.router)
+app.include_router(reminders.router)
+app.include_router(waste.router)
 
 @app.get("/health")
 def health():
@@ -42,3 +44,7 @@ templates = Jinja2Templates(directory="frontend/templates")
 # def read_root(request: Request):
 #     est_time = get_est_time()
 #     return templates.TemplateResponse("index.html", {"request": request, "time": est_time})
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

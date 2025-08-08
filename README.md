@@ -42,8 +42,11 @@ The EHS Electronic Journal is a comprehensive laboratory management system desig
 
 5. **Run the application:**
    ```bash
-   cd backend
-   python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   # Run from the root directory using module syntax
+   python -m backend.main
+   
+   # Or using uvicorn directly
+   python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 6. **Access the application:**
@@ -92,6 +95,37 @@ docker compose up -d
 # Windows-optimized production
 docker compose -f docker-compose.windows.yml up -d
 ```
+
+## Project Structure
+
+The codebase is organized into a clean, modular structure:
+
+```
+ehs-electronic-journal/
+├── backend/                 # FastAPI application (main entry point)
+│   ├── main.py             # Application entry point
+│   ├── auth/               # Authentication & JWT handling
+│   ├── models/             # SQLAlchemy database models
+│   ├── routes/             # API route handlers
+│   └── utils/              # Utility functions & validation
+├── frontend/               # Static files & templates
+│   ├── static/             # CSS, JS, and assets
+│   └── templates/          # Jinja2 HTML templates
+├── database/               # Database schemas & migrations
+├── docker/                 # Docker configuration files
+└── requirements.txt        # Python dependencies
+```
+
+**Entry Points:**
+- Main application: `python -m backend.main`
+- Docker development: `backend.main:app`
+- All imports use `backend.` prefix for clarity
+
+**Key Changes:**
+- Eliminated duplicate `backend/app/` directory
+- Unified import structure with `backend.` prefix
+- Single FastAPI entry point at `backend/main.py`
+- Proper static/template path references
 
 ## System Architecture
 
