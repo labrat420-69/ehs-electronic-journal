@@ -131,7 +131,8 @@ async def mm_standards_list(
         "title": "MM Standards - EHS Electronic Journal",
         "standards": standards,
         "current_user": current_user,
-        "standard_type": "MM"
+        "standard_type": "mm",
+        "today": datetime.now().date()
     }
     
     return templates.TemplateResponse("standards/list.html", context)
@@ -146,7 +147,7 @@ async def add_mm_standard_form(
         "request": request,
         "title": "Add MM Standard - EHS Electronic Journal",
         "current_user": current_user,
-        "standard_type": "MM"
+        "standard_type": "mm"
     }
     
     return templates.TemplateResponse("standards/add.html", context)
@@ -245,7 +246,7 @@ async def mm_standard_detail(
         "standard": standard,
         "history": history,
         "current_user": current_user,
-        "standard_type": "MM"
+        "standard_type": "mm"
     }
     
     return templates.TemplateResponse("standards/detail.html", context)
@@ -391,10 +392,26 @@ async def flameaa_standards_list(
         "title": "FlameAA Standards - EHS Electronic Journal",
         "standards": standards,
         "current_user": current_user,
-        "standard_type": "FlameAA"
+        "standard_type": "flameaa",
+        "today": datetime.now().date()
     }
     
     return templates.TemplateResponse("standards/list.html", context)
+
+@router.get("/flameaa/add", response_class=HTMLResponse)
+async def add_flameaa_standard_form(
+    request: Request,
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Add FlameAA standard form"""
+    context = {
+        "request": request,
+        "title": "Add FlameAA Standard - EHS Electronic Journal",
+        "current_user": current_user,
+        "standard_type": "flameaa"
+    }
+    
+    return templates.TemplateResponse("standards/add.html", context)
 
 @router.post("/flameaa/api/", response_model=dict)
 async def create_flameaa_standard(
