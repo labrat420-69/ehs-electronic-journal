@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Add Chemical - EHS Electronic Journal{% endblock %}
+{% block page_title %}Add Chemical{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Add New Chemical</h2>
+            <p>Add a new chemical to the inventory system</p>
+        </div>
+        <div class="page-actions">
+            <a href="/chemical_inventory/" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Inventory
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="add-chemical-form" class="chemical-form">
+        <div class="form-section">
+            <h3>Basic Information</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="chemical_name">Chemical Name *</label>
+                        <input type="text" id="chemical_name" name="chemical_name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="cas_number">CAS Number</label>
+                        <input type="text" id="cas_number" name="cas_number" class="form-control" placeholder="e.g., 7732-18-5">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="manufacturer">Manufacturer</label>
+                        <input type="text" id="manufacturer" name="manufacturer" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="catalog_number">Catalog Number</label>
+                        <input type="text" id="catalog_number" name="catalog_number" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="lot_number">Lot Number</label>
+                        <input type="text" id="lot_number" name="lot_number" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="container_size">Container Size</label>
+                        <input type="text" id="container_size" name="container_size" class="form-control" placeholder="e.g., 500mL, 1kg">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Quantity and Units</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="current_quantity">Current Quantity *</label>
+                        <input type="number" id="current_quantity" name="current_quantity" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="unit">Unit *</label>
+                        <select id="unit" name="unit" class="form-control" required>
+                            <option value="">Select unit...</option>
+                            <option value="mL">mL</option>
+                            <option value="L">L</option>
+                            <option value="g">g</option>
+                            <option value="kg">kg</option>
+                            <option value="mg">mg</option>
+                            <option value="μg">μg</option>
+                            <option value="oz">oz</option>
+                            <option value="lb">lb</option>
+                            <option value="each">each</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Storage Information</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="storage_location">Storage Location</label>
+                        <input type="text" id="storage_location" name="storage_location" class="form-control" placeholder="e.g., Cabinet A1">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="storage_temperature">Storage Temperature</label>
+                        <select id="storage_temperature" name="storage_temperature" class="form-control">
+                            <option value="">Select temperature...</option>
+                            <option value="room_temp">Room Temperature</option>
+                            <option value="refrigerated">Refrigerated (2-8°C)</option>
+                            <option value="frozen">Frozen (-20°C)</option>
+                            <option value="ultra_cold">Ultra Cold (-80°C)</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="hazard_class">Hazard Class</label>
+                        <select id="hazard_class" name="hazard_class" class="form-control">
+                            <option value="">Select hazard...</option>
+                            <option value="Non-Hazardous">Non-Hazardous</option>
+                            <option value="Corrosive">Corrosive</option>
+                            <option value="Flammable">Flammable</option>
+                            <option value="Toxic">Toxic</option>
+                            <option value="Oxidizer">Oxidizer</option>
+                            <option value="Irritant">Irritant</option>
+                            <option value="Explosive">Explosive</option>
+                            <option value="Radioactive">Radioactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="storage_conditions">Storage Conditions</label>
+                <textarea id="storage_conditions" name="storage_conditions" class="form-control" rows="2" placeholder="Additional storage requirements..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Dates</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="received_date">Received Date</label>
+                        <input type="date" id="received_date" name="received_date" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="expiration_date">Expiration Date</label>
+                        <input type="date" id="expiration_date" name="expiration_date" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Additional Information</h3>
+            <div class="form-group">
+                <label for="safety_notes">Safety Notes</label>
+                <textarea id="safety_notes" name="safety_notes" class="form-control" rows="3" placeholder="Special handling instructions, safety precautions..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Add Chemical
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-undo"></i> Clear Form
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('add-chemical-form');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Convert form data to JSON
+        for (let [key, value] of formData.entries()) {
+            if (value !== '') {
+                if (key === 'current_quantity') {
+                    data[key] = parseFloat(value);
+                } else if (key === 'received_date' || key === 'expiration_date') {
+                    if (value) {
+                        data[key] = value + 'T00:00:00';
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+        }
+        
+        try {
+            const response = await fetch('/chemical_inventory/api/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                alert('Chemical added successfully!');
+                window.location.href = '/chemical_inventory/';
+            } else {
+                const error = await response.json();
+                alert('Error adding chemical: ' + (error.detail || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding chemical. Please try again.');
+        }
+    });
+});
+</script>
+{% endblock %}

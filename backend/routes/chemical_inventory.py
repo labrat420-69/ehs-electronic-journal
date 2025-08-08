@@ -123,6 +123,27 @@ async def add_chemical_form(
     
     return templates.TemplateResponse("chemical_inventory/add.html", context)
 
+@router.get("/history", response_class=HTMLResponse)
+async def chemical_history_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """View all chemical inventory history"""
+    # Get recent history across all chemicals
+    history = db.query(ChemicalInventoryHistory).join(
+        ChemicalInventoryLog, ChemicalInventoryHistory.chemical_id == ChemicalInventoryLog.id
+    ).order_by(ChemicalInventoryHistory.changed_at.desc()).limit(100).all()
+    
+    context = {
+        "request": request,
+        "title": "Chemical Inventory History - EHS Electronic Journal",
+        "history": history,
+        "current_user": current_user
+    }
+    
+    return templates.TemplateResponse("chemical_inventory/history.html", context)
+
 @router.get("/{chemical_id}", response_class=HTMLResponse)
 async def chemical_detail(
     chemical_id: int,
