@@ -11,7 +11,15 @@ from backend.auth.jwt_handler import get_current_user
 from backend.routes import auth, dashboard, chemical_inventory, reagents, standards, equipment, maintenance, analytics, reminders, waste
 from backend.utils.timezone_utils import get_est_time
 
+# --- Add this import for table creation ---
+from backend.database import create_tables
+
 app = FastAPI()
+
+# --- Add this startup event to ensure tables are created ---
+@app.on_event("startup")
+def on_startup():
+    create_tables()
 
 app.add_middleware(
     CORSMiddleware,
