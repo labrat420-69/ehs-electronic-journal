@@ -5,7 +5,7 @@ Analytics models for dashboard graphs, presets, and configuration
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON, Numeric
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 
 class GraphPreset(Base):
     """Store graph presets for customizable dashboard analytics"""

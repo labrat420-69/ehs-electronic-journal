@@ -5,7 +5,7 @@ Maintenance models for ICP-OES and other equipment maintenance tracking
 from sqlalchemy import Column, Integer, String, Text, DateTime, Numeric, Boolean, ForeignKey, Enum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 import enum
 
 class MaintenanceType(enum.Enum):

@@ -2,22 +2,22 @@
 Initialize all models for SQLAlchemy
 """
 
-from app.models.user import User, UserRole
-from app.models.department import Department
-from app.models.chemical_inventory import ChemicalInventoryLog, ChemicalInventoryHistory
-from app.models.reagents import (
+from backend.models.user import User, UserRole
+from backend.models.department import Department
+from backend.models.chemical_inventory import ChemicalInventoryLog, ChemicalInventoryHistory
+from backend.models.reagents import (
     MMReagents, MMReagentsHistory,
     PbReagents, PbReagentsHistory, 
     TCLPReagents, TCLPReagentsHistory
 )
-from app.models.standards import (
+from backend.models.standards import (
     MMStandards, MMStandardsHistory,
     FlameAAStandards, FlameAAStandardsHistory
 )
-from app.models.equipment import (
+from backend.models.equipment import (
     Equipment, PipetteLog, WaterConductivityTests
 )
-from app.models.maintenance import (
+from backend.models.maintenance import (
     ICPOESMaintenanceLog, ICPOESMaintenanceHistory,
     MaintenanceType, MaintenanceStatus
 )

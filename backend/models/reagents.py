@@ -5,7 +5,7 @@ Reagents models for MM, Pb, and TCLP reagents tracking
 from sqlalchemy import Column, Integer, String, Text, DateTime, Numeric, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 
 # MM Reagents Models
 class MMReagents(Base):

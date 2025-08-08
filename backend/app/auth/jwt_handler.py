@@ -11,9 +11,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import os
 
-from app.database import get_db
-from app.models.user import User, UserRole
-from app.utils.timezone_utils import get_current_timestamp_utc
+from backend.database import get_db
+from backend.models.user import User, UserRole
+from backend.utils.timezone_utils import get_current_timestamp_utc
 
 # JWT Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
