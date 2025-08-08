@@ -38,10 +38,15 @@ elif DATABASE_TYPE == "postgresql" or DATABASE_TYPE == "postgres":
     
 else:
     # SQLite configuration (default for development)
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL", 
-        "sqlite:///../ehs_journal.db"  # Point to the database in the parent directory
-    )
+    # Use path that works both locally and in Docker
+    import os
+    if os.path.exists("/app"):
+        # Running in Docker
+        db_path = os.getenv("DATABASE_PATH", "/app/ehs_journal.db")
+    else:
+        # Running locally
+        db_path = os.getenv("DATABASE_PATH", "./ehs_journal.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{db_path}")
 
 # Override with direct DATABASE_URL if provided
 DATABASE_URL = os.getenv("DATABASE_URL", DATABASE_URL)

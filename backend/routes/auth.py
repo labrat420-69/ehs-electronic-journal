@@ -21,12 +21,10 @@ from backend.auth.jwt_handler import (
 )
 from backend.utils.validation import validate_email, validate_password_strength, validate_required_fields
 
-# Import templates from main.py setup
-from pathlib import Path
+# Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-templates = Jinja2Templates(directory=str(PROJECT_ROOT / "frontend" / "templates"))
+templates = Jinja2Templates(directory="frontend/templates")
 
 router = APIRouter()
 
