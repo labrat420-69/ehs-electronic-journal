@@ -23,8 +23,11 @@ from backend.utils.validation import validate_email, validate_password_strength,
 
 # Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
+from backend.utils.template_helpers import template_functions
 
 templates = Jinja2Templates(directory="frontend/templates")
+# Add template helper functions for robust role-based access control
+templates.env.globals.update(template_functions)
 
 router = APIRouter()
 
@@ -74,7 +77,8 @@ async def login_page(
         "title": "Login - EHS Electronic Journal",
         "error": error_msg,
         "success": success_msg,
-        "next_url": next_url
+        "next_url": next_url,
+        "current_user": None  # No user on login page
     }
     return templates.TemplateResponse("auth/login.html", context)
 
@@ -192,7 +196,8 @@ async def profile_page(
     context = {
         "request": request,
         "title": "Profile - EHS Electronic Journal",
-        "user": current_user
+        "user": current_user,
+        "current_user": current_user
     }
     return templates.TemplateResponse("auth/profile.html", context)
 
@@ -287,7 +292,8 @@ async def users_list(
         "request": request,
         "title": "User Management - EHS Electronic Journal",
         "users": users,
-        "user_roles": UserRole
+        "user_roles": UserRole,
+        "current_user": current_user
     }
     return templates.TemplateResponse("auth/users.html", context)
 

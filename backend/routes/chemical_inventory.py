@@ -17,8 +17,11 @@ from backend.utils.validation import validate_required_fields
 
 # Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
+from backend.utils.template_helpers import template_functions
 
 templates = Jinja2Templates(directory="frontend/templates")
+# Add template helper functions for robust role-based access control
+templates.env.globals.update(template_functions)
 
 router = APIRouter(prefix="/chemical_inventory", tags=["Chemical Inventory"])
 
