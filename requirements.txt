@@ -46,7 +46,7 @@ typing-inspection==0.4.1
 typing_extensions==4.14.1
 tzdata==2025.2
 uvicorn==0.24.0
-
+python-jose
 # Additional dependencies for data visualization and export
 plotly==5.22.0
 openpyxl==3.1.5
