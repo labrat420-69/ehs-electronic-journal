@@ -5,7 +5,7 @@ Chemical Inventory models for tracking chemical stock and usage
 from sqlalchemy import Column, Integer, String, Text, DateTime, Numeric, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 
 class ChemicalInventoryLog(Base):
     """Main chemical inventory tracking table"""

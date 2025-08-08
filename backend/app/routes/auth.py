@@ -9,9 +9,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from app.database import get_db
-from app.models.user import User, UserRole
-from app.auth.jwt_handler import (
+from backend.database import get_db
+from backend.models.user import User, UserRole
+from backend.auth.jwt_handler import (
     authenticate_user, 
     create_access_token, 
     get_password_hash,
@@ -19,7 +19,7 @@ from app.auth.jwt_handler import (
     require_admin,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from app.utils.validation import validate_email, validate_password_strength, validate_required_fields
+from backend.utils.validation import validate_email, validate_password_strength, validate_required_fields
 
 # Import templates from main.py setup
 from pathlib import Path
@@ -210,7 +210,7 @@ async def change_password(
     """Change user password"""
     
     # Verify current password
-    from app.auth.jwt_handler import verify_password
+    from backend.auth.jwt_handler import verify_password
     if not verify_password(current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

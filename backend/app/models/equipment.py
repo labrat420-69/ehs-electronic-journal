@@ -5,7 +5,7 @@ Equipment models for tracking laboratory equipment, pipettes, and water conducti
 from sqlalchemy import Column, Integer, String, Text, DateTime, Numeric, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 
 class Equipment(Base):
     """General equipment tracking and calibration"""

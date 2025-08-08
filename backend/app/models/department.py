@@ -5,7 +5,7 @@ Department model for organizational structure
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 
 class Department(Base):
     """Department model for organizational structure"""
