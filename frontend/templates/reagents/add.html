@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Add {{ reagent_type|upper }} Reagent - EHS Electronic Journal{% endblock %}
+{% block page_title %}Add {{ reagent_type|upper }} Reagent{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-info">
+            <h2>Add New {{ reagent_type|upper }} Reagent</h2>
+            <p>Create a new {{ reagent_type|upper }} reagent with preparation tracking and usage details</p>
+        </div>
+        <div class="page-actions">
+            <a href="/reagents/{{ reagent_type }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to {{ reagent_type|upper }} Reagents
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <form id="reagent-form" class="modern-form">
+        <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3 class="section-title">Basic Information</h3>
+                
+                <div class="form-group">
+                    <label for="reagent_name" class="required">Reagent Name</label>
+                    <input type="text" id="reagent_name" name="reagent_name" class="form-control" required
+                           placeholder="Enter reagent name (e.g., {{ reagent_type|upper }}-001)">
+                    <div class="form-help">Unique identifier for this reagent batch</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="batch_number" class="required">Batch Number</label>
+                    <input type="text" id="batch_number" name="batch_number" class="form-control" required
+                           placeholder="Enter batch number">
+                    <div class="form-help">Preparation batch identifier</div>
+                </div>
+
+                {% if reagent_type == 'tclp' %}
+                <div class="form-group">
+                    <label for="reagent_type_select" class="required">Reagent Type</label>
+                    <select id="reagent_type_select" name="reagent_type" class="form-control" required>
+                        <option value="">Select type...</option>
+                        <option value="Extraction Fluid 1">Extraction Fluid 1</option>
+                        <option value="Extraction Fluid 2">Extraction Fluid 2</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="form-help">Specify the type of TCLP reagent</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Preparation Details -->
+            <div class="form-section">
+                <h3 class="section-title">Preparation Details</h3>
+                
+                <div class="form-group">
+                    <label for="preparation_date" class="required">Preparation Date</label>
+                    <input type="date" id="preparation_date" name="preparation_date" class="form-control" required>
+                    <div class="form-help">Date when the reagent was prepared</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiration_date">Expiration Date</label>
+                    <input type="date" id="expiration_date" name="expiration_date" class="form-control">
+                    <div class="form-help">Expected expiration date (optional)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="total_volume" class="required">Total Volume (mL)</label>
+                    <input type="number" id="total_volume" name="total_volume" class="form-control" 
+                           step="0.1" min="0" required placeholder="Enter volume">
+                    <div class="form-help">Total volume of prepared reagent</div>
+                </div>
+            </div>
+
+            <!-- Chemical Composition -->
+            <div class="form-section">
+                <h3 class="section-title">Chemical Composition</h3>
+                
+                {% if reagent_type == 'mm' %}
+                <div class="form-group">
+                    <label for="concentration">Concentration</label>
+                    <input type="text" id="concentration" name="concentration" class="form-control"
+                           placeholder="e.g., 1000 ppm, 5%">
+                    <div class="form-help">Concentration of active components</div>
+                </div>
+                {% elif reagent_type == 'pb' %}
+                <div class="form-group">
+                    <label for="lead_concentration">Lead Concentration (ppm)</label>
+                    <input type="number" id="lead_concentration" name="lead_concentration" class="form-control"
+                           step="0.01" min="0" placeholder="Enter lead concentration">
+                    <div class="form-help">Concentration of lead in the reagent</div>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="chemicals_used">Chemicals Used</label>
+                    <textarea id="chemicals_used" name="chemicals_used" class="form-control" rows="3"
+                              placeholder="List the chemicals used in preparation..."></textarea>
+                    <div class="form-help">List all chemicals and their quantities used</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preparation_method">Preparation Method</label>
+                    <textarea id="preparation_method" name="preparation_method" class="form-control" rows="4"
+                              placeholder="Describe the preparation procedure..."></textarea>
+                    <div class="form-help">Step-by-step preparation procedure</div>
+                </div>
+            </div>
+
+            <!-- Quality Control -->
+            <div class="form-section">
+                <h3 class="section-title">Quality Control Parameters</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ph_value">pH Value</label>
+                        <input type="number" id="ph_value" name="ph_value" class="form-control" 
+                               step="0.01" min="0" max="14" placeholder="e.g., 7.0">
+                        <div class="form-help">Measured pH of the reagent</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="conductivity">Conductivity (µS/cm)</label>
+                        <input type="number" id="conductivity" name="conductivity" class="form-control" 
+                               step="0.1" min="0" placeholder="e.g., 150.5">
+                        <div class="form-help">Electrical conductivity measurement</div>
+                    </div>
+                </div>
+
+                {% if reagent_type == 'tclp' %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ph_target">Target pH</label>
+                        <input type="number" id="ph_target" name="ph_target" class="form-control" 
+                               step="0.01" min="0" max="14" placeholder="e.g., 4.93">
+                        <div class="form-help">Target pH for TCLP extraction</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="final_ph">Final pH</label>
+                        <input type="number" id="final_ph" name="final_ph" class="form-control" 
+                               step="0.01" min="0" max="14" placeholder="e.g., 4.95">
+                        <div class="form-help">Final measured pH after preparation</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="verification_passed">Verification Status</label>
+                    <div class="form-check">
+                        <input type="checkbox" id="verification_passed" name="verification_passed" class="form-check-input">
+                        <label for="verification_passed" class="form-check-label">
+                            Verification passed - reagent meets all specifications
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="form-section">
+                <h3 class="section-title">Additional Information</h3>
+                
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="3"
+                              placeholder="Any additional notes, observations, or special handling instructions..."></textarea>
+                    <div class="form-help">Optional notes and observations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Add {{ reagent_type|upper }} Reagent
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-undo"></i> Clear Form
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('reagent-form');
+    const reagentType = '{{ reagent_type }}';
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Convert form data to JSON
+        for (let [key, value] of formData.entries()) {
+            if (value !== '') {
+                if (key === 'total_volume' || key === 'ph_value' || key === 'conductivity' || 
+                    key === 'lead_concentration' || key === 'ph_target' || key === 'final_ph') {
+                    data[key] = parseFloat(value);
+                } else if (key === 'preparation_date' || key === 'expiration_date') {
+                    if (value) {
+                        data[key] = value + 'T00:00:00';
+                    }
+                } else if (key === 'verification_passed') {
+                    data[key] = true;
+                } else {
+                    data[key] = value;
+                }
+            }
+        }
+
+        // Handle checkbox for verification_passed when not checked
+        if (!formData.has('verification_passed') && reagentType === 'tclp') {
+            data['verification_passed'] = false;
+        }
+        
+        try {
+            const response = await fetch(`/reagents/${reagentType}/api/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                alert(`${reagentType.toUpperCase()} reagent added successfully!`);
+                window.location.href = `/reagents/${reagentType}`;
+            } else {
+                const error = await response.json();
+                alert('Error adding reagent: ' + (error.detail || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding reagent. Please try again.');
+        }
+    });
+
+    // Auto-populate expiration date based on preparation date (30 days later)
+    const prepDateInput = document.getElementById('preparation_date');
+    const expDateInput = document.getElementById('expiration_date');
+    
+    prepDateInput.addEventListener('change', function() {
+        if (this.value && !expDateInput.value) {
+            const prepDate = new Date(this.value);
+            prepDate.setDate(prepDate.getDate() + 30); // Add 30 days
+            expDateInput.value = prepDate.toISOString().split('T')[0];
+        }
+    });
+
+    // Set today as default preparation date
+    if (!prepDateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        prepDateInput.value = today;
+        prepDateInput.dispatchEvent(new Event('change')); // Trigger expiration date calculation
+    }
+});
+</script>
+
+<style>
+.modern-form {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.form-grid {
+    display: grid;
+    gap: 2rem;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.section-title {
+    margin: 0 0 1rem 0;
+    color: #007bff;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+label.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-help {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-check-input {
+    width: auto;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+</style>
+{% endblock %}

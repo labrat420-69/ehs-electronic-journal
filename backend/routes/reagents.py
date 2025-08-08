@@ -149,7 +149,8 @@ async def mm_reagents_list(
         "title": "MM Reagents - EHS Electronic Journal",
         "reagents": reagents,
         "current_user": current_user,
-        "reagent_type": "MM"
+        "reagent_type": "mm",
+        "today": datetime.now().date()
     }
     
     return templates.TemplateResponse("reagents/list.html", context)
@@ -164,7 +165,7 @@ async def add_mm_reagent_form(
         "request": request,
         "title": "Add MM Reagent - EHS Electronic Journal",
         "current_user": current_user,
-        "reagent_type": "MM"
+        "reagent_type": "mm"
     }
     
     return templates.TemplateResponse("reagents/add.html", context)
@@ -255,7 +256,7 @@ async def mm_reagent_detail(
         "reagent": reagent,
         "history": history,
         "current_user": current_user,
-        "reagent_type": "MM"
+        "reagent_type": "mm"
     }
     
     return templates.TemplateResponse("reagents/detail.html", context)
@@ -401,10 +402,26 @@ async def pb_reagents_list(
         "title": "Pb Reagents - EHS Electronic Journal",
         "reagents": reagents,
         "current_user": current_user,
-        "reagent_type": "Pb"
+        "reagent_type": "pb",
+        "today": datetime.now().date()
     }
     
     return templates.TemplateResponse("reagents/list.html", context)
+
+@router.get("/pb/add", response_class=HTMLResponse)
+async def add_pb_reagent_form(
+    request: Request,
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Add Pb reagent form"""
+    context = {
+        "request": request,
+        "title": "Add Pb Reagent - EHS Electronic Journal",
+        "current_user": current_user,
+        "reagent_type": "pb"
+    }
+    
+    return templates.TemplateResponse("reagents/add.html", context)
 
 @router.post("/pb/api/", response_model=dict)
 async def create_pb_reagent(
@@ -471,10 +488,26 @@ async def tclp_reagents_list(
         "title": "TCLP Reagents - EHS Electronic Journal",
         "reagents": reagents,
         "current_user": current_user,
-        "reagent_type": "TCLP"
+        "reagent_type": "tclp",
+        "today": datetime.now().date()
     }
     
     return templates.TemplateResponse("reagents/list.html", context)
+
+@router.get("/tclp/add", response_class=HTMLResponse)
+async def add_tclp_reagent_form(
+    request: Request,
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Add TCLP reagent form"""
+    context = {
+        "request": request,
+        "title": "Add TCLP Reagent - EHS Electronic Journal",
+        "current_user": current_user,
+        "reagent_type": "tclp"
+    }
+    
+    return templates.TemplateResponse("reagents/add.html", context)
 
 @router.post("/tclp/api/", response_model=dict)
 async def create_tclp_reagent(
