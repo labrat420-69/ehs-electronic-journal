@@ -41,7 +41,7 @@ def setup_database():
     
     # Create chemical inventory table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS chemical_inventory (
+        CREATE TABLE IF NOT EXISTS chemical_inventory_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             chemical_name TEXT NOT NULL,
             cas_number TEXT,
