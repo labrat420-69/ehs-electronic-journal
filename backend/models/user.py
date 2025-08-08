@@ -31,7 +31,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     
     # Role-based access control
-    role = Column(Enum(role), nullable=False, default=role.USER)
+    role = Column(Enum(UserRole), nullable=False, default=UserRole.USER)
     
     # Account status
     is_active = Column(Boolean, default=True)
