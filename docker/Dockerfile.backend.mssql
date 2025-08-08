@@ -1,5 +1,5 @@
-# EHS Electronic Journal Backend Dockerfile
-# Multi-stage build for production optimization
+# EHS Electronic Journal Backend Dockerfile with MS SQL Server ODBC Support
+# This version includes MS SQL Server ODBC drivers for production Windows environments
 
 FROM python:3.11-slim AS base
 
@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
+# Install system dependencies including MS SQL Server ODBC drivers
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
@@ -19,11 +19,13 @@ RUN apt-get update && apt-get install -y \
     unixodbc-dev \
     wget \
     ca-certificates \
+    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && echo "deb [arch=amd64,arm64,armhf] https://packages.microsoft.com/debian/11/prod bullseye main" > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 \
+    && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Note: MS SQL Server ODBC drivers can be installed manually if needed
-# The pyodbc dependency is still included in requirements.txt
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser

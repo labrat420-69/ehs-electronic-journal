@@ -1,53 +1,50 @@
-# EHS Electronic Journal - Windows Docker Compose Configuration
-# Optimized for Windows deployment with proper volume handling and database flexibility
+# EHS Electronic Journal - MS SQL Server Docker Compose Configuration
+# Windows-compatible deployment with MS SQL Server
 
 services:
-  # PostgreSQL Database (default)
-  postgres:
-    image: postgres:15-alpine
-    container_name: ehs_postgres
+  # MS SQL Server Database
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ehs_mssql
     environment:
-      POSTGRES_DB: ehs_electronic_journal
-      POSTGRES_USER: ehs_user
-      POSTGRES_PASSWORD: ehs_password
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "EhsPassword123!"
+      MSSQL_PID: "Express"
+      MSSQL_DATABASE: "ehs_electronic_journal"
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      # Windows-compatible path mounting for init script
+      - mssql_data:/var/opt/mssql
+      # Init script for database creation
       - type: bind
-        source: ./database/postgresql/schema.sql
-        target: /docker-entrypoint-initdb.d/01-schema.sql
+        source: ./database/sqlserver/init.sql
+        target: /docker-entrypoint-initdb.d/01-init.sql
         read_only: true
     networks:
       - ehs_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ehs_user -d ehs_electronic_journal"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P EhsPassword123! -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-    profiles:
-      - postgres
-      - default
+      start_period: 10s
 
-  # FastAPI Backend
+  # FastAPI Backend with MS SQL Server
   backend:
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
       target: production
-    container_name: ehs_backend
+    container_name: ehs_backend_mssql
     environment:
-      # Database configuration - can be overridden with .env file
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgresql}
-      - POSTGRES_SERVER=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DATABASE=ehs_electronic_journal
-      - POSTGRES_USER=ehs_user
-      - POSTGRES_PASSWORD=ehs_password
-      # Application configuration
+      - DATABASE_TYPE=mssql
+      - MSSQL_SERVER=mssql
+      - MSSQL_PORT=1433
+      - MSSQL_DATABASE=ehs_electronic_journal
+      - MSSQL_USER=ehs_user
+      - MSSQL_PASSWORD=EhsPassword123!
+      - MSSQL_DRIVER=ODBC Driver 18 for SQL Server
       - SECRET_KEY=${SECRET_KEY:-your-production-secret-key-change-this}
       - DEBUG=${DEBUG:-false}
       - HOST=0.0.0.0
@@ -65,7 +62,7 @@ services:
         target: /app/frontend
         read_only: true
     depends_on:
-      postgres:
+      mssql:
         condition: service_healthy
     networks:
       - ehs_network
@@ -75,13 +72,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    profiles:
-      - default
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: ehs_nginx
+    container_name: ehs_nginx_mssql
     ports:
       - "80:80"
       - "443:443"
@@ -99,14 +94,11 @@ services:
     networks:
       - ehs_network
     restart: unless-stopped
-    profiles:
-      - default
-      - production
 
   # Redis for Session Management
   redis:
     image: redis:7-alpine
-    container_name: ehs_redis
+    container_name: ehs_redis_mssql
     ports:
       - "6379:6379"
     volumes:
@@ -115,24 +107,12 @@ services:
       - ehs_network
     restart: unless-stopped
     command: redis-server --appendonly yes
-    profiles:
-      - default
-      - redis
 
 volumes:
-  postgres_data:
+  mssql_data:
     driver: local
-    # Windows-specific driver options can be added here
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/postgres
   redis_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/redis
 
 networks:
   ehs_network:
