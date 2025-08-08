@@ -55,9 +55,10 @@ def setup_database():
     ''')
     
     # Insert default admin user (password: admin123!)
+    # Note: Using lowercase 'admin' to match UserRole.ADMIN.value
     cursor.execute('''
         INSERT OR IGNORE INTO users (username, email, hashed_password, role)
-        VALUES ('admin', 'admin@ehslabs.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewmjuTrNk8gLq6FW', 'Admin')
+        VALUES ('admin', 'admin@ehslabs.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewmjuTrNk8gLq6FW', 'admin')
     ''')
     
     conn.commit()

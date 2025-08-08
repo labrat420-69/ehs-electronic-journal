@@ -121,7 +121,8 @@
                 </li>
                 
                 <!-- User Management (Admin only) -->
-                {% if current_user and current_user.role == 'admin' %}
+                <!-- Using template helper function for robust role checking -->
+                {% if user_is_admin(current_user) %}
                 <li class="nav-section">
                     <div class="nav-section-header">
                         <i class="fas fa-users"></i>

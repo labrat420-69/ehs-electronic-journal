@@ -65,6 +65,10 @@ def health():
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
+# Add template helper functions for robust role-based access control
+from backend.utils.template_helpers import template_functions
+templates.env.globals.update(template_functions)
+
 # The dashboard router handles "/"
 # @app.get("/")
 # def read_root(request: Request):
