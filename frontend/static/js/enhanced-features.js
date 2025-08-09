@@ -414,8 +414,8 @@ class EHSEnhancedFeatures {
 }
 
 // Add CSS animations for notifications
-const style = document.createElement('style');
-style.textContent = `
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -425,7 +425,7 @@ style.textContent = `
         to { transform: translateX(100%); opacity: 0; }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(notificationStyle);
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

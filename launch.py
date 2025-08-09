@@ -73,7 +73,7 @@ def start_server():
     print("⏰ Current Time (EST): " + "08/05/2025 4:39 PM")
     
     # Start uvicorn server
-    os.system('uvicorn main:app --host 0.0.0.0 --port 8000 --reload')
+    os.system('uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload')
 
 def main():
     print("🔬 EHS Electronic Journal System Launcher")

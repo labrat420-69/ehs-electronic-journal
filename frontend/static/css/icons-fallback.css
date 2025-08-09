@@ -1,0 +1,86 @@
+/* Font Awesome Fallback Icons Using Unicode */
+.fa, .fas, .far, .fab {
+    display: inline-block;
+    font-weight: normal;
+    line-height: 1;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dashboard Icons */
+.fa-tachometer-alt:before { content: "📊"; }
+.fa-chart-bar:before { content: "📊"; }
+.fa-analytics:before { content: "📈"; }
+
+/* Chemical Icons */
+.fa-flask:before { content: "🧪"; }
+.fa-vial:before { content: "🧪"; }
+.fa-atom:before { content: "⚛️"; }
+
+/* Equipment Icons */
+.fa-cogs:before { content: "⚙️"; }
+.fa-tools:before { content: "🔧"; }
+.fa-wrench:before { content: "🔧"; }
+.fa-screwdriver:before { content: "🔨"; }
+
+/* General Icons */
+.fa-plus:before { content: "+"; }
+.fa-edit:before { content: "✏️"; }
+.fa-trash:before { content: "🗑️"; }
+.fa-search:before { content: "🔍"; }
+.fa-user:before { content: "👤"; }
+.fa-users:before { content: "👥"; }
+.fa-calendar:before { content: "📅"; }
+.fa-calendar-times:before { content: "📅"; }
+.fa-clock:before { content: "🕒"; }
+.fa-check:before { content: "✓"; }
+.fa-times:before { content: "✗"; }
+.fa-exclamation-triangle:before { content: "⚠️"; }
+.fa-info-circle:before { content: "ℹ️"; }
+.fa-arrow-down:before { content: "↓"; }
+.fa-arrow-up:before { content: "↑"; }
+.fa-download:before { content: "⬇️"; }
+.fa-upload:before { content: "⬆️"; }
+.fa-file:before { content: "📄"; }
+.fa-folder:before { content: "📁"; }
+.fa-print:before { content: "🖨️"; }
+.fa-email:before { content: "✉️"; }
+.fa-envelope:before { content: "✉️"; }
+.fa-phone:before { content: "📞"; }
+.fa-home:before { content: "🏠"; }
+.fa-bars:before { content: "☰"; }
+.fa-ellipsis-v:before { content: "⋮"; }
+.fa-ellipsis-h:before { content: "⋯"; }
+.fa-heart:before { content: "♥"; }
+.fa-star:before { content: "★"; }
+.fa-bookmark:before { content: "🔖"; }
+.fa-tag:before { content: "🏷️"; }
+.fa-tags:before { content: "🏷️"; }
+
+/* Water and testing */
+.fa-tint:before { content: "💧"; }
+.fa-beaker:before { content: "🧪"; }
+
+/* Maintenance */
+.fa-hammer:before { content: "🔨"; }
+.fa-bolt:before { content: "⚡"; }
+
+/* Status Icons */
+.fa-check-circle:before { content: "✅"; }
+.fa-times-circle:before { content: "❌"; }
+.fa-question-circle:before { content: "❓"; }
+
+/* Navigation */
+.fa-chevron-down:before { content: "▼"; }
+.fa-chevron-up:before { content: "▲"; }
+.fa-chevron-left:before { content: "◀"; }
+.fa-chevron-right:before { content: "▶"; }
+
+/* Settings */
+.fa-cog:before { content: "⚙️"; }
+.fa-gear:before { content: "⚙️"; }
+
+/* Logout */
+.fa-sign-out-alt:before { content: "🚪"; }
+.fa-logout:before { content: "🚪"; }
