@@ -84,6 +84,128 @@
     </div>
 </div>
 
+<!-- Log Category Selection Grid -->
+<div class="log-categories-container">
+    <div class="category-header">
+        <h3>Maintenance Log Categories</h3>
+        <p>Select a category to access specific maintenance logging</p>
+    </div>
+    
+    <div class="log-type-selector">
+        <label for="log-type-dropdown">Log Type:</label>
+        <select id="log-type-dropdown" class="form-control">
+            <option value="">Select Log Type...</option>
+            <option value="preventive">Preventive Maintenance</option>
+            <option value="corrective">Corrective Maintenance</option>
+            <option value="emergency">Emergency Repairs</option>
+            <option value="calibration">Calibration Records</option>
+            <option value="inspection">Safety Inspections</option>
+        </select>
+    </div>
+    
+    <div class="category-grid">
+        <!-- Row 1: Laboratory Equipment -->
+        <button class="category-btn equipment-btn" onclick="openMaintenanceLog('fume_hood')" data-category="fume_hood">
+            <i class="fas fa-wind"></i>
+            <span class="category-title">Fume Hood</span>
+            <span class="category-subtitle">Ventilation & Safety</span>
+        </button>
+        
+        <button class="category-btn equipment-btn" onclick="openMaintenanceLog('icp_oes')" data-category="icp_oes">
+            <i class="fas fa-microscope"></i>
+            <span class="category-title">ICP-OES</span>
+            <span class="category-subtitle">Analytical Equipment</span>
+        </button>
+        
+        <button class="category-btn equipment-btn" onclick="openMaintenanceLog('balance')" data-category="balance">
+            <i class="fas fa-balance-scale"></i>
+            <span class="category-title">Analytical Balance</span>
+            <span class="category-subtitle">Precision Instruments</span>
+        </button>
+        
+        <button class="category-btn equipment-btn" onclick="openMaintenanceLog('autoclave')" data-category="autoclave">
+            <i class="fas fa-thermometer-full"></i>
+            <span class="category-title">Autoclave</span>
+            <span class="category-subtitle">Sterilization</span>
+        </button>
+        
+        <!-- Row 2: Safety Equipment -->
+        <button class="category-btn safety-btn" onclick="openMaintenanceLog('eyewash')" data-category="eyewash">
+            <i class="fas fa-eye"></i>
+            <span class="category-title">Eyewash Station</span>
+            <span class="category-subtitle">Emergency Safety</span>
+        </button>
+        
+        <button class="category-btn safety-btn" onclick="openMaintenanceLog('safety_shower')" data-category="safety_shower">
+            <i class="fas fa-shower"></i>
+            <span class="category-title">Safety Shower</span>
+            <span class="category-subtitle">Emergency Safety</span>
+        </button>
+        
+        <button class="category-btn safety-btn" onclick="openMaintenanceLog('fire_extinguisher')" data-category="fire_extinguisher">
+            <i class="fas fa-fire-extinguisher"></i>
+            <span class="category-title">Fire Extinguisher</span>
+            <span class="category-subtitle">Fire Safety</span>
+        </button>
+        
+        <button class="category-btn safety-btn" onclick="openMaintenanceLog('first_aid')" data-category="first_aid">
+            <i class="fas fa-first-aid"></i>
+            <span class="category-title">First Aid Kit</span>
+            <span class="category-subtitle">Medical Supplies</span>
+        </button>
+        
+        <!-- Row 3: Documentation & Waste -->
+        <button class="category-btn document-btn" onclick="openMaintenanceLog('sds')" data-category="sds">
+            <i class="fas fa-file-medical-alt"></i>
+            <span class="category-title">SDS Management</span>
+            <span class="category-subtitle">Safety Data Sheets</span>
+        </button>
+        
+        <button class="category-btn waste-btn" onclick="openMaintenanceLog('waste')" data-category="waste">
+            <i class="fas fa-recycle"></i>
+            <span class="category-title">Waste Management</span>
+            <span class="category-subtitle">Disposal & Collection</span>
+        </button>
+        
+        <button class="category-btn waste-btn" onclick="openMaintenanceLog('chemical_storage')" data-category="chemical_storage">
+            <i class="fas fa-flask"></i>
+            <span class="category-title">Chemical Storage</span>
+            <span class="category-subtitle">Inventory & Safety</span>
+        </button>
+        
+        <button class="category-btn utility-btn" onclick="openMaintenanceLog('hvac')" data-category="hvac">
+            <i class="fas fa-fan"></i>
+            <span class="category-title">HVAC System</span>
+            <span class="category-subtitle">Air Quality & Climate</span>
+        </button>
+        
+        <!-- Row 4: General Equipment -->
+        <button class="category-btn utility-btn" onclick="openMaintenanceLog('plumbing')" data-category="plumbing">
+            <i class="fas fa-wrench"></i>
+            <span class="category-title">Plumbing</span>
+            <span class="category-subtitle">Water & Drainage</span>
+        </button>
+        
+        <button class="category-btn utility-btn" onclick="openMaintenanceLog('electrical')" data-category="electrical">
+            <i class="fas fa-bolt"></i>
+            <span class="category-title">Electrical</span>
+            <span class="category-subtitle">Power & Circuits</span>
+        </button>
+        
+        <button class="category-btn equipment-btn" onclick="openMaintenanceLog('general')" data-category="general">
+            <i class="fas fa-tools"></i>
+            <span class="category-title">General Equipment</span>
+            <span class="category-subtitle">Miscellaneous Items</span>
+        </button>
+        
+        <button class="category-btn document-btn" onclick="openMaintenanceLog('inspection')" data-category="inspection">
+            <i class="fas fa-clipboard-check"></i>
+            <span class="category-title">Inspections</span>
+            <span class="category-subtitle">Compliance & Audits</span>
+        </button>
+    </div>
+</div>
+
 <!-- Equipment Status Overview -->
 <div class="overview-container">
     <div class="overview-card">
@@ -252,6 +374,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize maintenance dashboard
+    initializeMaintenanceDashboard();
+    
     // Filter upcoming maintenance by days
     const filterDays = document.getElementById('filter-days');
     if (filterDays) {
@@ -262,9 +387,10 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => {
                 const daysCell = row.cells[3];
                 const daysText = daysCell.textContent;
-                const daysUntil = parseInt(daysText.match(/(\d+) days/)[1]) || 0;
+                const daysMatch = daysText.match(/(\d+) days/);
+                const daysUntil = daysMatch ? parseInt(daysMatch[1]) : 0;
                 
-                if (daysUntil <= days) {
+                if (daysUntil <= days || daysText.includes('overdue')) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -274,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Export functionality
-    const exportBtn = document.getElementById('export-btn');
+    const exportBtn = document.getElementById('maintenance-export-btn');
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
             const exportUrl = '/maintenance/export';
@@ -282,15 +408,157 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Auto-refresh every 5 minutes
-    setTimeout(() => {
-        location.reload();
-    }, 5 * 60 * 1000);
+    // Log type selector functionality
+    const logTypeDropdown = document.getElementById('log-type-dropdown');
+    if (logTypeDropdown) {
+        logTypeDropdown.addEventListener('change', function() {
+            updateCategoryButtonsForLogType(this.value);
+        });
+    }
 });
+
+function initializeMaintenanceDashboard() {
+    // Add hover effects to category buttons
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    categoryButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.classList.add('hover-effect');
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.classList.remove('hover-effect');
+        });
+    });
+}
+
+function openMaintenanceLog(category) {
+    // Get selected log type
+    const logType = document.getElementById('log-type-dropdown').value || 'general';
+    
+    // Clear previous active states
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Set active state for clicked button
+    const clickedBtn = document.querySelector(`[data-category="${category}"]`);
+    if (clickedBtn) {
+        clickedBtn.classList.add('active');
+    }
+    
+    // Show confirmation and navigate
+    const categoryNames = {
+        'fume_hood': 'Fume Hood',
+        'icp_oes': 'ICP-OES',
+        'balance': 'Analytical Balance',
+        'autoclave': 'Autoclave',
+        'eyewash': 'Eyewash Station',
+        'safety_shower': 'Safety Shower',
+        'fire_extinguisher': 'Fire Extinguisher',
+        'first_aid': 'First Aid Kit',
+        'sds': 'SDS Management',
+        'waste': 'Waste Management',
+        'chemical_storage': 'Chemical Storage',
+        'hvac': 'HVAC System',
+        'plumbing': 'Plumbing',
+        'electrical': 'Electrical',
+        'general': 'General Equipment',
+        'inspection': 'Inspections'
+    };
+    
+    const categoryName = categoryNames[category] || category;
+    const logTypeName = logType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    // For now, show an alert with the selection (in a real app, this would navigate to the specific logging page)
+    if (confirm(`Open ${logTypeName} log for ${categoryName}?\n\nThis will navigate to the specific maintenance logging interface.`)) {
+        // Navigate to specific maintenance log page
+        const url = `/maintenance/${category}/${logType}`;
+        
+        // Check if we have specific routes for this category
+        if (category === 'icp_oes') {
+            window.location.href = '/maintenance/icp-oes';
+        } else if (category === 'sds') {
+            window.location.href = '/chemical_inventory/'; // SDS management is part of chemical inventory
+        } else if (category === 'waste') {
+            window.location.href = '/waste/'; // Navigate to waste management
+        } else {
+            // For other categories, show a message that the specific log is being developed
+            alert(`${categoryName} ${logTypeName} logging interface is being developed.\n\nThis would open a dedicated form for logging ${categoryName.toLowerCase()} maintenance activities.`);
+        }
+    }
+}
+
+function updateCategoryButtonsForLogType(logType) {
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    
+    // Reset all buttons
+    categoryButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.opacity = '1';
+        btn.disabled = false;
+    });
+    
+    if (!logType) {
+        return; // All buttons available
+    }
+    
+    // Highlight relevant categories based on log type
+    const logTypeRelevance = {
+        'preventive': ['fume_hood', 'icp_oes', 'balance', 'autoclave', 'hvac', 'plumbing', 'electrical'],
+        'corrective': ['icp_oes', 'balance', 'autoclave', 'hvac', 'plumbing', 'electrical', 'general'],
+        'emergency': ['eyewash', 'safety_shower', 'fire_extinguisher', 'first_aid', 'hvac', 'plumbing', 'electrical'],
+        'calibration': ['icp_oes', 'balance', 'general'],
+        'inspection': ['fume_hood', 'eyewash', 'safety_shower', 'fire_extinguisher', 'first_aid', 'sds', 'waste', 'chemical_storage', 'inspection']
+    };
+    
+    const relevantCategories = logTypeRelevance[logType] || [];
+    
+    if (relevantCategories.length > 0) {
+        categoryButtons.forEach(btn => {
+            const category = btn.dataset.category;
+            if (!relevantCategories.includes(category)) {
+                btn.style.opacity = '0.5';
+            } else {
+                btn.style.opacity = '1';
+                btn.classList.add('pulse-animation'); // Add visual emphasis
+                setTimeout(() => {
+                    btn.classList.remove('pulse-animation');
+                }, 2000);
+            }
+        });
+    }
+}
+
+// Function to simulate "Send to Analysis Lab" functionality
+function sendToAnalysisLab(dataType, recordId) {
+    if (confirm(`Send ${dataType} data to Analysis Lab?\n\nThis will package the selected maintenance data for laboratory analysis and review.`)) {
+        // Simulate API call
+        const labRequest = {
+            type: 'maintenance_analysis',
+            category: dataType,
+            recordId: recordId,
+            timestamp: new Date().toISOString(),
+            priority: 'standard',
+            requestedBy: 'Maintenance Dashboard'
+        };
+        
+        console.log('Lab Analysis Request:', labRequest);
+        
+        // Show success message
+        alert(`✅ Data sent to Analysis Lab successfully!\n\nAnalysis Request ID: LAB-${Date.now()}\n\nThe analysis team will review the maintenance data and provide insights within 1-2 business days.`);
+        
+        // In a real application, this would:
+        // 1. Package the maintenance data
+        // 2. Send to analysis queue/API
+        // 3. Generate tracking number
+        // 4. Update status in database
+        // 5. Send notification to analysis team
+    }
+}
 </script>
 
 <style>
-/* Additional styles for maintenance dashboard */
+/* Additional styles for maintenance dashboard with futuristic theme */
 .equipment-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -300,88 +568,111 @@ document.addEventListener('DOMContentLoaded', function() {
 .equipment-item {
     text-align: center;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-tech);
     border: 2px solid;
+    background: var(--card-gradient);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.equipment-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--border-radius-tech) var(--border-radius-tech) 0 0;
 }
 
 .equipment-item.operational {
-    background: #f0fdf4;
-    border-color: #10b981;
-    color: #047857;
+    border-color: var(--lab-accent);
+}
+
+.equipment-item.operational::before {
+    background: var(--lab-accent);
 }
 
 .equipment-item.maintenance {
-    background: #fffbeb;
-    border-color: #f59e0b;
-    color: #d97706;
+    border-color: var(--lab-warning);
+}
+
+.equipment-item.maintenance::before {
+    background: var(--lab-warning);
 }
 
 .equipment-item.service {
-    background: #fef3c7;
-    border-color: #f59e0b;
-    color: #92400e;
+    border-color: var(--lab-secondary);
+}
+
+.equipment-item.service::before {
+    background: var(--lab-secondary);
 }
 
 .equipment-item.critical {
-    background: #fef2f2;
-    border-color: #ef4444;
-    color: #dc2626;
+    border-color: var(--lab-danger);
+}
+
+.equipment-item.critical::before {
+    background: var(--lab-danger);
 }
 
 .equipment-count {
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 5px;
+    color: var(--text-inverse);
+    font-family: var(--font-tech);
+    text-shadow: var(--glow-primary);
 }
 
 .equipment-label {
-    font-weight: 500;
+    font-weight: bold;
     font-size: 14px;
+    color: var(--text-inverse);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-.days-badge {
+.days-badge,
+.priority-badge,
+.status-badge {
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: var(--border-radius-tech);
     font-size: 12px;
-    font-weight: 500;
-}
-
-.days-badge.overdue {
-    background: #fef2f2;
-    color: #dc2626;
-}
-
-.days-badge.urgent {
-    background: #fffbeb;
-    color: #d97706;
-}
-
-.days-badge.soon {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.priority-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
+    font-weight: bold;
+    font-family: var(--font-tech);
     text-transform: uppercase;
 }
 
+.days-badge.overdue {
+    background: var(--lab-danger);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-danger);
+}
+
+.days-badge.urgent {
+    background: var(--lab-warning);
+    color: var(--text-inverse);
+}
+
+.days-badge.soon {
+    background: var(--lab-secondary);
+    color: var(--text-inverse);
+}
+
 .priority-high {
-    background: #fef2f2;
-    color: #dc2626;
+    background: var(--lab-danger);
+    color: var(--text-inverse);
 }
 
 .priority-medium {
-    background: #fffbeb;
-    color: #d97706;
+    background: var(--lab-warning);
+    color: var(--text-inverse);
 }
 
 .priority-low {
-    background: #f0fdf4;
-    color: #047857;
+    background: var(--lab-accent);
+    color: var(--text-inverse);
 }
 
 .table-header {
@@ -389,6 +680,12 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+}
+
+.table-header h3 {
+    color: var(--text-inverse);
+    font-weight: bold;
+    text-shadow: var(--glow-primary);
 }
 
 .table-actions {
@@ -402,15 +699,88 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .overview-card {
-    background: white;
-    border-radius: 10px;
+    background: var(--card-gradient);
+    border: var(--border-tech);
+    border-radius: var(--border-radius-tech);
     padding: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card);
+}
+
+.overview-card .card-header h3 {
+    color: var(--text-inverse);
+    font-weight: bold;
+    text-shadow: var(--glow-primary);
+    margin-bottom: var(--spacing-tech);
+}
+
+.data-table {
+    background: var(--card-gradient);
+    border: var(--border-tech);
+    border-radius: var(--border-radius-tech);
+    color: var(--text-inverse);
+}
+
+.data-table th {
+    background: var(--accent-gradient);
+    color: var(--text-inverse);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    color: var(--text-inverse);
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.table-container {
+    background: var(--card-gradient);
+    border: var(--border-tech);
+    border-radius: var(--border-radius-tech);
+    padding: var(--spacing-tech);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: var(--card-gradient);
+    border: var(--border-tech);
+    border-radius: var(--border-radius-tech);
+    box-shadow: var(--shadow-card);
+}
+
+.empty-state-icon i {
+    font-size: 4em;
+    color: var(--lab-primary);
+    margin-bottom: var(--spacing-tech);
+    text-shadow: var(--glow-primary);
+}
+
+.empty-state h3 {
+    color: var(--text-inverse);
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+    text-shadow: var(--glow-primary);
+}
+
+.empty-state p {
+    color: var(--lab-primary);
+    font-family: var(--font-tech);
+    margin-bottom: var(--spacing-tech);
 }
 
 @media (max-width: 768px) {
     .equipment-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .equipment-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>

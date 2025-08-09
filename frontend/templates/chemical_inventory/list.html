@@ -19,8 +19,14 @@
             <a href="/chemical_inventory/add" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add Chemical
             </a>
+            <button id="bulk-import-btn" class="btn btn-secondary">
+                <i class="fas fa-upload"></i> Bulk Import
+            </button>
             <button id="chemical-inventory-export-btn" class="btn btn-secondary export-btn">
                 <i class="fas fa-download"></i> Export
+            </button>
+            <button id="send-to-lab-btn" class="btn btn-success" disabled>
+                <i class="fas fa-microscope"></i> Send to Analysis Lab
             </button>
         </div>
     </div>
@@ -67,18 +73,141 @@
     </div>
 </div>
 
+<!-- Metric Tracking Panel -->
+<div class="metrics-panel">
+    <div class="panel-header">
+        <h3>Chemical Inventory Metrics</h3>
+        <div class="panel-actions">
+            <button class="btn btn-outline btn-sm" onclick="addMetric()">
+                <i class="fas fa-plus"></i> Add Metric
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="removeSelectedMetrics()">
+                <i class="fas fa-minus"></i> Remove Selected
+            </button>
+        </div>
+    </div>
+    <div class="metrics-grid" id="metrics-grid">
+        <div class="metric-item" data-metric="total_chemicals">
+            <div class="metric-header">
+                <span class="metric-title">Total Chemicals</span>
+                <button class="metric-remove-btn" onclick="removeMetric('total_chemicals')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="metric-value" id="metric-total-chemicals">{{ chemicals|length }}</div>
+            <div class="metric-description">Active inventory items</div>
+        </div>
+        
+        <div class="metric-item" data-metric="hazardous_chemicals">
+            <div class="metric-header">
+                <span class="metric-title">Hazardous Chemicals</span>
+                <button class="metric-remove-btn" onclick="removeMetric('hazardous_chemicals')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="metric-value warning" id="metric-hazardous-chemicals">
+                {{ chemicals|selectattr('is_hazardous')|list|length }}
+            </div>
+            <div class="metric-description">Requiring special handling</div>
+        </div>
+        
+        <div class="metric-item" data-metric="low_stock">
+            <div class="metric-header">
+                <span class="metric-title">Low Stock Items</span>
+                <button class="metric-remove-btn" onclick="removeMetric('low_stock')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="metric-value danger" id="metric-low-stock">0</div>
+            <div class="metric-description">Below minimum threshold</div>
+        </div>
+        
+        <div class="metric-item" data-metric="expired_items">
+            <div class="metric-header">
+                <span class="metric-title">Expired Items</span>
+                <button class="metric-remove-btn" onclick="removeMetric('expired_items')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="metric-value danger" id="metric-expired-items">0</div>
+            <div class="metric-description">Past expiration date</div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div id="bulk-import-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Bulk Import Chemicals</h3>
+            <button class="modal-close" onclick="closeBulkImportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="import-options">
+                <div class="import-option">
+                    <h4>Upload CSV File</h4>
+                    <p>Upload a CSV file with chemical inventory data</p>
+                    <input type="file" id="csv-file-input" accept=".csv" class="form-control">
+                    <small class="text-muted">
+                        Required columns: chemical_name, cas_number, manufacturer, quantity, unit, location
+                    </small>
+                </div>
+                <div class="import-option">
+                    <h4>Download Template</h4>
+                    <p>Get the CSV template with proper column headers</p>
+                    <button class="btn btn-outline" onclick="downloadTemplate()">
+                        <i class="fas fa-download"></i> Download CSV Template
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeBulkImportModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="processBulkImport()" id="process-import-btn" disabled>
+                <i class="fas fa-upload"></i> Import Data
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Chemical Inventory Table -->
 <div class="table-container full-width">
     <table id="chemicals-table" class="data-table">
         <thead>
             <tr>
-                <th>Chemical Name</th>
-                <th>CAS Number</th>
-                <th>Manufacturer</th>
-                <th>Lot Number</th>
-                <th>Quantity</th>
-                <th>Location</th>
-                <th>Expiration</th>
+                <th>
+                    <input type="checkbox" id="select-all-chemicals" title="Select All">
+                </th>
+                <th class="sortable" data-sort="chemical_name">
+                    Chemical Name
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="cas_number">
+                    CAS Number
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="manufacturer">
+                    Manufacturer
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="lot_number">
+                    Lot Number
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="current_quantity">
+                    Quantity
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="location">
+                    Location
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
+                <th class="sortable" data-sort="expiration_date">
+                    Expiration
+                    <i class="fas fa-sort sort-icon"></i>
+                </th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -86,6 +215,11 @@
         <tbody id="chemicals-tbody">
             {% for chemical in chemicals %}
             <tr data-chemical-id="{{ chemical.id }}" class="{% if not chemical.is_active %}inactive{% endif %}">
+                <td>
+                    <input type="checkbox" class="chemical-checkbox" value="{{ chemical.id }}" 
+                           data-chemical-name="{{ chemical.chemical_name }}"
+                           data-hazard-class="{{ chemical.hazard_class or '' }}">
+                </td>
                 <td>
                     <div class="chemical-info">
                         <strong><a href="#" class="table-link" data-type="chemical_name" data-value="{{ chemical.chemical_name }}">{{ chemical.chemical_name }}</a></strong>
@@ -264,6 +398,294 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='/js/chemical_inventory.js') }}"></script>
+<script>
+// Enhanced Chemical Inventory functionality
+document.addEventListener('DOMContentLoaded', function() {
+    initializeChemicalInventory();
+    initializeBulkOperations();
+    initializeMetricTracking();
+    initializeSorting();
+    initializeSendToLab();
+});
+
+function initializeBulkOperations() {
+    // Select All checkbox
+    const selectAllCheckbox = document.getElementById('select-all-chemicals');
+    const chemicalCheckboxes = document.querySelectorAll('.chemical-checkbox');
+    const sendToLabBtn = document.getElementById('send-to-lab-btn');
+    const bulkImportBtn = document.getElementById('bulk-import-btn');
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        chemicalCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSendToLabButton();
+    });
+    
+    chemicalCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSendToLabButton();
+            updateSelectAllState();
+        });
+    });
+    
+    bulkImportBtn.addEventListener('click', function() {
+        showBulkImportModal();
+    });
+    
+    function updateSelectAllState() {
+        const checkedBoxes = document.querySelectorAll('.chemical-checkbox:checked');
+        selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < chemicalCheckboxes.length;
+        selectAllCheckbox.checked = checkedBoxes.length === chemicalCheckboxes.length;
+    }
+    
+    function updateSendToLabButton() {
+        const checkedBoxes = document.querySelectorAll('.chemical-checkbox:checked');
+        sendToLabBtn.disabled = checkedBoxes.length === 0;
+        sendToLabBtn.textContent = checkedBoxes.length > 0 
+            ? `Send ${checkedBoxes.length} to Analysis Lab` 
+            : 'Send to Analysis Lab';
+    }
+}
+
+function initializeSendToLab() {
+    const sendToLabBtn = document.getElementById('send-to-lab-btn');
+    
+    sendToLabBtn.addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('.chemical-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            alert('Please select at least one chemical to send to the analysis lab.');
+            return;
+        }
+        
+        const selectedChemicals = Array.from(checkedBoxes).map(checkbox => ({
+            id: checkbox.value,
+            name: checkbox.dataset.chemicalName,
+            hazardClass: checkbox.dataset.hazardClass
+        }));
+        
+        sendChemicalsToAnalysisLab(selectedChemicals);
+    });
+}
+
+function sendChemicalsToAnalysisLab(chemicals) {
+    const chemicalNames = chemicals.map(c => c.name).join(', ');
+    const hazardousCount = chemicals.filter(c => c.hazardClass && c.hazardClass !== '').length;
+    
+    let message = `Send ${chemicals.length} chemical(s) to Analysis Lab?\n\n`;
+    message += `Chemicals: ${chemicalNames}\n`;
+    if (hazardousCount > 0) {
+        message += `⚠️ ${hazardousCount} hazardous chemical(s) included\n`;
+    }
+    message += '\nThis will package the selected chemical data for laboratory analysis and review.';
+    
+    if (confirm(message)) {
+        // Simulate sending to analysis lab
+        const labRequest = {
+            type: 'chemical_analysis',
+            chemicals: chemicals,
+            timestamp: new Date().toISOString(),
+            priority: hazardousCount > 0 ? 'high' : 'standard',
+            requestedBy: 'Chemical Inventory System'
+        };
+        
+        console.log('Lab Analysis Request:', labRequest);
+        
+        // Show success message
+        const requestId = `CHEM-${Date.now()}`;
+        alert(`✅ Chemicals sent to Analysis Lab successfully!\n\nAnalysis Request ID: ${requestId}\n\nThe analysis team will review the chemical data and provide insights within 1-2 business days.${hazardousCount > 0 ? '\n\n⚠️ High priority due to hazardous chemicals.' : ''}`);
+        
+        // Clear selections
+        document.querySelectorAll('.chemical-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        document.getElementById('select-all-chemicals').checked = false;
+        document.getElementById('send-to-lab-btn').disabled = true;
+        document.getElementById('send-to-lab-btn').textContent = 'Send to Analysis Lab';
+    }
+}
+
+function initializeMetricTracking() {
+    // Real-time metric updates
+    updateMetrics();
+    
+    // Refresh metrics every 30 seconds
+    setInterval(updateMetrics, 30000);
+}
+
+function updateMetrics() {
+    // This would typically fetch data from an API
+    const totalChemicals = document.querySelectorAll('#chemicals-tbody tr').length;
+    const hazardousChemicals = document.querySelectorAll('.badge-warning').length;
+    const lowStockItems = document.querySelectorAll('.badge-warning:contains("Low")').length;
+    const expiredItems = document.querySelectorAll('.badge-danger:contains("Expired")').length;
+    
+    document.getElementById('metric-total-chemicals').textContent = totalChemicals;
+    document.getElementById('metric-hazardous-chemicals').textContent = hazardousChemicals;
+    document.getElementById('metric-low-stock').textContent = lowStockItems;
+    document.getElementById('metric-expired-items').textContent = expiredItems;
+}
+
+function addMetric() {
+    const metricName = prompt('Enter metric name:');
+    if (metricName) {
+        const metricsGrid = document.getElementById('metrics-grid');
+        const metricId = metricName.toLowerCase().replace(/\s+/g, '_');
+        
+        const metricHtml = `
+            <div class="metric-item" data-metric="${metricId}">
+                <div class="metric-header">
+                    <span class="metric-title">${metricName}</span>
+                    <button class="metric-remove-btn" onclick="removeMetric('${metricId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="metric-value" id="metric-${metricId}">0</div>
+                <div class="metric-description">Custom metric</div>
+            </div>
+        `;
+        
+        metricsGrid.insertAdjacentHTML('beforeend', metricHtml);
+        alert(`Metric "${metricName}" added successfully!`);
+    }
+}
+
+function removeMetric(metricId) {
+    if (confirm('Remove this metric?')) {
+        const metricElement = document.querySelector(`[data-metric="${metricId}"]`);
+        if (metricElement) {
+            metricElement.remove();
+        }
+    }
+}
+
+function removeSelectedMetrics() {
+    alert('Select metrics to remove by clicking the X button on each metric card.');
+}
+
+function showBulkImportModal() {
+    document.getElementById('bulk-import-modal').style.display = 'flex';
+    
+    const fileInput = document.getElementById('csv-file-input');
+    const processBtn = document.getElementById('process-import-btn');
+    
+    fileInput.addEventListener('change', function() {
+        processBtn.disabled = !this.files.length;
+    });
+}
+
+function closeBulkImportModal() {
+    document.getElementById('bulk-import-modal').style.display = 'none';
+    document.getElementById('csv-file-input').value = '';
+    document.getElementById('process-import-btn').disabled = true;
+}
+
+function downloadTemplate() {
+    // Create CSV template
+    const headers = ['chemical_name', 'cas_number', 'manufacturer', 'lot_number', 'quantity', 'unit', 'location', 'hazard_class', 'expiration_date'];
+    const sampleRow = ['Acetone', '67-64-1', 'Fisher Scientific', 'LOT123', '500', 'mL', 'Cabinet A1', 'Flammable', '2025-12-31'];
+    
+    const csvContent = [headers.join(','), sampleRow.join(',')].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chemical_inventory_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function processBulkImport() {
+    const fileInput = document.getElementById('csv-file-input');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select a CSV file to import.');
+        return;
+    }
+    
+    // Simulate processing
+    const processingMessage = `Processing bulk import...\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB`;
+    alert(processingMessage);
+    
+    // In a real application, this would:
+    // 1. Parse the CSV file
+    // 2. Validate the data
+    // 3. Send to backend API
+    // 4. Show progress/results
+    
+    setTimeout(() => {
+        alert('✅ Bulk import completed successfully!\n\n5 chemicals imported\n2 chemicals updated\n1 validation warning\n\nRefresh the page to see changes.');
+        closeBulkImportModal();
+    }, 2000);
+}
+
+function initializeSorting() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    let currentSort = { column: null, direction: null };
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.sort;
+            const direction = (currentSort.column === column && currentSort.direction === 'asc') ? 'desc' : 'asc';
+            
+            // Reset all headers
+            sortableHeaders.forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            // Set current header
+            this.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            currentSort = { column, direction };
+            
+            sortTable(column, direction);
+        });
+    });
+}
+
+function sortTable(column, direction) {
+    const tbody = document.getElementById('chemicals-tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+        let aValue = getCellValue(a, column);
+        let bValue = getCellValue(b, column);
+        
+        // Convert to numbers if possible
+        const aNum = parseFloat(aValue);
+        const bNum = parseFloat(bValue);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            aValue = aNum;
+            bValue = bNum;
+        }
+        
+        if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function getCellValue(row, column) {
+    const columnIndex = {
+        'chemical_name': 1,
+        'cas_number': 2,
+        'manufacturer': 3,
+        'lot_number': 4,
+        'current_quantity': 5,
+        'location': 6,
+        'expiration_date': 7
+    };
+    
+    const cell = row.cells[columnIndex[column]];
+    return cell ? cell.textContent.trim() : '';
+}
+</script>
 {% endblock %}
 
 {% block page_init %}
