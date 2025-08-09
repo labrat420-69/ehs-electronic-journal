@@ -18,6 +18,7 @@ function initializeReagents(reagentType = 'mm') {
     initializeModals();
     initializeVolumeUpdate();
     initializeDeleteFunctionality();
+    initializeExport();
     
     // Load initial data
     loadReagents();
@@ -576,6 +577,17 @@ function getAuthToken() {
     // This would normally get the JWT token from localStorage or cookies
     // For now, return empty string as auth is handled by the server session
     return localStorage.getItem('authToken') || '';
+}
+
+// Export functionality
+function initializeExport() {
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            const exportUrl = `/reagents/${currentReagentType}/export`;
+            window.open(exportUrl, '_blank');
+        });
+    }
 }
 
 function debounce(func, wait) {

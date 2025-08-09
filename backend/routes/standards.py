@@ -1,19 +1,26 @@
 """
-Standards routes - MM and FlameAA
+Standards routes - MM, FlameAA, and Mercury
 """
 
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, validator
+import pandas as pd
+import io
+import openpyxl
+from openpyxl.styles import Font, Fill, PatternFill
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 from backend.database import get_db
 from backend.models.standards import (
     MMStandards, MMStandardsHistory,
     FlameAAStandards, FlameAAStandardsHistory
 )
+# Import Mercury standards from reagents model
+from backend.models.reagents import MercuryStandards, MercuryStandardsHistory
 from backend.models.user import User
 from backend.auth.jwt_handler import get_current_user, require_permissions
 
@@ -113,6 +120,47 @@ class VolumeUpdate(BaseModel):
         if v == 0:
             raise ValueError('Volume change cannot be zero')
         return v
+
+# Pydantic models for Mercury Standards
+class MercuryStandardCreate(BaseModel):
+    standard_name: str
+    batch_number: str
+    standard_type: str  # QC, Calibration, Spike, etc.
+    preparation_date: datetime
+    expiration_date: Optional[datetime] = None
+    target_concentration: float
+    actual_concentration: Optional[float] = None
+    matrix: Optional[str] = None
+    source_material: Optional[str] = None
+    dilution_factor: Optional[float] = None
+    total_volume: float
+    elements: Optional[str] = None  # JSON string
+    verification_method: Optional[str] = None
+    certified: bool = False
+    certificate_number: Optional[str] = None
+    notes: Optional[str] = None
+
+    @validator('total_volume', 'target_concentration')
+    def volume_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('Value must be positive')
+        return v
+
+class MercuryStandardUpdate(BaseModel):
+    standard_name: Optional[str] = None
+    standard_type: Optional[str] = None
+    expiration_date: Optional[datetime] = None
+    target_concentration: Optional[float] = None
+    actual_concentration: Optional[float] = None
+    matrix: Optional[str] = None
+    source_material: Optional[str] = None
+    dilution_factor: Optional[float] = None
+    elements: Optional[str] = None
+    verification_method: Optional[str] = None
+    certified: Optional[bool] = None
+    certificate_number: Optional[str] = None
+    notes: Optional[str] = None
+    is_active: Optional[bool] = None
 
 # MM Standards Routes
 @router.get("/mm", response_class=HTMLResponse)
@@ -478,7 +526,8 @@ async def list_all_standards(
     
     result = {
         "mm_standards": [],
-        "flameaa_standards": []
+        "flameaa_standards": [],
+        "mercury_standards": []
     }
     
     if not standard_type or standard_type.lower() == "mm":
@@ -493,4 +542,256 @@ async def list_all_standards(
             query = query.filter(FlameAAStandards.is_active == True)
         result["flameaa_standards"] = [s.to_dict() for s in query.all()]
     
+    if not standard_type or standard_type.lower() == "mercury":
+        query = db.query(MercuryStandards)
+        if active_only:
+            query = query.filter(MercuryStandards.is_active == True)
+        result["mercury_standards"] = [s.to_dict() for s in query.all()]
+    
     return result
+
+# Mercury Standards Routes
+@router.get("/mercury", response_class=HTMLResponse)
+async def mercury_standards_list(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Mercury Standards list page"""
+    standards = db.query(MercuryStandards).filter(
+        MercuryStandards.is_active == True
+    ).order_by(MercuryStandards.preparation_date.desc()).all()
+    
+    context = {
+        "request": request,
+        "title": "Mercury Standards - EHS Electronic Journal",
+        "standards": standards,
+        "current_user": current_user,
+        "standard_type": "mercury",
+        "reagent_type": "Mercury",
+        "today": datetime.now().date()
+    }
+    
+    return templates.TemplateResponse("standards/list.html", context)
+
+@router.get("/mercury/add", response_class=HTMLResponse)
+async def add_mercury_standard_form(
+    request: Request,
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Add Mercury standard form"""
+    context = {
+        "request": request,
+        "title": "Add Mercury Standard - EHS Electronic Journal",
+        "current_user": current_user,
+        "standard_type": "mercury",
+        "reagent_type": "Mercury"
+    }
+    
+    return templates.TemplateResponse("standards/add.html", context)
+
+@router.post("/mercury/api/", response_model=dict)
+async def create_mercury_standard(
+    standard: MercuryStandardCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Create new Mercury standard"""
+    
+    # Check if batch number already exists
+    existing = db.query(MercuryStandards).filter(MercuryStandards.batch_number == standard.batch_number).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Batch number already exists"
+        )
+    
+    try:
+        db_standard = MercuryStandards(**standard.dict(), prepared_by=current_user.id)
+        db.add(db_standard)
+        db.commit()
+        db.refresh(db_standard)
+        
+        # Create history entry
+        history_entry = MercuryStandardsHistory(
+            standard_id=db_standard.id,
+            action="created",
+            new_value=f"Mercury Standard {db_standard.standard_name} prepared",
+            notes="Initial standard preparation",
+            changed_by=current_user.id
+        )
+        db.add(history_entry)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Mercury Standard created successfully",
+            "standard": db_standard.to_dict()
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error creating Mercury standard: {str(e)}"
+        )
+
+# Export endpoints for all standard types
+@router.get("/mm/export")
+async def export_mm_standards(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export MM standards to Excel"""
+    standards = db.query(MMStandards).filter(MMStandards.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for standard in standards:
+        data.append({
+            'ID': standard.id,
+            'Standard Name': standard.standard_name,
+            'Batch Number': standard.batch_number,
+            'Standard Type': standard.standard_type,
+            'Preparation Date': standard.preparation_date.strftime('%Y-%m-%d') if standard.preparation_date else '',
+            'Expiration Date': standard.expiration_date.strftime('%Y-%m-%d') if standard.expiration_date else '',
+            'Target Concentration': float(standard.target_concentration) if standard.target_concentration else 0,
+            'Actual Concentration': float(standard.actual_concentration) if standard.actual_concentration else '',
+            'Total Volume (mL)': float(standard.total_volume) if standard.total_volume else 0,
+            'Matrix': standard.matrix or '',
+            'Source Material': standard.source_material or '',
+            'Dilution Factor': float(standard.dilution_factor) if standard.dilution_factor else '',
+            'Elements': standard.elements or '',
+            'Certified': standard.certified,
+            'Certificate Number': standard.certificate_number or '',
+            'Prepared By': standard.preparer.full_name if standard.preparer else '',
+            'Notes': standard.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='MM Standards', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['MM Standards']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=mm_standards_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
+
+@router.get("/flameaa/export")
+async def export_flameaa_standards(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export FlameAA standards to Excel"""
+    standards = db.query(FlameAAStandards).filter(FlameAAStandards.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for standard in standards:
+        data.append({
+            'ID': standard.id,
+            'Standard Name': standard.standard_name,
+            'Batch Number': standard.batch_number,
+            'Standard Type': standard.standard_type,
+            'Preparation Date': standard.preparation_date.strftime('%Y-%m-%d') if standard.preparation_date else '',
+            'Expiration Date': standard.expiration_date.strftime('%Y-%m-%d') if standard.expiration_date else '',
+            'Target Concentration': float(standard.target_concentration) if standard.target_concentration else 0,
+            'Actual Concentration': float(standard.actual_concentration) if standard.actual_concentration else '',
+            'Total Volume (mL)': float(standard.total_volume) if standard.total_volume else 0,
+            'Matrix': standard.matrix or '',
+            'Source Material': standard.source_material or '',
+            'Dilution Factor': float(standard.dilution_factor) if standard.dilution_factor else '',
+            'Elements': standard.elements or '',
+            'Flame Type': standard.flame_type or '',
+            'Wavelength': float(standard.wavelength) if standard.wavelength else '',
+            'Certified': standard.certified,
+            'Certificate Number': standard.certificate_number or '',
+            'Prepared By': standard.preparer.full_name if standard.preparer else '',
+            'Notes': standard.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='FlameAA Standards', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['FlameAA Standards']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=flameaa_standards_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
+
+@router.get("/mercury/export")
+async def export_mercury_standards(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export Mercury standards to Excel"""
+    standards = db.query(MercuryStandards).filter(MercuryStandards.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for standard in standards:
+        data.append({
+            'ID': standard.id,
+            'Standard Name': standard.standard_name,
+            'Batch Number': standard.batch_number,
+            'Standard Type': standard.standard_type,
+            'Preparation Date': standard.preparation_date.strftime('%Y-%m-%d') if standard.preparation_date else '',
+            'Expiration Date': standard.expiration_date.strftime('%Y-%m-%d') if standard.expiration_date else '',
+            'Target Concentration': float(standard.target_concentration) if standard.target_concentration else 0,
+            'Actual Concentration': float(standard.actual_concentration) if standard.actual_concentration else '',
+            'Total Volume (mL)': float(standard.total_volume) if standard.total_volume else 0,
+            'Matrix': standard.matrix or '',
+            'Source Material': standard.source_material or '',
+            'Dilution Factor': float(standard.dilution_factor) if standard.dilution_factor else '',
+            'Elements': standard.elements or '',
+            'Verification Method': standard.verification_method or '',
+            'Certified': standard.certified,
+            'Certificate Number': standard.certificate_number or '',
+            'Prepared By': standard.preparer.full_name if standard.preparer else '',
+            'Notes': standard.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Mercury Standards', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['Mercury Standards']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=mercury_standards_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
