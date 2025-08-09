@@ -1,53 +1,117 @@
-/* Table Styles for EHS Electronic Journal - Enhanced for better width usage */
+/* Nextkit Table Styles */
 
 .table-container {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow-x: auto;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    padding: 0;
+    margin: var(--spacing-lg) 0;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
     width: 100%;
-    max-width: none; /* Remove any width restrictions */
 }
 
 .data-table {
     width: 100%;
-    min-width: 1200px; /* Ensure minimum width for better data display */
     border-collapse: collapse;
     border-spacing: 0;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
+    background: var(--bg-primary);
 }
 
 .data-table thead th {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    color: white;
-    font-weight: 600;
-    padding: 16px 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-md);
     text-align: left;
-    border: none;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    border-bottom: 2px solid var(--border-color);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     white-space: nowrap;
-    font-size: 13px;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease-in-out;
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--primary-light);
+}
+
+.data-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.data-table tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+.data-table tbody td:first-child {
+    font-weight: var(--font-weight-medium);
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.data-table tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
+.status-active {
+    background-color: var(--success-light);
+    color: var(--success-color);
 }
 
-.data-table tbody tr:hover {
-    background-color: var(--primary-lighter);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.1);
+.status-inactive {
+    background-color: var(--error-light);
+    color: var(--error-color);
 }
 
-.data-table tbody tr.inactive {
-    opacity: 0.6;
+.status-warning {
+    background-color: var(--warning-light);
+    color: var(--warning-color);
+}
+
+/* Quantity display */
+.quantity-display {
+    font-weight: var(--font-weight-medium);
+    color: var(--primary-color);
+}
+
+/* Hazard indicators */
+.hazard-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+}
+
+.hazard-flammable { color: var(--error-color); }
+.hazard-toxic { color: var(--warning-color); }
+.hazard-corrosive { color: var(--secondary-color); }
+
+/* Action buttons in tables */
+.table-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.table-actions .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: auto;
+    font-size: var(--font-size-xs);
+}
     background-color: #f5f5f5;
 }
 
