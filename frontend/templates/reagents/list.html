@@ -19,7 +19,7 @@
             <a href="/reagents/{{ reagent_type.lower() }}/add" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add {{ reagent_type }} Reagent
             </a>
-            <button id="export-btn" class="btn btn-secondary">
+            <button id="reagents-{{ reagent_type.lower() }}-export-btn" class="btn btn-secondary export-btn">
                 <i class="fas fa-download"></i> Export
             </button>
         </div>
@@ -66,7 +66,7 @@
 </div>
 
 <!-- Reagents Table -->
-<div class="table-container">
+<div class="table-container full-width">
     <table id="reagents-table" class="data-table">
         <thead>
             <tr>
