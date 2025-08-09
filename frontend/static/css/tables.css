@@ -1,40 +1,49 @@
-/* Table Styles for EHS Electronic Journal */
+/* Table Styles for EHS Electronic Journal - Enhanced for better width usage */
 
 .table-container {
     background: white;
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 25px;
     margin: 20px 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     overflow-x: auto;
+    width: 100%;
+    max-width: none; /* Remove any width restrictions */
 }
 
 .data-table {
     width: 100%;
+    min-width: 1200px; /* Ensure minimum width for better data display */
     border-collapse: collapse;
     border-spacing: 0;
     font-size: 14px;
 }
 
 .data-table thead th {
-    background: linear-gradient(135deg, #1a73e8, #4285f4);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     color: white;
     font-weight: 600;
-    padding: 12px 8px;
+    padding: 16px 12px;
     text-align: left;
     border: none;
     position: sticky;
     top: 0;
     z-index: 10;
+    white-space: nowrap;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .data-table tbody tr {
-    border-bottom: 1px solid #e8eaed;
-    transition: background-color 0.2s;
+    border-bottom: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
 }
 
 .data-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--primary-lighter);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.1);
 }
 
 .data-table tbody tr.inactive {
@@ -43,9 +52,107 @@
 }
 
 .data-table td {
-    padding: 12px 8px;
+    padding: 16px 12px;
     vertical-align: middle;
     border: none;
+    position: relative;
+}
+
+/* Enhanced table features */
+.table-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.table-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.table-link::after {
+    content: '🔗';
+    font-size: 12px;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.table-link:hover::after {
+    opacity: 0.7;
+}
+
+.view-details-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.view-details-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.3);
+}
+
+.view-details-btn i {
+    font-size: 10px;
+}
+
+/* Chemical info styling */
+.chemical-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chemical-info strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Badge styling for status indicators */
+.badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 2px;
+}
+
+.badge-warning {
+    background: var(--warning-color);
+    color: white;
+}
+
+.badge-secondary {
+    background: var(--secondary-light);
+    color: white;
+}
+
+.badge-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.badge-error {
+    background: var(--error-color);
+    color: white;
 }
 
 .data-table td code {
