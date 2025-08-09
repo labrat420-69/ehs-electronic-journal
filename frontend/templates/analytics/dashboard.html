@@ -760,13 +760,79 @@ async function downloadTemplate(dataSource) {
     }
 }
 
-// Placeholder functions for modal dialogs (to be implemented)
+// Reminder and Notes functionality
 function showAddReminderModal() {
-    alert('Add reminder functionality - to be implemented');
+    const title = prompt('Reminder Title:');
+    if (!title) return;
+    
+    const description = prompt('Description (optional):') || '';
+    const dueDate = prompt('Due Date (YYYY-MM-DD):');
+    if (!dueDate) return;
+    
+    const priority = prompt('Priority (low/medium/high/critical):') || 'medium';
+    
+    // Create reminder
+    fetch('/analytics/api/reminders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            title: title,
+            description: description,
+            due_date: dueDate + 'T00:00:00',
+            priority: priority
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Reminder created successfully!');
+            location.reload(); // Refresh to show new reminder
+        } else {
+            alert('Error creating reminder: ' + (data.detail || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error creating reminder: ' + error.message);
+    });
 }
 
 function showAddNoteModal() {
-    alert('Add note functionality - to be implemented');
+    const title = prompt('Note Title:');
+    if (!title) return;
+    
+    const content = prompt('Note Content:');
+    if (!content) return;
+    
+    const noteType = prompt('Note Type (general/announcement/procedure):') || 'general';
+    const isPinned = confirm('Pin this note?');
+    
+    // Create note
+    fetch('/analytics/api/notes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            title: title,
+            content: content,
+            note_type: noteType,
+            is_pinned: isPinned
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Note created successfully!');
+            location.reload(); // Refresh to show new note
+        } else {
+            alert('Error creating note: ' + (data.detail || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error creating note: ' + error.message);
+    });
 }
 </script>
 {% endblock %}

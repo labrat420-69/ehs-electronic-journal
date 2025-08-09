@@ -1,19 +1,25 @@
 """
-Reagents routes - MM, Pb, TCLP
+Reagents routes - MM, Pb, TCLP, Mercury
 """
 
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, validator
+import pandas as pd
+import io
+import openpyxl
+from openpyxl.styles import Font, Fill, PatternFill
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 from backend.database import get_db
 from backend.models.reagents import (
     MMReagents, MMReagentsHistory,
     PbReagents, PbReagentsHistory,
-    TCLPReagents, TCLPReagentsHistory
+    TCLPReagents, TCLPReagentsHistory,
+    MercuryReagents, MercuryReagentsHistory
 )
 from backend.models.user import User
 from backend.auth.jwt_handler import get_current_user, require_permissions
@@ -132,6 +138,37 @@ class VolumeUpdate(BaseModel):
             raise ValueError('Volume change cannot be zero')
         return v
 
+# Pydantic models for Mercury Reagents
+class MercuryReagentCreate(BaseModel):
+    reagent_name: str
+    batch_number: str
+    preparation_date: datetime
+    expiration_date: Optional[datetime] = None
+    total_volume: float
+    concentration: Optional[str] = None
+    preparation_method: Optional[str] = None
+    chemicals_used: Optional[str] = None
+    ph_value: Optional[float] = None
+    conductivity: Optional[float] = None
+    notes: Optional[str] = None
+
+    @validator('total_volume')
+    def volume_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('Volume must be positive')
+        return v
+
+class MercuryReagentUpdate(BaseModel):
+    reagent_name: Optional[str] = None
+    expiration_date: Optional[datetime] = None
+    concentration: Optional[str] = None
+    preparation_method: Optional[str] = None
+    chemicals_used: Optional[str] = None
+    ph_value: Optional[float] = None
+    conductivity: Optional[float] = None
+    notes: Optional[str] = None
+    is_active: Optional[bool] = None
+
 # MM Reagents Routes
 @router.get("/mm", response_class=HTMLResponse)
 async def mm_reagents_list(
@@ -217,6 +254,52 @@ async def create_mm_reagent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error creating MM reagent: {str(e)}"
         )
+
+@router.get("/mm/export")
+async def export_mm_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export MM reagents to Excel"""
+    reagents = db.query(MMReagents).filter(MMReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'Concentration': reagent.concentration or '',
+            'pH Value': float(reagent.ph_value) if reagent.ph_value else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='MM Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['MM Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=mm_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
 
 @router.get("/mm/api/", response_model=List[dict])
 async def list_mm_reagents(
@@ -471,6 +554,52 @@ async def create_pb_reagent(
             detail=f"Error creating Pb reagent: {str(e)}"
         )
 
+@router.get("/pb/export")
+async def export_pb_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export Pb reagents to Excel"""
+    reagents = db.query(PbReagents).filter(PbReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'Concentration': reagent.concentration or '',
+            'pH Value': float(reagent.ph_value) if reagent.ph_value else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Pb Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['Pb Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=pb_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
+
 # TCLP Reagents Routes (similar structure)
 @router.get("/tclp", response_class=HTMLResponse)
 async def tclp_reagents_list(
@@ -557,6 +686,54 @@ async def create_tclp_reagent(
             detail=f"Error creating TCLP reagent: {str(e)}"
         )
 
+@router.get("/tclp/export")
+async def export_tclp_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export TCLP reagents to Excel"""
+    reagents = db.query(TCLPReagents).filter(TCLPReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Reagent Type': reagent.reagent_type,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'pH Target': float(reagent.ph_target) if reagent.ph_target else '',
+            'Final pH': float(reagent.final_ph) if reagent.final_ph else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Verification Passed': reagent.verification_passed,
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='TCLP Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['TCLP Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=tclp_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
+
 # Generic routes for all reagent types
 @router.get("/api/", response_model=dict)
 async def list_all_reagents(
@@ -591,4 +768,140 @@ async def list_all_reagents(
             query = query.filter(TCLPReagents.is_active == True)
         result["tclp_reagents"] = [r.to_dict() for r in query.all()]
     
+    if not reagent_type or reagent_type.lower() == "mercury":
+        query = db.query(MercuryReagents)
+        if active_only:
+            query = query.filter(MercuryReagents.is_active == True)
+        result["mercury_reagents"] = [r.to_dict() for r in query.all()]
+    
     return result
+
+# Mercury Reagents Routes
+@router.get("/mercury", response_class=HTMLResponse)
+async def mercury_reagents_list(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Mercury Reagents list page"""
+    reagents = db.query(MercuryReagents).filter(
+        MercuryReagents.is_active == True
+    ).order_by(MercuryReagents.preparation_date.desc()).all()
+    
+    context = {
+        "request": request,
+        "title": "Mercury Reagents - EHS Electronic Journal",
+        "reagents": reagents,
+        "current_user": current_user,
+        "reagent_type": "Mercury",
+        "today": datetime.now().date()
+    }
+    
+    return templates.TemplateResponse("reagents/list.html", context)
+
+@router.get("/mercury/add", response_class=HTMLResponse)
+async def add_mercury_reagent_form(
+    request: Request,
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Add Mercury reagent form"""
+    context = {
+        "request": request,
+        "title": "Add Mercury Reagent - EHS Electronic Journal",
+        "current_user": current_user,
+        "reagent_type": "Mercury"
+    }
+    
+    return templates.TemplateResponse("reagents/add.html", context)
+
+@router.post("/mercury/api/", response_model=dict)
+async def create_mercury_reagent(
+    reagent: MercuryReagentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["create"]))
+):
+    """Create new Mercury reagent"""
+    
+    # Check if batch number already exists
+    existing = db.query(MercuryReagents).filter(MercuryReagents.batch_number == reagent.batch_number).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Batch number already exists"
+        )
+    
+    try:
+        db_reagent = MercuryReagents(**reagent.dict(), prepared_by=current_user.id)
+        db.add(db_reagent)
+        db.commit()
+        db.refresh(db_reagent)
+        
+        # Create history entry
+        history_entry = MercuryReagentsHistory(
+            reagent_id=db_reagent.id,
+            action="created",
+            new_value=f"Mercury Reagent {db_reagent.reagent_name} prepared",
+            notes="Initial reagent preparation",
+            changed_by=current_user.id
+        )
+        db.add(history_entry)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Mercury Reagent created successfully",
+            "reagent": db_reagent.to_dict()
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error creating Mercury reagent: {str(e)}"
+        )
+
+@router.get("/mercury/export")
+async def export_mercury_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export Mercury reagents to Excel"""
+    reagents = db.query(MercuryReagents).filter(MercuryReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'Concentration': reagent.concentration or '',
+            'pH Value': float(reagent.ph_value) if reagent.ph_value else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Mercury Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['Mercury Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=mercury_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )

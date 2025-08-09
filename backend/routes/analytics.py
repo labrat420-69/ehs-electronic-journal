@@ -2,7 +2,7 @@
 Analytics dashboard routes for customizable graphs and data visualization
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -27,6 +27,7 @@ from backend.models.reagents import MMReagents, PbReagents, TCLPReagents
 from backend.models.standards import MMStandards, FlameAAStandards  
 from backend.models.equipment import Equipment, PipetteLog, WaterConductivityTests
 from backend.models.maintenance import ICPOESMaintenanceLog
+from backend.models.user import User
 
 # Import templates - use the same pattern as main.py
 from fastapi.templating import Jinja2Templates
@@ -677,5 +678,105 @@ def get_import_template_data(data_source: str):
         "sample_data": [["value1", "value2"]],
         "instructions": ["Template not available for this data source"]
     })
+
+# Reminders API endpoints
+@router.post("/api/reminders")
+async def create_reminder(
+    title: str = Form(...),
+    description: str = Form(""),
+    reminder_type: str = Form("reminder"),
+    due_date: str = Form(...),
+    priority: str = Form("medium"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_optional_user)
+):
+    """Create a new dashboard reminder"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    try:
+        # Parse due_date string to datetime
+        due_datetime = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+        
+        reminder = DashboardReminder(
+            title=title,
+            description=description,
+            reminder_type=reminder_type,
+            due_date=due_datetime,
+            priority=priority,
+            created_by=current_user.id
+        )
+        db.add(reminder)
+        db.commit()
+        db.refresh(reminder)
+        
+        return {"success": True, "reminder": reminder.to_dict()}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error creating reminder: {str(e)}")
+
+@router.get("/api/reminders")
+async def get_reminders(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_optional_user)
+):
+    """Get dashboard reminders"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    reminders = db.query(DashboardReminder).filter(
+        DashboardReminder.status == "active",
+        DashboardReminder.due_date >= datetime.now()
+    ).order_by(DashboardReminder.due_date.asc()).limit(10).all()
+    
+    return [reminder.to_dict() for reminder in reminders]
+
+# Department Notes API endpoints  
+@router.post("/api/notes")
+async def create_note(
+    title: str = Form(...),
+    content: str = Form(...),
+    note_type: str = Form("general"),
+    is_pinned: bool = Form(False),
+    department: str = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_optional_user)
+):
+    """Create a new department note"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    try:
+        note = DepartmentNote(
+            title=title,
+            content=content,
+            note_type=note_type,
+            is_pinned=is_pinned,
+            department=department,
+            created_by=current_user.id
+        )
+        db.add(note)
+        db.commit()
+        db.refresh(note)
+        
+        return {"success": True, "note": note.to_dict()}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error creating note: {str(e)}")
+
+@router.get("/api/notes")
+async def get_notes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_optional_user)
+):
+    """Get department notes"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    notes = db.query(DepartmentNote).filter(
+        DepartmentNote.is_public == True
+    ).order_by(DepartmentNote.created_at.desc()).limit(10).all()
+    
+    return [note.to_dict() for note in notes]
 
 # Additional routes for reminders, notes, and waste management will be added in separate route files
