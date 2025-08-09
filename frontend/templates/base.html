@@ -14,210 +14,176 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <!-- EHS Labs Branding -->
-        <div class="sidebar-header">
-            <div class="logo-container">
-                <img src="/static/images/ehs-logo.png" alt="EHS Labs" class="logo" onerror="this.style.display='none'">
-                <div class="company-info">
-                    <h3>EHS Labs</h3>
-                    <p>Environmental Hazards Services</p>
+    <!-- Modern Page Wrapper -->
+    <div class="page-wrapper">
+        <!-- Modern Sidebar -->
+        <div id="sidebar" class="sidebar">
+            <!-- EHS Labs Branding -->
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo">
+                        <i class="fas fa-flask" style="color: white;"></i>
+                    </div>
+                    <div class="company-info">
+                        <h3>EHS Labs</h3>
+                        <p>Environmental Hazards Services</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Real-time EST Clock -->
-        <div class="clock-container">
-            <div class="current-time" id="current-time">
-                {{ current_time_est }}
-            </div>
-            <div class="timezone">EST</div>
-        </div>
-        
-        <!-- Navigation Menu -->
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="/analytics" class="nav-link {% if request.url.path == '/analytics' %}active{% endif %}">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                
-                <!-- Chemical Inventory Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-flask"></i>
-                        <span>Chemical Inventory</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/chemical_inventory/" class="nav-link">Inventory Log</a></li>
-                        <li><a href="/chemical_inventory/add" class="nav-link">Add Chemical</a></li>
-                        <li><a href="/chemical_inventory/history" class="nav-link">History</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Reagents Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-vial"></i>
-                        <span>Reagents</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/reagents/mm" class="nav-link">MM Reagents</a></li>
-                        <li><a href="/reagents/pb" class="nav-link">Pb Reagents</a></li>
-                        <li><a href="/reagents/tclp" class="nav-link">TCLP Reagents</a></li>
-                        <li><a href="/reagents/mercury" class="nav-link">Mercury Reagents</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Standards Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-balance-scale"></i>
-                        <span>Standards</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/standards/mm" class="nav-link">MM Standards</a></li>
-                        <li><a href="/standards/flameaa" class="nav-link">FlameAA Standards</a></li>
-                        <li><a href="/standards/mercury" class="nav-link">Mercury Standards</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Equipment Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-tools"></i>
-                        <span>Equipment</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/equipment/" class="nav-link">Equipment Log</a></li>
-                        <li><a href="/equipment/pipettes" class="nav-link">Pipette Log</a></li>
-                        <li><a href="/equipment/water-conductivity" class="nav-link">Water Conductivity</a></li>
-                    </ul>
-                </li>
-                
-                <!-- Maintenance Section -->
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-wrench"></i>
-                        <span>Maintenance</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/maintenance/icp-oes" class="nav-link">ICP-OES Maintenance</a></li>
-                        <li><a href="/maintenance/" class="nav-link">Maintenance Dashboard</a></li>
-                    </ul>
-                </li>
-                
-                <!-- User Management (Admin only) -->
-                <!-- Using template helper function for robust role checking -->
-                {% if user_is_admin(current_user) %}
-                <li class="nav-section">
-                    <div class="nav-section-header">
-                        <i class="fas fa-users"></i>
-                        <span>Administration</span>
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                    <ul class="nav-subsection">
-                        <li><a href="/users" class="nav-link">User Management</a></li>
-                        <!-- <li><a href="/admin/departments" class="nav-link">Departments</a></li> -->
-                    </ul>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        
-        <!-- User Info & Logout -->
-        <div class="sidebar-footer">
-            {% if current_user %}
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-details">
-                    <div class="user-name">{{ current_user.full_name }}</div>
-                    <div class="user-role">{{ current_user.role.value.title() if current_user.role.value else current_user.role.title() }}</div>
-                </div>
-            </div>
-            <div class="user-actions">
-                <a href="/profile" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-cog"></i> Profile
-                </a>
-                <a href="/logout" class="btn btn-outline btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-            {% else %}
-            <div class="auth-actions">
-                <a href="/login" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Main Content Area -->
-    <div id="main-content" class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
             </div>
             
-            <div class="top-bar-right">
+            <!-- Real-time EST Clock -->
+            <div class="clock-container">
+                <div class="current-time" id="current-time">
+                    {{ current_time_est }}
+                </div>
+                <div class="timezone">EST</div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/dashboard" class="nav-link {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="/analytics" class="nav-link {% if request.url.path == '/analytics' %}active{% endif %}">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Chemical Inventory Section -->
+                    <li class="nav-section {% if request.url.path.startswith('/chemical_inventory') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-flask"></i>
+                            <span>Chemical Inventory</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/chemical_inventory/" class="nav-link {% if request.url.path == '/chemical_inventory/' %}active{% endif %}"><i class="fas fa-list"></i>Inventory Log</a></li>
+                            <li><a href="/chemical_inventory/add" class="nav-link {% if request.url.path == '/chemical_inventory/add' %}active{% endif %}"><i class="fas fa-plus"></i>Add Chemical</a></li>
+                            <li><a href="/chemical_inventory/history" class="nav-link {% if request.url.path == '/chemical_inventory/history' %}active{% endif %}"><i class="fas fa-history"></i>History</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Reagents Section -->
+                    <li class="nav-section {% if request.url.path.startswith('/reagents') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-vial"></i>
+                            <span>Reagents</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/reagents/mm" class="nav-link {% if request.url.path == '/reagents/mm' %}active{% endif %}"><i class="fas fa-atom"></i>MM Reagents</a></li>
+                            <li><a href="/reagents/pb" class="nav-link {% if request.url.path == '/reagents/pb' %}active{% endif %}"><i class="fas fa-radiation"></i>Pb Reagents</a></li>
+                            <li><a href="/reagents/tclp" class="nav-link {% if request.url.path == '/reagents/tclp' %}active{% endif %}"><i class="fas fa-flask"></i>TCLP Reagents</a></li>
+                            <li><a href="/reagents/mercury" class="nav-link {% if request.url.path == '/reagents/mercury' %}active{% endif %}"><i class="fas fa-fill-drip"></i>Mercury Reagents</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Standards Section -->
+                    <li class="nav-section {% if request.url.path.startswith('/standards') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-balance-scale"></i>
+                            <span>Standards</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/standards/mm" class="nav-link {% if request.url.path == '/standards/mm' %}active{% endif %}"><i class="fas fa-atom"></i>MM Standards</a></li>
+                            <li><a href="/standards/flameaa" class="nav-link {% if request.url.path == '/standards/flameaa' %}active{% endif %}"><i class="fas fa-fire"></i>FlameAA Standards</a></li>
+                            <li><a href="/standards/mercury" class="nav-link {% if request.url.path == '/standards/mercury' %}active{% endif %}"><i class="fas fa-fill-drip"></i>Mercury Standards</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Equipment Section -->
+                    <li class="nav-section {% if request.url.path.startswith('/equipment') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-tools"></i>
+                            <span>Equipment</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/equipment/" class="nav-link {% if request.url.path == '/equipment/' %}active{% endif %}"><i class="fas fa-cogs"></i>Equipment Log</a></li>
+                            <li><a href="/equipment/pipettes" class="nav-link {% if request.url.path == '/equipment/pipettes' %}active{% endif %}"><i class="fas fa-syringe"></i>Pipette Log</a></li>
+                            <li><a href="/equipment/water-conductivity" class="nav-link {% if request.url.path == '/equipment/water-conductivity' %}active{% endif %}"><i class="fas fa-tint"></i>Water Conductivity</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Maintenance Section -->
+                    <li class="nav-section {% if request.url.path.startswith('/maintenance') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-wrench"></i>
+                            <span>Maintenance</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/maintenance/icp-oes" class="nav-link {% if request.url.path == '/maintenance/icp-oes' %}active{% endif %}"><i class="fas fa-microscope"></i>ICP-OES Maintenance</a></li>
+                            <li><a href="/maintenance/" class="nav-link {% if request.url.path == '/maintenance/' %}active{% endif %}"><i class="fas fa-chart-bar"></i>Maintenance Dashboard</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- User Management (Admin only) -->
+                    {% if user_is_admin(current_user) %}
+                    <li class="nav-section {% if request.url.path.startswith('/users') %}expanded{% endif %}">
+                        <div class="nav-section-header">
+                            <i class="fas fa-users"></i>
+                            <span>Administration</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <ul class="nav-subsection">
+                            <li><a href="/users" class="nav-link {% if request.url.path == '/users' %}active{% endif %}"><i class="fas fa-user-cog"></i>User Management</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <!-- User Info & Logout -->
+            <div class="sidebar-footer">
                 {% if current_user %}
-                <span class="welcome-text">Welcome, {{ current_user.full_name.split(' ')[0] }}</span>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ current_user.username[:1].upper() }}
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name">{{ current_user.username }}</div>
+                        <div class="user-role">{{ current_user.role.value }}</div>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <a href="/profile" class="btn btn-sm" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem;">Profile</a>
+                    <a href="/logout" class="btn btn-sm" style="background: var(--error-color); color: white; text-decoration: none; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem;">Logout</a>
+                </div>
                 {% endif %}
             </div>
         </div>
-        
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- Flash Messages -->
-            {% if get_flashed_messages %}
-            <div class="flash-messages">
-                {% for category, message in get_flashed_messages(with_categories=true) %}
-                <div class="alert alert-{{ category }}">
-                    <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
-                    {{ message }}
-                    <button class="alert-close">&times;</button>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-top">
+                    <h1 class="page-title">{% block page_title %}EHS Electronic Journal{% endblock %}</h1>
+                    <div class="welcome-message">Welcome, {{ current_user.username if current_user else 'User' }}</div>
                 </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <!-- URL Parameter Messages -->
-            <div id="url-messages"></div>
-            
-            {% block content %}
-            <!-- Page content goes here -->
-            {% endblock %}
-        </div>
-    </div>
-    
+            </header>
+
+            <!-- Content Body -->
+            <main class="content-body">
+                {% block content %}{% endblock %}
+            </main>
     <!-- JavaScript -->
     <script src="/static/js/main.js"></script>
     <script src="/static/js/sidebar.js"></script>
     <script src="/static/js/clock.js"></script>
     <script src="/static/js/enhanced-features.js"></script>
     {% block extra_js %}{% endblock %}
+</body>
+</html>
     
     <!-- Initialize components -->
     <script>

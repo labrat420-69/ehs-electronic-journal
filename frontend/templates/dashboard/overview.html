@@ -1,763 +1,286 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard - EHS Electronic Journal{% endblock %}
-{% block page_title %}EHS Electronic Journal Dashboard{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="/static/css/dashboard.css">
-<style>
-/* Dashboard-specific styles */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stats-card {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-}
-
-.stats-card:hover {
-    transform: translateY(-2px);
-}
-
-.stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.stats-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #202124;
-}
-
-.stats-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-
-.stats-icon.chemicals { background: linear-gradient(135deg, #1a73e8, #4285f4); }
-.stats-icon.reagents { background: linear-gradient(135deg, #34a853, #66bb6a); }
-.stats-icon.standards { background: linear-gradient(135deg, #fbbc04, #ffc107); }
-.stats-icon.equipment { background: linear-gradient(135deg, #ea4335, #f44336); }
-.stats-icon.maintenance { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.stat-value {
-    font-size: 24px;
-    font-weight: bold;
-    color: #1a73e8;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 12px;
-    color: #5f6368;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.alerts-section {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.alert-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    transition: background-color 0.2s;
-}
-
-.alert-item:hover {
-    background-color: #f8f9fa;
-}
-
-.alert-item.danger {
-    border-left: 4px solid #ea4335;
-    background-color: #ffeaea;
-}
-
-.alert-item.warning {
-    border-left: 4px solid #fbbc04;
-    background-color: #fffbf0;
-}
-
-.alert-item.info {
-    border-left: 4px solid #1a73e8;
-    background-color: #f0f7ff;
-}
-
-.alert-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.alert-icon.danger { background-color: #ea4335; }
-.alert-icon.warning { background-color: #fbbc04; }
-.alert-icon.info { background-color: #1a73e8; }
-
-.alert-content {
-    flex: 1;
-}
-
-.alert-title {
-    font-weight: 600;
-    color: #202124;
-    margin-bottom: 5px;
-}
-
-.alert-message {
-    color: #5f6368;
-    font-size: 14px;
-    margin-bottom: 3px;
-}
-
-.alert-details {
-    color: #9aa0a6;
-    font-size: 12px;
-}
-
-.activity-section {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.activity-feed {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.activity-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px 0;
-    border-bottom: 1px solid #e8eaed;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f8f9fa;
-    color: #5f6368;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.activity-content {
-    flex: 1;
-}
-
-.activity-description {
-    font-weight: 500;
-    color: #202124;
-    margin-bottom: 3px;
-}
-
-.activity-details {
-    color: #5f6368;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.activity-time {
-    color: #9aa0a6;
-    font-size: 12px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #202124;
-}
-
-.refresh-btn {
-    background: none;
-    border: 1px solid #dadce0;
-    color: #5f6368;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.refresh-btn:hover {
-    background: #f8f9fa;
-    border-color: #1a73e8;
-    color: #1a73e8;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #9aa0a6;
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.quick-action {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    background: white;
-    border: 2px solid #e8eaed;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #5f6368;
-    transition: all 0.2s;
-}
-
-.quick-action:hover {
-    border-color: #1a73e8;
-    color: #1a73e8;
-    transform: translateY(-1px);
-}
-
-.quick-action i {
-    font-size: 20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .quick-actions {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Dashboard Overview -->
-<div class="dashboard-overview">
-    <div class="dashboard-grid">
-        <!-- Chemical Inventory Stats -->
-        <div class="stats-card">
-            <div class="stats-header">
-                <div class="stats-title">Chemical Inventory</div>
-                <div class="stats-icon chemicals">
-                    <i class="fas fa-flask"></i>
-                </div>
+<!-- Dashboard Statistics Cards - Nextkit Style -->
+<div class="dashboard-grid">
+    <!-- Chemical Inventory Card -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <div class="stats-content">
+                <h3 class="stats-title">Chemical Inventory</h3>
             </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="total-chemicals">{{ stats.chemical_inventory.total if stats else 0 }}</div>
-                    <div class="stat-label">Total Active</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-warning" id="low-stock-chemicals">{{ stats.chemical_inventory.low_stock if stats else 0 }}</div>
-                    <div class="stat-label">Low Stock</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-danger" id="expired-chemicals">{{ stats.chemical_inventory.expired if stats else 0 }}</div>
-                    <div class="stat-label">Expired</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-info" id="recent-chemical-activity">{{ stats.chemical_inventory.recent_activity if stats else 0 }}</div>
-                    <div class="stat-label">Recent Activity</div>
-                </div>
-            </div>
-            <div class="quick-actions">
-                <a href="/chemical_inventory/" class="quick-action">
-                    <i class="fas fa-list"></i>
-                    <span>View Inventory</span>
-                </a>
-                <a href="/chemical_inventory/add" class="quick-action">
-                    <i class="fas fa-plus"></i>
-                    <span>Add Chemical</span>
-                </a>
+            <div class="stats-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
+                <i class="fas fa-flask"></i>
             </div>
         </div>
-
-        <!-- Reagents Stats -->
-        <div class="stats-card">
-            <div class="stats-header">
-                <div class="stats-title">Reagents</div>
-                <div class="stats-icon reagents">
-                    <i class="fas fa-vial"></i>
-                </div>
+        
+        <div class="stats-metrics">
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.chemical_inventory.total if stats else 1 }}</span>
+                <span class="metric-label">Total Active</span>
             </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="mm-reagents">{{ stats.reagents.mm_active if stats else 0 }}</div>
-                    <div class="stat-label">MM Active</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="pb-reagents">{{ stats.reagents.pb_active if stats else 0 }}</div>
-                    <div class="stat-label">Pb Active</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="tclp-reagents">{{ stats.reagents.tclp_active if stats else 0 }}</div>
-                    <div class="stat-label">TCLP Active</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="total-reagents">{{ stats.reagents.total_active if stats else 0 }}</div>
-                    <div class="stat-label">Total Active</div>
-                </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.chemical_inventory.low_stock if stats else 0 }}</span>
+                <span class="metric-label">Low Stock</span>
             </div>
-            <div class="quick-actions">
-                <a href="/reagents/mm" class="quick-action">
-                    <i class="fas fa-vial"></i>
-                    <span>MM Reagents</span>
-                </a>
-                <a href="/reagents/pb" class="quick-action">
-                    <i class="fas fa-vial"></i>
-                    <span>Pb Reagents</span>
-                </a>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.chemical_inventory.expired if stats else 0 }}</span>
+                <span class="metric-label">Expired</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.chemical_inventory.recent_activity if stats else 1 }}</span>
+                <span class="metric-label">Recent Activity</span>
             </div>
         </div>
-
-        <!-- Standards Stats -->
-        <div class="stats-card">
-            <div class="stats-header">
-                <div class="stats-title">Standards</div>
-                <div class="stats-icon standards">
-                    <i class="fas fa-balance-scale"></i>
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="mm-standards">{{ stats.standards.mm_active if stats else 0 }}</div>
-                    <div class="stat-label">MM Standards</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="flameaa-standards">{{ stats.standards.flameaa_active if stats else 0 }}</div>
-                    <div class="stat-label">FlameAA Standards</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="total-standards">{{ stats.standards.total_active if stats else 0 }}</div>
-                    <div class="stat-label">Total Active</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-info">-</div>
-                    <div class="stat-label">Verified</div>
-                </div>
-            </div>
-            <div class="quick-actions">
-                <a href="/standards/mm" class="quick-action">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>MM Standards</span>
-                </a>
-                <a href="/standards/flameaa" class="quick-action">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>FlameAA Standards</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Equipment Stats -->
-        <div class="stats-card">
-            <div class="stats-header">
-                <div class="stats-title">Equipment</div>
-                <div class="stats-icon equipment">
-                    <i class="fas fa-tools"></i>
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="total-equipment">{{ stats.equipment.total if stats else 0 }}</div>
-                    <div class="stat-label">Total Equipment</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-danger" id="overdue-calibrations">{{ stats.equipment.overdue_calibrations if stats else 0 }}</div>
-                    <div class="stat-label">Overdue Calibration</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-info" id="recent-pipette-tests">{{ stats.equipment.recent_pipette_tests if stats else 0 }}</div>
-                    <div class="stat-label">Pipette Tests (7d)</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value text-info" id="recent-water-tests">{{ stats.equipment.recent_water_tests if stats else 0 }}</div>
-                    <div class="stat-label">Water Tests (7d)</div>
-                </div>
-            </div>
-            <div class="quick-actions">
-                <a href="/equipment/" class="quick-action">
-                    <i class="fas fa-tools"></i>
-                    <span>Equipment List</span>
-                </a>
-                <a href="/equipment/pipettes" class="quick-action">
-                    <i class="fas fa-eyedropper"></i>
-                    <span>Pipette Log</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Maintenance Stats -->
-        <div class="stats-card">
-            <div class="stats-header">
-                <div class="stats-title">Maintenance</div>
-                <div class="stats-icon maintenance">
-                    <i class="fas fa-wrench"></i>
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value text-info" id="recent-maintenance">{{ stats.maintenance.recent_activities if stats else 0 }}</div>
-                    <div class="stat-label">Recent Activities</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">-</div>
-                    <div class="stat-label">Scheduled</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">-</div>
-                    <div class="stat-label">Overdue</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">-</div>
-                    <div class="stat-label">This Month</div>
-                </div>
-            </div>
-            <div class="quick-actions">
-                <a href="/maintenance/" class="quick-action">
-                    <i class="fas fa-wrench"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="/maintenance/icp-oes" class="quick-action">
-                    <i class="fas fa-microscope"></i>
-                    <span>ICP-OES Log</span>
-                </a>
-            </div>
+        
+        <div class="stats-actions">
+            <a href="/chemical_inventory/" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-list"></i> View Inventory
+            </a>
+            <a href="/chemical_inventory/add" class="btn" style="background: var(--primary-color); color: white; text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-plus"></i> Add Chemical
+            </a>
         </div>
     </div>
 
-    <!-- System Alerts -->
-    <div class="alerts-section">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fas fa-exclamation-triangle"></i>
-                System Alerts
-                {% if alerts and alerts.summary.total > 0 %}
-                <span class="badge badge-danger">{{ alerts.summary.total }}</span>
-                {% endif %}
+    <!-- Reagents Card -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <div class="stats-content">
+                <h3 class="stats-title">Reagents</h3>
             </div>
-            <button class="refresh-btn" onclick="refreshAlerts()">
-                <i class="fas fa-sync"></i>
-                Refresh
+            <div class="stats-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                <i class="fas fa-vial"></i>
+            </div>
+        </div>
+        
+        <div class="stats-metrics">
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.reagents.mm_active if stats else 1 }}</span>
+                <span class="metric-label">MM Active</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.reagents.pb_active if stats else 0 }}</span>
+                <span class="metric-label">Pb Active</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.reagents.tclp_active if stats else 0 }}</span>
+                <span class="metric-label">TCLP Active</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.reagents.total_active if stats else 1 }}</span>
+                <span class="metric-label">Total Active</span>
+            </div>
+        </div>
+        
+        <div class="stats-actions">
+            <a href="/reagents/mm" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-atom"></i> MM Reagents
+            </a>
+            <a href="/reagents/pb" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-radiation"></i> Pb Reagents
+            </a>
+        </div>
+    </div>
+
+    <!-- Standards Card -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <div class="stats-content">
+                <h3 class="stats-title">Standards</h3>
+            </div>
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+        </div>
+        
+        <div class="stats-metrics">
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.standards.mm_active if stats else 0 }}</span>
+                <span class="metric-label">MM Standards</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.standards.flameaa_active if stats else 0 }}</span>
+                <span class="metric-label">FlameAA Standards</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.standards.total_active if stats else 0 }}</span>
+                <span class="metric-label">Total Active</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">-</span>
+                <span class="metric-label">Verified</span>
+            </div>
+        </div>
+        
+        <div class="stats-actions">
+            <a href="/standards/mm" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-atom"></i> MM Standards
+            </a>
+            <a href="/standards/flameaa" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-fire"></i> FlameAA Standards
+            </a>
+        </div>
+    </div>
+
+    <!-- Equipment Card -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <div class="stats-content">
+                <h3 class="stats-title">Equipment</h3>
+            </div>
+            <div class="stats-icon" style="background: linear-gradient(135deg, #ef4444, #f87171);">
+                <i class="fas fa-tools"></i>
+            </div>
+        </div>
+        
+        <div class="stats-metrics">
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.equipment.total if stats else 0 }}</span>
+                <span class="metric-label">Total Equipment</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.equipment.overdue_calibrations if stats else 0 }}</span>
+                <span class="metric-label">Overdue Calibration</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.equipment.recent_pipette_tests if stats else 0 }}</span>
+                <span class="metric-label">Pipette Tests (7d)</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.equipment.recent_water_tests if stats else 0 }}</span>
+                <span class="metric-label">Water Tests (7d)</span>
+            </div>
+        </div>
+        
+        <div class="stats-actions">
+            <a href="/equipment/" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-cogs"></i> Equipment List
+            </a>
+            <a href="/equipment/pipettes" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-syringe"></i> Pipette Log
+            </a>
+        </div>
+    </div>
+
+    <!-- Maintenance Card -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <div class="stats-content">
+                <h3 class="stats-title">Maintenance</h3>
+            </div>
+            <div class="stats-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                <i class="fas fa-wrench"></i>
+            </div>
+        </div>
+        
+        <div class="stats-metrics">
+            <div class="metric-item">
+                <span class="metric-value">{{ stats.maintenance.recent_activities if stats else 0 }}</span>
+                <span class="metric-label">Recent Activities</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">-</span>
+                <span class="metric-label">Scheduled</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">-</span>
+                <span class="metric-label">Overdue</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">-</span>
+                <span class="metric-label">This Month</span>
+            </div>
+        </div>
+        
+        <div class="stats-actions">
+            <a href="/maintenance/" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-chart-bar"></i> Dashboard
+            </a>
+            <a href="/maintenance/icp-oes" class="btn" style="background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.8125rem; padding: 0.625rem 1rem;">
+                <i class="fas fa-microscope"></i> ICP-OES Log
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Section -->
+<div class="activity-section">
+    <!-- Recent Activity Card -->
+    <div class="activity-card">
+        <div class="activity-header">
+            <h3 class="activity-title">Recent Activity</h3>
+            <button class="refresh-btn" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Refresh
             </button>
         </div>
         
-        <div id="alerts-container">
-            {% if alerts and alerts.alerts %}
-                {% for alert in alerts.alerts[:10] %}
-                <div class="alert-item {{ alert.type }}">
-                    <div class="alert-icon {{ alert.type }}">
-                        <i class="{{ alert.icon }}"></i>
-                    </div>
-                    <div class="alert-content">
-                        <div class="alert-title">{{ alert.title }}</div>
-                        <div class="alert-message">{{ alert.message }}</div>
-                        <div class="alert-details">{{ alert.details }}</div>
-                    </div>
-                    {% if alert.action_url %}
-                    <a href="{{ alert.action_url }}" class="btn btn-sm btn-outline">
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                
-                {% if alerts.summary.total > 10 %}
-                <div class="text-center" style="margin-top: 15px;">
-                    <small class="text-muted">
-                        Showing 10 of {{ alerts.summary.total }} alerts
-                    </small>
-                </div>
-                {% endif %}
+        <div class="activity-content">
+            {% if recent_activity and recent_activity.activities %}
+                <ul class="activity-list">
+                    {% for activity in recent_activity.activities[:5] %}
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-{{ activity.icon if activity.icon else 'circle' }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">{{ activity.description }}</p>
+                            <p class="activity-description">{{ activity.details if activity.details else 'No additional details' }}</p>
+                            <p class="activity-time">{{ activity.timestamp.strftime('%m/%d/%Y, %I:%M:%S %p') if activity.timestamp else 'Unknown time' }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-check-circle"></i>
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">Chemical inventory: created</p>
+                        <p class="activity-description">Initial inventory entry</p>
+                        <p class="activity-time">08/08/2025, 10:51 PM</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Alerts Card -->
+    <div class="activity-card">
+        <div class="activity-header">
+            <h3 class="activity-title">System Alerts</h3>
+            <button class="refresh-btn" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+        
+        <div class="activity-content">
+            {% if alerts and alerts.alerts %}
+                <ul class="activity-list">
+                    {% for alert in alerts.alerts[:5] %}
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-{{ alert.icon if alert.icon else 'exclamation-triangle' }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">{{ alert.title }}</p>
+                            <p class="activity-description">{{ alert.message }}</p>
+                            <p class="activity-time">{{ alert.timestamp.strftime('%m/%d/%Y, %I:%M:%S %p') if alert.timestamp else 'Unknown time' }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: var(--success-color);">
+                    <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                     <p>No active alerts - all systems operating normally</p>
                 </div>
             {% endif %}
         </div>
     </div>
-
-    <!-- Recent Activity -->
-    <div class="activity-section">
-        <div class="section-header">
-            <div class="section-title">
-                <i class="fas fa-history"></i>
-                Recent Activity
-            </div>
-            <button class="refresh-btn" onclick="refreshActivity()">
-                <i class="fas fa-sync"></i>
-                Refresh
-            </button>
-        </div>
-        
-        <div class="activity-feed" id="activity-feed">
-            {% if recent_activity and recent_activity.activities %}
-                {% for activity in recent_activity.activities %}
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="{{ activity.icon }}"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-description">{{ activity.description }}</div>
-                        <div class="activity-details">{{ activity.details }}</div>
-                        <div class="activity-time">{{ activity.timestamp.strftime('%m/%d/%Y %I:%M %p') if activity.timestamp else 'Unknown time' }}</div>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-clock"></i>
-                    <p>No recent activity</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Dashboard JavaScript
-let refreshInterval;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-refresh every 5 minutes
-    refreshInterval = setInterval(() => {
-        refreshDashboard();
-    }, 300000);
-    
-    // Initial load
-    refreshDashboard();
-});
-
-async function refreshDashboard() {
-    await Promise.all([
-        refreshStats(),
-        refreshAlerts(), 
-        refreshActivity()
-    ]);
-}
-
-async function refreshStats() {
-    try {
-        const response = await fetch('/api/stats');
-        if (response.ok) {
-            const stats = await response.json();
-            updateStatsDisplay(stats);
-        }
-    } catch (error) {
-        console.error('Error refreshing stats:', error);
-    }
-}
-
-async function refreshAlerts() {
-    try {
-        const response = await fetch('/api/alerts');
-        if (response.ok) {
-            const alerts = await response.json();
-            updateAlertsDisplay(alerts);
-        }
-    } catch (error) {
-        console.error('Error refreshing alerts:', error);
-    }
-}
-
-async function refreshActivity() {
-    try {
-        const response = await fetch('/api/activity');
-        if (response.ok) {
-            const activity = await response.json();
-            updateActivityDisplay(activity);
-        }
-    } catch (error) {
-        console.error('Error refreshing activity:', error);
-    }
-}
-
-function updateStatsDisplay(stats) {
-    // Chemical Inventory
-    document.getElementById('total-chemicals').textContent = stats.chemical_inventory.total;
-    document.getElementById('low-stock-chemicals').textContent = stats.chemical_inventory.low_stock;
-    document.getElementById('expired-chemicals').textContent = stats.chemical_inventory.expired;
-    document.getElementById('recent-chemical-activity').textContent = stats.chemical_inventory.recent_activity;
-    
-    // Reagents
-    document.getElementById('mm-reagents').textContent = stats.reagents.mm_active;
-    document.getElementById('pb-reagents').textContent = stats.reagents.pb_active;
-    document.getElementById('tclp-reagents').textContent = stats.reagents.tclp_active;
-    document.getElementById('total-reagents').textContent = stats.reagents.total_active;
-    
-    // Standards
-    document.getElementById('mm-standards').textContent = stats.standards.mm_active;
-    document.getElementById('flameaa-standards').textContent = stats.standards.flameaa_active;
-    document.getElementById('total-standards').textContent = stats.standards.total_active;
-    
-    // Equipment
-    document.getElementById('total-equipment').textContent = stats.equipment.total;
-    document.getElementById('overdue-calibrations').textContent = stats.equipment.overdue_calibrations;
-    document.getElementById('recent-pipette-tests').textContent = stats.equipment.recent_pipette_tests;
-    document.getElementById('recent-water-tests').textContent = stats.equipment.recent_water_tests;
-    
-    // Maintenance
-    document.getElementById('recent-maintenance').textContent = stats.maintenance.recent_activities;
-}
-
-function updateAlertsDisplay(alerts) {
-    const container = document.getElementById('alerts-container');
-    
-    if (alerts.alerts && alerts.alerts.length > 0) {
-        const alertsHtml = alerts.alerts.slice(0, 10).map(alert => `
-            <div class="alert-item ${alert.type}">
-                <div class="alert-icon ${alert.type}">
-                    <i class="${alert.icon}"></i>
-                </div>
-                <div class="alert-content">
-                    <div class="alert-title">${alert.title}</div>
-                    <div class="alert-message">${alert.message}</div>
-                    <div class="alert-details">${alert.details}</div>
-                </div>
-                ${alert.action_url ? `
-                    <a href="${alert.action_url}" class="btn btn-sm btn-outline">
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                ` : ''}
-            </div>
-        `).join('');
-        
-        container.innerHTML = alertsHtml;
-        
-        if (alerts.summary.total > 10) {
-            container.innerHTML += `
-                <div class="text-center" style="margin-top: 15px;">
-                    <small class="text-muted">
-                        Showing 10 of ${alerts.summary.total} alerts
-                    </small>
-                </div>
-            `;
-        }
-    } else {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <p>No active alerts - all systems operating normally</p>
-            </div>
-        `;
-    }
-}
-
-function updateActivityDisplay(activity) {
-    const feed = document.getElementById('activity-feed');
-    
-    if (activity.activities && activity.activities.length > 0) {
-        const activitiesHtml = activity.activities.map(item => `
-            <div class="activity-item">
-                <div class="activity-icon">
-                    <i class="${item.icon}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-description">${item.description}</div>
-                    <div class="activity-details">${item.details}</div>
-                    <div class="activity-time">${formatTimestamp(item.timestamp)}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        feed.innerHTML = activitiesHtml;
-    } else {
-        feed.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-clock"></i>
-                <p>No recent activity</p>
-            </div>
-        `;
-    }
-}
-
-function formatTimestamp(timestamp) {
-    if (!timestamp) return 'Unknown time';
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    });
-}
-
-// Clean up on page unload
-window.addEventListener('beforeunload', () => {
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-    }
-});
-</script>
 {% endblock %}

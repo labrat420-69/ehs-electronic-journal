@@ -3,48 +3,57 @@ EHS Electronic Journal - Main Stylesheet
 Professional blue color scheme with responsive design
 */
 
-/* CSS Variables for consistent theming - Futuristic Lab Safety Theme */
+/* CSS Variables for consistent theming - Modern Nextkit-inspired Professional Design */
 :root {
-    /* Primary lab safety color scheme - Blue-teal gradient inspired by laboratory instruments */
-    --primary-color: #0d47a1;        /* Deep lab blue - primary instruments */
-    --primary-dark: #01579b;         /* Deeper blue for contrast */
-    --primary-light: #1976d2;        /* Brighter blue for highlights */
-    --primary-lighter: #e3f2fd;      /* Very light blue for backgrounds */
+    /* Primary modern color scheme - Nextkit inspired */
+    --primary-color: #3b82f6;        /* Modern blue - primary brand */
+    --primary-dark: #1d4ed8;         /* Darker blue for emphasis */
+    --primary-light: #60a5fa;        /* Lighter blue for highlights */
+    --primary-lighter: #dbeafe;      /* Very light blue for backgrounds */
     
-    /* Secondary lab colors - Gray-steel for equipment */
-    --secondary-color: #263238;      /* Lab equipment gray */
-    --secondary-light: #78909c;      /* Medium equipment gray */
-    --secondary-lighter: #eceff1;    /* Light equipment background */
+    /* Secondary modern colors - Neutral grays */
+    --secondary-color: #64748b;      /* Modern slate gray */
+    --secondary-light: #94a3b8;      /* Medium slate gray */
+    --secondary-lighter: #f1f5f9;    /* Light background */
     
-    /* Lab safety status colors */
-    --success-color: #2e7d32;       /* Safety green - all clear */
-    --warning-color: #f57500;       /* Caution orange - requires attention */
-    --error-color: #c62828;         /* Danger red - critical alert */
-    --info-color: #0277bd;          /* Info blue - informational */
+    /* Status colors - Modern palette */
+    --success-color: #10b981;       /* Modern green */
+    --warning-color: #f59e0b;       /* Modern amber */
+    --error-color: #ef4444;         /* Modern red */
+    --info-color: #06b6d4;          /* Modern cyan */
+    
+    /* Additional accent colors */
+    --purple-color: #8b5cf6;        /* Purple accent */
+    --orange-color: #f97316;        /* Orange accent */
     
     /* Text colors */
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --text-disabled: #9ca3af;
+    --text-primary: #0f172a;        /* Slate 900 */
+    --text-secondary: #64748b;      /* Slate 500 */
+    --text-disabled: #94a3b8;       /* Slate 400 */
     --text-inverse: #ffffff;
+    --text-muted: #6b7280;          /* Gray 500 */
     
     /* Background colors */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #e2e8f0;
+    --bg-secondary: #f8fafc;        /* Slate 50 */
+    --bg-tertiary: #f1f5f9;         /* Slate 100 */
     --bg-overlay: rgba(0, 0, 0, 0.6);
+    --bg-gray-50: #f9fafb;
+    --bg-gray-100: #f3f4f6;
     
     /* Border colors */
-    --border-color: #d1d5db;
-    --border-light: #e5e7eb;
-    --border-dark: #6b7280;
+    --border-color: #e2e8f0;        /* Slate 200 */
+    --border-light: #f1f5f9;        /* Slate 100 */
+    --border-dark: #64748b;         /* Slate 500 */
     
-    /* Laboratory sidebar - Modern instrument panel design */
-    --sidebar-width: 300px;         /* Wider for better navigation */
-    --sidebar-collapsed-width: 65px;
-    --sidebar-bg: linear-gradient(180deg, #263238 0%, #37474f 100%); /* Lab equipment gradient */
-    --sidebar-text: #eceff1;
-    --sidebar-hover: rgba(25, 118, 210, 0.2); /* Lab blue hover effect */
+    /* Modern sidebar design */
+    --sidebar-width: 280px;         /* Optimized width */
+    --sidebar-collapsed-width: 70px;
+    --sidebar-bg: #ffffff;          /* Clean white background */
+    --sidebar-border: #f1f5f9;      /* Light border */
+    --sidebar-text: #64748b;        /* Slate text */
+    --sidebar-text-active: #3b82f6; /* Primary blue for active */
+    --sidebar-hover: #f8fafc;       /* Light hover background */
     
     /* Shadows */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.15);
@@ -90,29 +99,438 @@ html {
 body {
     font-family: var(--font-family);
     font-size: var(--font-size-base);
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--text-primary);
-    background-color: #f0f2f5;
+    background-color: var(--bg-secondary);
     overflow-x: hidden;
+    margin: 0;
+    padding: 0;
 }
 
-/* Layout components */
+/* Layout components - Modern Nextkit Design */
+.page-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-secondary);
+}
 
-/* Sidebar styles */
+/* Modern Sidebar Design */
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: var(--sidebar-width);
-    height: 100vh;
-    background: linear-gradient(180deg, var(--sidebar-bg) 0%, #111827 100%);
-    color: var(--sidebar-text);
-    transition: transform var(--transition-normal);
+    min-height: 100vh;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    position: fixed;
+    left: 0;
+    top: 0;
     z-index: 1000;
+    transition: all var(--transition-normal);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--sidebar-border);
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--primary-color);
+    padding: 8px;
+}
+
+.company-info h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.company-info p {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Modern sidebar navigation */
+.sidebar-nav {
+    padding: 1rem 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar-nav li {
+    margin: 0;
+}
+
+/* Modern navigation links */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+    position: relative;
+    border-radius: 0;
+}
+
+.nav-link:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-link.active {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--sidebar-text-active);
+    font-weight: 600;
+    border-right: 3px solid var(--primary-color);
+}
+
+.nav-link i {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.nav-link.active i {
+    opacity: 1;
+}
+
+/* Navigation sections with improved modern styling */
+.nav-section {
+    margin-bottom: 0.25rem;
+}
+
+.nav-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nav-section-header:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--primary-color);
+}
+
+.nav-section-header i.toggle-icon {
+    margin-left: auto;
+    transition: transform var(--transition-fast);
+    font-size: 0.75rem;
+}
+
+.nav-section.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.nav-subsection {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-normal);
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.nav-section.expanded .nav-subsection {
+    max-height: 400px;
+}
+
+.nav-subsection .nav-link {
+    padding-left: 3.5rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+}
+
+.nav-subsection .nav-link i {
+    font-size: 0.875rem;
+}
+
+/* Clock container - modern design */
+.clock-container {
+    padding: 1rem 1.5rem;
+    background: rgba(248, 250, 252, 0.8);
+    margin: 0 1rem 1rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.current-time {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.timezone {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Sidebar footer - modern user section */
+.sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--sidebar-border);
+    background: rgba(248, 250, 252, 0.3);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Main content area - Modern layout */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    transition: margin-left var(--transition-normal);
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-lg);
-    border-right: 3px solid #374151;
+    background: var(--bg-secondary);
+}
+
+.main-header {
+    background: white;
+    border-bottom: 1px solid var(--border-light);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.welcome-message {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.content-body {
+    flex: 1;
+    padding: 2rem;
+}
+
+/* Dashboard Grid System - Nextkit Style */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Activity Section */
+.activity-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .activity-section {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-light);
+}
+
+.activity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.activity-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.refresh-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.refresh-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Activity items */
+.activity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--primary-lighter);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-text {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+}
+
+.activity-description {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.25rem 0;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
 }
 
 .sidebar.collapsed {
