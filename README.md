@@ -228,7 +228,7 @@ fly ssh console
    # Connect to container for debugging
    fly ssh console
    cd /app
-   python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+   python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080
    ```
 
 ### Cost Optimization
@@ -236,6 +236,120 @@ fly ssh console
 - Use `fly scale count 0` during development to stop machines when not needed
 - Configure `min_machines_running = 0` in fly.toml for development apps
 - Monitor resource usage and adjust memory/CPU allocation as needed
+
+## Fly.io Deployment
+
+The EHS Electronic Journal can be deployed to Fly.io for cloud hosting. The deployment configuration uses port 8080 and requires deploying from the correct branch.
+
+### Prerequisites
+- [Fly CLI installed](https://fly.io/docs/hands-on/install-flyctl/)
+- Fly.io account and authenticated (`fly auth login`)
+
+### Initial Deployment
+
+1. **Ensure you're on the correct branch:**
+   ```bash
+   # The application should be deployed from the main1 branch
+   git checkout main1
+   git pull origin main1
+   ```
+
+2. **Deploy to Fly.io:**
+   ```bash
+   fly deploy
+   ```
+
+### Important Configuration Details
+
+- **Port Configuration**: The application is configured to use port 8080 (not 8000)
+  - `Dockerfile` exposes port 8080 
+  - `fly.toml` uses `internal_port = 8080`
+  - FastAPI runs on `uvicorn backend.main:app --host 0.0.0.0 --port 8080`
+
+- **Static Files**: The Dockerfile correctly copies both:
+  - `frontend/templates/` - Jinja2 templates
+  - `frontend/static/` - CSS, JS, and static assets
+
+- **Application Entry Point**: Uses `uvicorn backend.main:app` (correct module path)
+
+### Deployment Checklist
+
+Before deploying, ensure:
+- [x] All recent template and static file changes are merged to main1
+- [x] Dockerfile copies `frontend/templates` and `frontend/static` 
+- [x] Port configuration uses 8080 in both Dockerfile and fly.toml
+- [x] Application entry point is `backend.main:app`
+- [ ] Environment secrets configured (`fly secrets set KEY=value`)
+- [ ] Database configured (SQLite with volumes or Fly Postgres)
+
+### Environment Configuration
+
+```bash
+# Set required secrets
+fly secrets set SECRET_KEY="your-secret-key-here"
+fly secrets set DATABASE_TYPE="sqlite"  # or postgresql
+
+# For PostgreSQL (if using Fly Postgres):
+fly postgres create --name ehs-db
+fly postgres attach ehs-db  # Sets DATABASE_URL automatically
+fly secrets set DATABASE_TYPE="postgresql"
+```
+
+### SQLite Configuration with Persistent Storage
+
+```bash
+# Create a volume for SQLite database persistence
+fly volumes create ehs_data --region iad --size 1
+
+# Update fly.toml to mount the volume:
+# [mounts]
+# destination = "/app/data" 
+# source = "ehs_data"
+
+# Set the database path to use the volume:
+fly secrets set DATABASE_PATH="/app/data/ehs_journal.db"
+```
+
+### Redeployment After Updates
+
+```bash
+# Ensure you're on main1 branch with latest changes
+git checkout main1
+git pull origin main1
+
+# Deploy the updated application
+fly deploy
+
+# Monitor deployment logs
+fly logs
+```
+
+### Troubleshooting Fly.io Deployment
+
+1. **Outdated template served:**
+   - Verify you're deploying from main1 branch: `git branch --show-current`
+   - Check Docker cache: `fly deploy --no-cache`
+
+2. **Port connection errors:**
+   - Verify `internal_port = 8080` in fly.toml
+   - Check Dockerfile exposes port 8080
+   - Ensure uvicorn starts on port 8080
+
+3. **Static files not loading:**
+   - Confirm Dockerfile copies `frontend/static` and `frontend/templates`
+   - Check build logs: `fly logs`
+
+4. **Application won't start:**
+   ```bash
+   # Check deployment status
+   fly status
+   
+   # View application logs
+   fly logs
+   
+   # Connect to container for debugging
+   fly ssh console
+   ```
 
 ## Docker Deployment
 
@@ -468,6 +582,8 @@ ehs-electronic-journal/
 When running the development server, API documentation is available at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+
+*Note: For Fly.io deployments, the application runs on port 8080, but Fly.io handles the port mapping automatically.*
 
 ## Database Migration
 
