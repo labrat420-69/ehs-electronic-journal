@@ -19,7 +19,7 @@
             <a href="/chemical_inventory/add" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add Chemical
             </a>
-            <button id="export-btn" class="btn btn-secondary">
+            <button id="chemical-inventory-export-btn" class="btn btn-secondary export-btn">
                 <i class="fas fa-download"></i> Export
             </button>
         </div>
@@ -68,7 +68,7 @@
 </div>
 
 <!-- Chemical Inventory Table -->
-<div class="table-container">
+<div class="table-container full-width">
     <table id="chemicals-table" class="data-table">
         <thead>
             <tr>
@@ -88,7 +88,7 @@
             <tr data-chemical-id="{{ chemical.id }}" class="{% if not chemical.is_active %}inactive{% endif %}">
                 <td>
                     <div class="chemical-info">
-                        <strong>{{ chemical.chemical_name }}</strong>
+                        <strong><a href="#" class="table-link" data-type="chemical_name" data-value="{{ chemical.chemical_name }}">{{ chemical.chemical_name }}</a></strong>
                         {% if chemical.is_hazardous %}
                         <span class="badge badge-warning" title="Hazardous Chemical">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -101,7 +101,13 @@
                 </td>
                 <td>{{ chemical.cas_number or 'N/A' }}</td>
                 <td>{{ chemical.manufacturer or 'N/A' }}</td>
-                <td>{{ chemical.lot_number or 'N/A' }}</td>
+                <td>
+                    {% if chemical.lot_number %}
+                    <a href="#" class="table-link" data-type="lot_number" data-value="{{ chemical.lot_number }}">{{ chemical.lot_number }}</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
                 <td>
                     <div class="quantity-info">
                         <span class="quantity-value" data-quantity="{{ chemical.current_quantity }}">

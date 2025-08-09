@@ -3,24 +3,24 @@ EHS Electronic Journal - Main Stylesheet
 Professional blue color scheme with responsive design
 */
 
-/* CSS Variables for consistent theming - Enterprise Professional */
+/* CSS Variables for consistent theming - Futuristic Lab Safety Theme */
 :root {
-    /* Primary enterprise color scheme */
-    --primary-color: #1d4ed8;
-    --primary-dark: #1e40af;
-    --primary-light: #3b82f6;
-    --primary-lighter: #dbeafe;
+    /* Primary lab safety color scheme - Blue-teal gradient inspired by laboratory instruments */
+    --primary-color: #0d47a1;        /* Deep lab blue - primary instruments */
+    --primary-dark: #01579b;         /* Deeper blue for contrast */
+    --primary-light: #1976d2;        /* Brighter blue for highlights */
+    --primary-lighter: #e3f2fd;      /* Very light blue for backgrounds */
     
-    /* Secondary colors */
-    --secondary-color: #374151;
-    --secondary-light: #9ca3af;
-    --secondary-lighter: #f3f4f6;
+    /* Secondary lab colors - Gray-steel for equipment */
+    --secondary-color: #263238;      /* Lab equipment gray */
+    --secondary-light: #78909c;      /* Medium equipment gray */
+    --secondary-lighter: #eceff1;    /* Light equipment background */
     
-    /* Status colors */
-    --success-color: #059669;
-    --warning-color: #d97706;
-    --error-color: #dc2626;
-    --info-color: #0284c7;
+    /* Lab safety status colors */
+    --success-color: #2e7d32;       /* Safety green - all clear */
+    --warning-color: #f57500;       /* Caution orange - requires attention */
+    --error-color: #c62828;         /* Danger red - critical alert */
+    --info-color: #0277bd;          /* Info blue - informational */
     
     /* Text colors */
     --text-primary: #1f2937;
@@ -39,12 +39,12 @@ Professional blue color scheme with responsive design
     --border-light: #e5e7eb;
     --border-dark: #6b7280;
     
-    /* Sidebar */
-    --sidebar-width: 280px;
-    --sidebar-collapsed-width: 60px;
-    --sidebar-bg: #1f2937;
-    --sidebar-text: #f9fafb;
-    --sidebar-hover: rgba(255, 255, 255, 0.1);
+    /* Laboratory sidebar - Modern instrument panel design */
+    --sidebar-width: 300px;         /* Wider for better navigation */
+    --sidebar-collapsed-width: 65px;
+    --sidebar-bg: linear-gradient(180deg, #263238 0%, #37474f 100%); /* Lab equipment gradient */
+    --sidebar-text: #eceff1;
+    --sidebar-hover: rgba(25, 118, 210, 0.2); /* Lab blue hover effect */
     
     /* Shadows */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.15);
@@ -289,17 +289,32 @@ body {
     gap: var(--spacing-sm);
 }
 
-/* Main content area */
+/* Main content area - Enhanced for better width utilization */
 .main-content {
     margin-left: var(--sidebar-width);
     min-height: 100vh;
     transition: margin-left var(--transition-normal);
     display: flex;
     flex-direction: column;
+    padding: 0; /* Remove default padding to maximize width */
 }
 
 .sidebar.collapsed + .main-content {
     margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Content container - Full width usage */
+.content-container {
+    flex: 1;
+    padding: 20px 30px;
+    max-width: none; /* Remove width restrictions */
+    width: 100%;
+}
+
+.container-fluid {
+    max-width: none;
+    width: 100%;
+    padding: 0 20px;
 }
 
 /* Top bar */
@@ -398,4 +413,82 @@ body {
     .welcome-text {
         display: none;
     }
+}
+
+/* Responsive grid system for better space utilization */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+    padding: 0 10px;
+}
+
+.col-md-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+    padding: 0 10px;
+}
+
+.col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 0 10px;
+}
+
+.col-md-8 {
+    flex: 0 0 66.666667%;
+    max-width: 66.666667%;
+    padding: 0 10px;
+}
+
+.col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding: 0 10px;
+}
+
+/* Full-width tables and forms */
+.full-width {
+    width: 100%;
+    max-width: none;
+}
+
+.table-full-width .table-container {
+    margin: 20px 0;
+    width: 100%;
+}
+
+.table-full-width .data-table {
+    min-width: 100%;
+}
+
+/* Enhanced spacing */
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.p-4 {
+    padding: 1.5rem;
+}
+
+/* Utility classes */
+.text-center {
+    text-align: center;
+}
+
+.text-primary {
+    color: var(--primary-color);
+}
+
+.text-muted {
+    color: var(--text-secondary);
 }
