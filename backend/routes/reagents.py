@@ -554,6 +554,52 @@ async def create_pb_reagent(
             detail=f"Error creating Pb reagent: {str(e)}"
         )
 
+@router.get("/pb/export")
+async def export_pb_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export Pb reagents to Excel"""
+    reagents = db.query(PbReagents).filter(PbReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'Concentration': reagent.concentration or '',
+            'pH Value': float(reagent.ph_value) if reagent.ph_value else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Pb Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['Pb Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=pb_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
+
 # TCLP Reagents Routes (similar structure)
 @router.get("/tclp", response_class=HTMLResponse)
 async def tclp_reagents_list(
@@ -639,6 +685,54 @@ async def create_tclp_reagent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error creating TCLP reagent: {str(e)}"
         )
+
+@router.get("/tclp/export")
+async def export_tclp_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export TCLP reagents to Excel"""
+    reagents = db.query(TCLPReagents).filter(TCLPReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Reagent Type': reagent.reagent_type,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'pH Target': float(reagent.ph_target) if reagent.ph_target else '',
+            'Final pH': float(reagent.final_ph) if reagent.final_ph else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Verification Passed': reagent.verification_passed,
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='TCLP Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['TCLP Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=tclp_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )
 
 # Generic routes for all reagent types
 @router.get("/api/", response_model=dict)
@@ -765,3 +859,49 @@ async def create_mercury_reagent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error creating Mercury reagent: {str(e)}"
         )
+
+@router.get("/mercury/export")
+async def export_mercury_reagents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permissions(["read"]))
+):
+    """Export Mercury reagents to Excel"""
+    reagents = db.query(MercuryReagents).filter(MercuryReagents.is_active == True).all()
+    
+    # Convert to DataFrame
+    data = []
+    for reagent in reagents:
+        data.append({
+            'ID': reagent.id,
+            'Reagent Name': reagent.reagent_name,
+            'Batch Number': reagent.batch_number,
+            'Preparation Date': reagent.preparation_date.strftime('%Y-%m-%d') if reagent.preparation_date else '',
+            'Expiration Date': reagent.expiration_date.strftime('%Y-%m-%d') if reagent.expiration_date else '',
+            'Total Volume (mL)': float(reagent.total_volume) if reagent.total_volume else 0,
+            'Concentration': reagent.concentration or '',
+            'pH Value': float(reagent.ph_value) if reagent.ph_value else '',
+            'Conductivity': float(reagent.conductivity) if reagent.conductivity else '',
+            'Prepared By': reagent.preparer.full_name if reagent.preparer else '',
+            'Notes': reagent.notes or ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Mercury Reagents', index=False)
+        
+        # Style the worksheet
+        worksheet = writer.sheets['Mercury Reagents']
+        for cell in worksheet["1:1"]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=mercury_reagents_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+    )

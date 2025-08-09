@@ -4,7 +4,7 @@ Authentication routes for login, logout, and user management
 
 from datetime import timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -239,6 +239,58 @@ async def update_profile(
     
     # Redirect back to profile with success message
     return RedirectResponse(url="/auth/profile?updated=true", status_code=302)
+
+@router.post("/profile/picture")
+async def upload_profile_picture(
+    profile_picture: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload profile picture"""
+    import os
+    import uuid
+    from pathlib import Path
+    
+    # Validate file type
+    if not profile_picture.content_type.startswith('image/'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+    
+    # Validate file size (max 5MB)
+    if profile_picture.size > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size must be less than 5MB"
+        )
+    
+    try:
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("frontend/static/uploads/profiles")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_extension = profile_picture.filename.split('.')[-1] if '.' in profile_picture.filename else 'jpg'
+        filename = f"{current_user.id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        file_path = upload_dir / filename
+        
+        # Save file
+        content = await profile_picture.read()
+        with open(file_path, 'wb') as f:
+            f.write(content)
+        
+        # Update user record with profile picture path
+        current_user.profile_picture = f"/static/uploads/profiles/{filename}"
+        db.commit()
+        
+        return RedirectResponse(url="/profile?picture_updated=true", status_code=302)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error uploading file: {str(e)}"
+        )
 
 @router.post("/change-password")
 async def change_password(
